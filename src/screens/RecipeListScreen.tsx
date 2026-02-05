@@ -163,23 +163,20 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                 <View style={styles.recipeHeader}>
                   <View style={styles.recipeTitleContainer}>
                     <Text style={styles.recipeTitle}>{item.title}</Text>
-                    {cuisineInfos.length > 0 && (
-                      <View style={styles.cuisineBadgesContainer}>
-                        {cuisineInfos.map((cuisineInfo, idx) => (
-                          <View key={idx} style={styles.cuisineBadge}>
-                            <Text style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
-                            <Text style={styles.cuisineLabel}>{cuisineInfo?.label}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
                   </View>
                 </View>
-                {item.total_time_minutes && (
-                  <View style={styles.timeBadge}>
-                    <Text style={styles.timeBadgeText}>⏱️ {item.total_time_minutes} min</Text>
-                  </View>
-                )}
+                <View style={styles.footerRow}>
+                  {item.total_time_minutes && (
+                    <Text style={styles.timeText}>⏱️ {item.total_time_minutes} min</Text>
+                  )}
+                  {cuisineInfos.length > 0 && (
+                    <View style={styles.cuisineFlagsContainer}>
+                      {cuisineInfos.map((cuisineInfo, idx) => (
+                        <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             );
           }}
@@ -251,8 +248,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    position: 'relative',
-    minHeight: 100,
   },
   recipeHeader: {
     marginBottom: SPACING.sm,
@@ -266,42 +261,27 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
-  cuisineBadgesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.xs,
-    marginTop: SPACING.xs,
-  },
-  cuisineBadge: {
+  footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.accent + '20',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.sm,
+    justifyContent: 'space-between',
+    marginTop: SPACING.sm,
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
-  cuisineFlag: {
+  timeText: {
     fontSize: 14,
-    marginRight: SPACING.xs,
-  },
-  cuisineLabel: {
-    fontSize: 12,
-    color: COLORS.text,
+    color: COLORS.textSecondary,
     fontWeight: '500',
   },
-  timeBadge: {
-    position: 'absolute',
-    bottom: SPACING.sm,
-    left: SPACING.md,
-    backgroundColor: COLORS.primary + '20',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.sm,
+  cuisineFlagsContainer: {
+    flexDirection: 'row',
+    gap: SPACING.xs,
+    alignItems: 'center',
   },
-  timeBadgeText: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: '600',
+  cuisineFlag: {
+    fontSize: 18,
   },
   emptyText: {
     fontSize: 18,
