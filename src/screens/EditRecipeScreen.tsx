@@ -180,6 +180,41 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
     }
   };
 
+  const handleAddCuisine = async () => {
+    if (!newCuisineName.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un nombre para la cocina');
+      return;
+    }
+
+    if (!newCuisineFlag.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un emoji de bandera');
+      return;
+    }
+
+    try {
+      const newCuisine = {
+        value: newCuisineName.toLowerCase().replace(/\s+/g, '_'),
+        label: newCuisineName.trim(),
+        flag: newCuisineFlag.trim(),
+      };
+
+      await addCustomCuisine(newCuisine);
+      await loadCustomOptions();
+      setSelectedCuisines([...selectedCuisines, newCuisine.value as Cuisine]);
+      
+      Alert.alert('Éxito', `Cocina "${newCuisineName}" añadida`);
+      setShowAddCuisineModal(false);
+      setNewCuisineName('');
+      setNewCuisineFlag('🌍');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir cocina');
+    }
+  };
+
+  const handleRemoveCuisine = (cuisineToRemove: Cuisine) => {
+    setSelectedCuisines(selectedCuisines.filter(c => c !== cuisineToRemove));
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Por favor ingresa un título para la receta.');
