@@ -7,12 +7,41 @@
 
 const express = require('express');
 const cors = require('cors');
-// Node.js 18+ has built-in fetch, no need for node-fetch
+const multer = require('multer');
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const fs = require('fs').promises;
+const path = require('path');
+const os = require('os');
+
+const execAsync = promisify(exec);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://192.168.200.45:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:3b';
+const WHISPER_MODEL = process.env.WHISPER_MODEL || 'small';
+const WHISPER_VENV_PATH = process.env.WHISPER_VENV_PATH || path.join(__dirname, 'whisper_venv');
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: os.tmpdir(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept audio files
+    const allowedMimes = [
+      'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/m4a',
+      'audio/wav', 'audio/webm', 'audio/ogg', 'audio/aac'
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only audio files are allowed.'));
+    }
+  },
+});
 
 // Middleware
 app.use(cors());
@@ -20,7 +49,146 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', ollama_url: OLLAMA_BASE_URL, model: OLLAMA_MODEL });
+  res.json({ 
+    status: 'ok', 
+    ollama_url: OLLAMA_BASE_URL, 
+    model: OLLAMA_MODEL,
+    whisper_model: WHISPER_MODEL,
+    whisper_venv: WHISPER_VENV_PATH
+  });
+});
+
+// Speech-to-text transcription endpoint
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ 
+      error: 'No audio file provided. Please upload an audio file.' 
+    });
+  }
+
+  const audioFilePath = req.file.path;
+  const language = req.body.language || 'es'; // Default to Spanish
+
+  try {
+    // Check if Whisper is available
+    const whisperPath = path.join(WHISPER_VENV_PATH, 'bin', 'whisper');
+    
+    // Check if whisper executable exists
+    try {
+      await fs.access(whisperPath);
+    } catch {
+      // Try system-wide whisper if venv doesn't have it
+      const systemWhisper = 'whisper';
+      try {
+        await execAsync(`which ${systemWhisper}`);
+        // Use system whisper
+        const whisperCmd = systemWhisper;
+      } catch {
+        return res.status(500).json({ 
+          error: 'Whisper is not installed. Please install Whisper first.',
+          hint: 'See INSTALL_WHISPER.md for installation instructions'
+        });
+      }
+    }
+
+    // Determine which whisper to use
+    let whisperCmd;
+    try {
+      await fs.access(whisperPath);
+      whisperCmd = whisperPath;
+    } catch {
+      whisperCmd = 'whisper'; // Fallback to system-wide
+    }
+
+    // Create output directory for transcription
+    const outputDir = path.join(os.tmpdir(), `whisper_${Date.now()}`);
+    await fs.mkdir(outputDir, { recursive: true });
+
+    // Run Whisper transcription
+    // --language es: Spanish
+    // --model small: Use small model (good balance)
+    // --output_dir: Where to save output
+    // --output_format txt: Get plain text
+    // --fp16 False: Disable FP16 (better compatibility)
+    const whisperCommand = `${whisperCmd} "${audioFilePath}" --language ${language} --model ${WHISPER_MODEL} --output_dir "${outputDir}" --output_format txt --fp16 False`;
+
+    console.log(`🎤 Transcribing audio with Whisper (model: ${WHISPER_MODEL}, language: ${language})...`);
+    
+    const { stdout, stderr } = await execAsync(whisperCommand, {
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      timeout: 300000, // 5 minute timeout
+    });
+
+    // Read the transcribed text file
+    const baseName = path.basename(audioFilePath, path.extname(audioFilePath));
+    const txtFilePath = path.join(outputDir, `${baseName}.txt`);
+
+    let transcribedText = '';
+    try {
+      transcribedText = await fs.readFile(txtFilePath, 'utf-8');
+      transcribedText = transcribedText.trim();
+    } catch (readError) {
+      console.error('Error reading transcription file:', readError);
+      // Try to find any .txt file in output directory
+      const files = await fs.readdir(outputDir);
+      const txtFile = files.find(f => f.endsWith('.txt'));
+      if (txtFile) {
+        transcribedText = await fs.readFile(path.join(outputDir, txtFile), 'utf-8');
+        transcribedText = transcribedText.trim();
+      } else {
+        throw new Error('Transcription file not found. Whisper may have failed.');
+      }
+    }
+
+    // Clean up temporary files
+    try {
+      await fs.unlink(audioFilePath);
+      await fs.rm(outputDir, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temporary files:', cleanupError);
+    }
+
+    if (!transcribedText) {
+      return res.status(500).json({ 
+        error: 'Transcription returned empty result. The audio may be too short or unclear.' 
+      });
+    }
+
+    console.log(`✅ Transcription successful (${transcribedText.length} characters)`);
+    
+    res.json({ 
+      text: transcribedText,
+      language: language,
+      model: WHISPER_MODEL
+    });
+
+  } catch (error) {
+    console.error('Error transcribing audio:', error);
+
+    // Clean up on error
+    try {
+      await fs.unlink(audioFilePath).catch(() => {});
+    } catch {}
+
+    // Provide helpful error messages
+    if (error.code === 'ENOENT') {
+      return res.status(500).json({ 
+        error: 'Whisper executable not found. Please install Whisper.',
+        hint: 'See INSTALL_WHISPER.md for installation instructions'
+      });
+    }
+
+    if (error.code === 'ETIMEDOUT' || error.signal === 'SIGTERM') {
+      return res.status(504).json({ 
+        error: 'Transcription timed out. The audio file may be too long or the server is overloaded.' 
+      });
+    }
+
+    res.status(500).json({ 
+      error: error.message || 'Failed to transcribe audio',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
 });
 
 // Recipe analysis endpoint
