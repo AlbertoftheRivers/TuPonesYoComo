@@ -119,15 +119,12 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <View style={styles.titleRow}>
+          <View style={styles.titleContainer}>
             <Text style={styles.title}>{recipe.title}</Text>
             {cuisineInfos.length > 0 && (
-              <View style={styles.cuisineBadgesContainer}>
+              <View style={styles.cuisineFlagsContainer}>
                 {cuisineInfos.map((cuisineInfo, idx) => (
-                  <View key={idx} style={styles.cuisineBadge}>
-                    <Text style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
-                    <Text style={styles.cuisineLabel}>{cuisineInfo?.label}</Text>
-                  </View>
+                  <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
                 ))}
               </View>
             )}
@@ -225,41 +222,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  titleContainer: {
+    alignItems: 'center',
     marginBottom: SPACING.sm,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.text,
-    flex: 1,
-    marginRight: SPACING.sm,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
   },
-  cuisineBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.accent + '20',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  cuisineFlag: {
-    fontSize: 20,
-    marginRight: SPACING.xs,
-  },
-  cuisineLabel: {
-    fontSize: 14,
-    color: COLORS.text,
-    fontWeight: '500',
-  },
-  cuisineBadgesContainer: {
+  cuisineFlagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: SPACING.xs,
-    maxWidth: 200,
+    justifyContent: 'center',
+    gap: SPACING.sm,
+  },
+  cuisineFlag: {
+    fontSize: 24,
   },
   meta: {
     flexDirection: 'row',

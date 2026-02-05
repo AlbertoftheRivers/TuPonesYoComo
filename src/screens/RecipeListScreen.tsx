@@ -175,18 +175,11 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                     )}
                   </View>
                 </View>
-                <View style={styles.badges}>
-                  {item.total_time_minutes && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>⏱️ {item.total_time_minutes} min</Text>
-                    </View>
-                  )}
-                  {item.oven_time_minutes && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>🔥 Horno: {item.oven_time_minutes} min</Text>
-                    </View>
-                  )}
-                </View>
+                {item.total_time_minutes && (
+                  <View style={styles.timeBadge}>
+                    <Text style={styles.timeBadgeText}>⏱️ {item.total_time_minutes} min</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           }}
@@ -258,6 +251,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
+    minHeight: 100,
   },
   recipeHeader: {
     marginBottom: SPACING.sm,
@@ -294,20 +289,19 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: '500',
   },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
-  badge: {
-    backgroundColor: COLORS.surface,
+  timeBadge: {
+    position: 'absolute',
+    bottom: SPACING.sm,
+    left: SPACING.md,
+    backgroundColor: COLORS.primary + '20',
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: BORDER_RADIUS.sm,
   },
-  badgeText: {
+  timeBadgeText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   emptyText: {
     fontSize: 18,
