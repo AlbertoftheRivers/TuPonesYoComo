@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Audio } from 'expo-av';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { analyzeRecipe } from '../lib/ollama';
 import { createRecipe } from '../api/recipes';
+import { transcribeAudio } from '../lib/transcribe';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
@@ -51,10 +53,35 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [showAddCuisineModal, setShowAddCuisineModal] = useState(false);
   const [newCuisineName, setNewCuisineName] = useState('');
   const [newCuisineFlag, setNewCuisineFlag] = useState('🌍');
+  
+  // Audio recording states
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordingStatus, setRecordingStatus] = useState<'idle' | 'recording' | 'transcribing'>('idle');
+  const [recordingDuration, setRecordingDuration] = useState(0);
 
   useEffect(() => {
     loadCustomOptions();
+    // Request audio permissions on mount
+    (async () => {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos de Audio',
+          'Se necesitan permisos de micrófono para usar la función de dictado por voz.',
+          [{ text: 'OK' }]
+        );
+      }
+    })();
   }, []);
+
+  // Cleanup recording on unmount
+  useEffect(() => {
+    return () => {
+      if (recording) {
+        recording.stopAndUnloadAsync();
+      }
+    };
+  }, [recording]);
 
   const loadCustomOptions = async () => {
     try {
@@ -317,12 +344,37 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Texto de la Receta</Text>
+            <View style={styles.fieldHeader}>
+              <Text style={styles.label}>Texto de la Receta</Text>
+              <TouchableOpacity
+                style={[
+                  styles.micButton,
+                  recordingStatus === 'recording' && styles.micButtonRecording,
+                  recordingStatus === 'transcribing' && styles.micButtonDisabled
+                ]}
+                onPress={recording ? stopRecording : startRecording}
+                onLongPress={recording ? cancelRecording : undefined}
+                disabled={recordingStatus === 'transcribing'}
+              >
+                {recordingStatus === 'transcribing' ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : recordingStatus === 'recording' ? (
+                  <Text style={styles.micButtonText}>⏹️ {formatDuration(recordingDuration)}</Text>
+                ) : (
+                  <Text style={styles.micButtonText}>🎤</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            {recordingStatus === 'recording' && (
+              <Text style={styles.recordingHint}>
+                Grabando... Mantén presionado para cancelar
+              </Text>
+            )}
             <TextInput
               style={[styles.input, styles.textArea]}
               value={rawText}
               onChangeText={setRawText}
-              placeholder="Pega o escribe tu receta aquí..."
+              placeholder="Pega o escribe tu receta aquí... O toca el micrófono para dictar"
               placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={8}
@@ -563,6 +615,42 @@ const styles = StyleSheet.create({
   },
   field: {
     marginBottom: SPACING.md,
+  },
+  fieldHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  micButton: {
+    backgroundColor: COLORS.accent,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  micButtonRecording: {
+    backgroundColor: COLORS.error,
+  },
+  micButtonDisabled: {
+    backgroundColor: COLORS.textSecondary,
+    opacity: 0.6,
+  },
+  micButtonText: {
+    fontSize: 20,
+    color: '#ffffff',
+  },
+  recordingHint: {
+    fontSize: 12,
+    color: COLORS.error,
+    fontStyle: 'italic',
+    marginBottom: SPACING.xs,
   },
   fieldHeader: {
     flexDirection: 'row',
