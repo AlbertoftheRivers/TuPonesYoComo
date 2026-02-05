@@ -151,6 +151,35 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
     }
   };
 
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un nombre para la categoría');
+      return;
+    }
+
+    try {
+      const detectedIcon = detectEmojiForCategory(newCategoryName);
+      const iconToUse = newCategoryIcon.trim() || detectedIcon;
+
+      const newProtein = {
+        value: newCategoryName.toLowerCase().replace(/\s+/g, '_'),
+        label: newCategoryName.trim(),
+        icon: iconToUse,
+      };
+
+      await addCustomProtein(newProtein);
+      await loadCustomOptions();
+      setMainProtein(newProtein.value as MainProtein);
+      
+      Alert.alert('Éxito', `Categoría "${newCategoryName}" añadida`);
+      setShowAddCategoryModal(false);
+      setNewCategoryName('');
+      setNewCategoryIcon('');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir categoría');
+    }
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Por favor ingresa un título para la receta.');
