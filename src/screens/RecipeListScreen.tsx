@@ -167,14 +167,16 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                 </View>
                 <View style={styles.footerRow}>
                   {item.total_time_minutes && (
-                    <Text style={styles.timeText}>⏱️ {item.total_time_minutes} min</Text>
-                  )}
-                  {cuisineInfos.length > 0 && (
-                    <View style={styles.cuisineFlagsContainer}>
-                      {cuisineInfos.map((cuisineInfo, idx) => (
-                        <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
-                      ))}
-                    </View>
+                    <>
+                      <Text style={styles.timeText}>⏱️ {item.total_time_minutes} min</Text>
+                      {cuisineInfos.length > 0 && (
+                        <View style={styles.cuisineFlagsContainer}>
+                          {cuisineInfos.map((cuisineInfo, idx) => (
+                            <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
+                          ))}
+                        </View>
+                      )}
+                    </>
                   )}
                 </View>
               </TouchableOpacity>
@@ -264,11 +266,7 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: SPACING.sm,
-    paddingTop: SPACING.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
   },
   timeText: {
     fontSize: 14,
@@ -277,7 +275,7 @@ const styles = StyleSheet.create({
   },
   cuisineFlagsContainer: {
     flexDirection: 'row',
-    gap: SPACING.xs,
+    marginLeft: SPACING.xs,
     alignItems: 'center',
   },
   cuisineFlag: {
