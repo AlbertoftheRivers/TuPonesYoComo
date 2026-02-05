@@ -5,7 +5,8 @@
 CREATE TABLE IF NOT EXISTS public.recipes (
   id BIGSERIAL PRIMARY KEY,
   title TEXT NOT NULL,
-  main_protein TEXT NOT NULL CHECK (main_protein IN ('chicken', 'fish', 'pork', 'seafood', 'beef', 'vegetables', 'beans_legumes', 'other')),
+  main_protein TEXT NOT NULL CHECK (main_protein IN ('chicken', 'fish', 'pork', 'seafood', 'beef', 'vegetables', 'beans_legumes', 'desserts', 'guisos', 'other')),
+  cuisine TEXT CHECK (cuisine IN ('española', 'italiana', 'mexicana', 'francesa', 'asiática', 'mediterránea', 'americana', 'india', 'japonesa', 'tailandesa', 'griega', 'turca', 'marroquí', 'otra')),
   raw_text TEXT NOT NULL,
   ingredients JSONB NOT NULL DEFAULT '[]'::jsonb,
   steps JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -52,4 +53,5 @@ ALTER TABLE public.recipes DISABLE ROW LEVEL SECURITY;
 -- Grant necessary permissions to anon role
 GRANT ALL ON public.recipes TO anon;
 GRANT USAGE, SELECT ON SEQUENCE public.recipes_id_seq TO anon;
+
 

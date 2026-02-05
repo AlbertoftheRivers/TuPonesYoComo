@@ -12,4 +12,7 @@ npm-debug.*
 web-build/
 .env
 .env.local
+TuPonesYoComo_venv/
+*.pyc
+__pycache__/
 

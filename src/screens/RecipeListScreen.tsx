@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipesByProtein } from '../api/recipes';
 import { Recipe, MainProtein } from '../types/recipe';
 
@@ -34,6 +35,7 @@ export default function RecipeListScreen({ navigation, route }: Props) {
   const { mainProtein } = route.params;
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadRecipes();
@@ -57,6 +59,38 @@ export default function RecipeListScreen({ navigation, route }: Props) {
   };
 
   const proteinLabel = MAIN_PROTEINS.find(p => p.value === mainProtein)?.label || mainProtein;
+  const proteinIcon = MAIN_PROTEINS.find(p => p.value === mainProtein)?.icon || '🍽️';
+
+  // Filtrar recetas basado en búsqueda
+  const filteredRecipes = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return recipes;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return recipes.filter((recipe) => {
+      // Buscar en título
+      if (recipe.title.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      // Buscar en cuisine
+      if (recipe.cuisine) {
+        const cuisineLabel = CUISINES.find(c => c.value === recipe.cuisine)?.label || '';
+        if (cuisineLabel.toLowerCase().includes(query)) {
+          return true;
+        }
+      }
+
+      // Buscar en ingredientes
+      const ingredientNames = recipe.ingredients.map(ing => ing.name.toLowerCase()).join(' ');
+      if (ingredientNames.includes(query)) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [recipes, searchQuery]);
 
   if (loading) {
     return (
@@ -69,40 +103,70 @@ export default function RecipeListScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{proteinLabel} Recipes</Text>
-        <Text style={styles.count}>{recipes.length} recipe{recipes.length !== 1 ? 's' : ''}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.titleIcon}>{proteinIcon}</Text>
+          <Text style={styles.title}>{proteinLabel}</Text>
+        </View>
+        <Text style={styles.count}>{filteredRecipes.length} receta{filteredRecipes.length !== 1 ? 's' : ''}</Text>
       </View>
 
-      {recipes.length === 0 ? (
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar por nombre, cocina o ingrediente..."
+          placeholderTextColor={COLORS.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {filteredRecipes.length === 0 ? (
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyText}>No recipes found</Text>
-          <Text style={styles.emptySubtext}>Tap "Add recipe" to create your first recipe</Text>
+          <Text style={styles.emptyText}>
+            {searchQuery ? 'No se encontraron recetas' : 'No hay recetas'}
+          </Text>
+          <Text style={styles.emptySubtext}>
+            {searchQuery 
+              ? 'Intenta con otros términos de búsqueda'
+              : 'Toca "Agregar Receta" para crear tu primera receta'}
+          </Text>
         </View>
       ) : (
         <FlatList
-          data={recipes}
+          data={filteredRecipes}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.recipeCard}
-              onPress={() => handleRecipePress(item)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.recipeTitle}>{item.title}</Text>
-              <View style={styles.badges}>
-                {item.total_time_minutes && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{item.total_time_minutes} min</Text>
-                  </View>
-                )}
-                {item.oven_time_minutes && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Oven: {item.oven_time_minutes} min</Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            const cuisineInfo = item.cuisine ? CUISINES.find(c => c.value === item.cuisine) : null;
+            return (
+              <TouchableOpacity
+                style={styles.recipeCard}
+                onPress={() => handleRecipePress(item)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.recipeHeader}>
+                  <Text style={styles.recipeTitle}>{item.title}</Text>
+                  {cuisineInfo && (
+                    <View style={styles.cuisineBadge}>
+                      <Text style={styles.cuisineFlag}>{cuisineInfo.flag}</Text>
+                      <Text style={styles.cuisineLabel}>{cuisineInfo.label}</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.badges}>
+                  {item.total_time_minutes && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>⏱️ {item.total_time_minutes} min</Text>
+                    </View>
+                  )}
+                  {item.oven_time_minutes && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>🔥 Horno: {item.oven_time_minutes} min</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          }}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -126,11 +190,33 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  titleIcon: {
+    fontSize: 28,
+    marginRight: SPACING.sm,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.text,
-    marginBottom: SPACING.xs,
+  },
+  searchContainer: {
+    padding: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  searchInput: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    fontSize: 16,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   count: {
     fontSize: 14,
@@ -150,11 +236,35 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  recipeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.sm,
+  },
   recipeTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: SPACING.sm,
+    flex: 1,
+    marginRight: SPACING.sm,
+  },
+  cuisineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.accent + '20',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  cuisineFlag: {
+    fontSize: 16,
+    marginRight: SPACING.xs,
+  },
+  cuisineLabel: {
+    fontSize: 12,
+    color: COLORS.text,
+    fontWeight: '500',
   },
   badges: {
     flexDirection: 'row',
@@ -183,4 +293,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
 

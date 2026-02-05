@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, deleteRecipe } from '../api/recipes';
 import { Recipe } from '../types/recipe';
 
@@ -46,11 +46,11 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
       if (data) {
         setRecipe(data);
       } else {
-        Alert.alert('Error', 'Recipe not found');
+        Alert.alert('Error', 'Receta no encontrada');
         navigation.goBack();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load recipe. Please try again.');
+      Alert.alert('Error', 'Error al cargar la receta. Por favor intenta de nuevo.');
       console.error(error);
     } finally {
       setLoading(false);
@@ -67,20 +67,20 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     if (!recipe) return;
 
     Alert.alert(
-      'Delete Recipe',
-      `Are you sure you want to delete "${recipe.title}"?`,
+      'Eliminar Receta',
+      `¿Estás seguro de que quieres eliminar "${recipe.title}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteRecipe(recipe.id);
-              Alert.alert('Success', 'Recipe deleted');
+              Alert.alert('Éxito', 'Receta eliminada');
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete recipe. Please try again.');
+              Alert.alert('Error', 'Error al eliminar la receta. Por favor intenta de nuevo.');
               console.error(error);
             }
           },
@@ -98,26 +98,36 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
   }
 
   const proteinLabel = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.label || recipe.main_protein;
+  const proteinIcon = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.icon || '🍽️';
+  const cuisineInfo = recipe.cuisine ? CUISINES.find(c => c.value === recipe.cuisine) : null;
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>{recipe.title}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{recipe.title}</Text>
+            {cuisineInfo && (
+              <View style={styles.cuisineBadge}>
+                <Text style={styles.cuisineFlag}>{cuisineInfo.flag}</Text>
+                <Text style={styles.cuisineLabel}>{cuisineInfo.label}</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.meta}>
-            <Text style={styles.metaText}>{proteinLabel}</Text>
+            <Text style={styles.metaText}>{proteinIcon} {proteinLabel}</Text>
             {recipe.total_time_minutes && (
-              <Text style={styles.metaText}>• {recipe.total_time_minutes} min</Text>
+              <Text style={styles.metaText}>• ⏱️ {recipe.total_time_minutes} min</Text>
             )}
             {recipe.oven_time_minutes && (
-              <Text style={styles.metaText}>• Oven: {recipe.oven_time_minutes} min</Text>
+              <Text style={styles.metaText}>• 🔥 Horno: {recipe.oven_time_minutes} min</Text>
             )}
           </View>
         </View>
 
         {recipe.ingredients.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ingredients</Text>
+            <Text style={styles.sectionTitle}>Ingredientes</Text>
             {recipe.ingredients.map((ingredient, index) => (
               <View key={index} style={styles.ingredientItem}>
                 <Text style={styles.ingredientText}>
@@ -135,7 +145,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
         {recipe.steps.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Steps</Text>
+            <Text style={styles.sectionTitle}>Pasos</Text>
             {recipe.steps.map((step, index) => (
               <View key={index} style={styles.stepItem}>
                 <Text style={styles.stepNumber}>{index + 1}.</Text>
@@ -147,7 +157,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
         {recipe.gadgets.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Gadgets</Text>
+            <Text style={styles.sectionTitle}>Utensilios</Text>
             <View style={styles.gadgetsContainer}>
               {recipe.gadgets.map((gadget, index) => (
                 <View key={index} style={styles.gadgetPill}>
@@ -164,13 +174,13 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           style={[styles.button, styles.editButton]}
           onPress={handleEdit}
         >
-          <Text style={styles.buttonText}>Edit</Text>
+          <Text style={styles.buttonText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
           onPress={handleDelete}
         >
-          <Text style={[styles.buttonText, styles.deleteButtonText]}>Delete</Text>
+          <Text style={[styles.buttonText, styles.deleteButtonText]}>Eliminar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -197,11 +207,35 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.sm,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.text,
-    marginBottom: SPACING.sm,
+    flex: 1,
+    marginRight: SPACING.sm,
+  },
+  cuisineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.accent + '20',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  cuisineFlag: {
+    fontSize: 20,
+    marginRight: SPACING.xs,
+  },
+  cuisineLabel: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
   },
   meta: {
     flexDirection: 'row',
@@ -302,4 +336,5 @@ const styles = StyleSheet.create({
     color: COLORS.error,
   },
 });
+
 

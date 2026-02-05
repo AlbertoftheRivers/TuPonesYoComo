@@ -50,6 +50,7 @@ export async function createRecipe(payload: RecipeInsertPayload): Promise<Recipe
       .insert({
         title: payload.title,
         main_protein: payload.main_protein,
+        cuisine: payload.cuisine || null,
         raw_text: payload.raw_text,
         ingredients: payload.ingredients,
         steps: payload.steps,
@@ -119,6 +120,7 @@ function normalizeRecipe(data: any): Recipe {
     id: data.id,
     title: data.title || '',
     main_protein: data.main_protein,
+    cuisine: data.cuisine || undefined,
     raw_text: data.raw_text || '',
     ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
     steps: Array.isArray(data.steps) ? data.steps : [],
@@ -129,4 +131,5 @@ function normalizeRecipe(data: any): Recipe {
     updated_at: data.updated_at || new Date().toISOString(),
   };
 }
+
 

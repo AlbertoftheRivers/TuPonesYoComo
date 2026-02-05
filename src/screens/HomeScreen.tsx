@@ -41,7 +41,7 @@ export default function HomeScreen({ navigation }: Props) {
       >
         <View style={styles.header}>
           <Text style={styles.title}>TuPonesYoComo</Text>
-          <Text style={styles.subtitle}>Select a category to browse recipes</Text>
+          <Text style={styles.subtitle}>Selecciona una categoría para ver recetas</Text>
         </View>
 
         <View style={styles.grid}>
@@ -52,9 +52,9 @@ export default function HomeScreen({ navigation }: Props) {
               onPress={() => handleProteinPress(protein.value)}
               activeOpacity={0.7}
             >
-              <View style={[styles.cardIcon, { backgroundColor: COLORS.primary + '20' }]}>
+              <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
                 <Text style={styles.cardIconText}>
-                  {protein.label.charAt(0).toUpperCase()}
+                  {protein.icon}
                 </Text>
               </View>
               <Text style={styles.cardLabel}>{protein.label}</Text>
@@ -68,7 +68,7 @@ export default function HomeScreen({ navigation }: Props) {
         onPress={handleAddRecipe}
         activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>Add recipe</Text>
+        <Text style={styles.addButtonText}>➕ Agregar Receta</Text>
       </TouchableOpacity>
     </View>
   );
@@ -123,9 +123,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   cardIconText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+    fontSize: 32,
   },
   cardLabel: {
     fontSize: 16,

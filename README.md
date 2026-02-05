@@ -1,4 +1,4 @@
-# MyRecipes
+# TuPonesYoComo
 
 A personal mobile web app for managing recipes with AI-powered recipe parsing. Built with Expo, React Native, TypeScript, Supabase, and Ollama.
 
@@ -9,19 +9,34 @@ A personal mobile web app for managing recipes with AI-powered recipe parsing. B
 - **AI-Powered Parsing**: Automatically extract structured data (ingredients, steps, gadgets, timing) from free-form recipe text using Ollama LLM
 - **Simple UI**: Clean, intuitive interface optimized for mobile use
 
+## Architecture
+
+```
+Mobile App (Phone) → Backend API (Container with VPN) → Ollama Server (192.168.200.45:11434)
+                    ↓
+                 Supabase (PostgreSQL)
+```
+
+- **Mobile App**: React Native app running on your phone (no VPN needed)
+- **Backend API**: Node.js/Express server in Docker container (has VPN access to Ollama)
+- **Ollama Server**: LLM server accessible via VPN at `192.168.200.45:11434`
+- **Supabase**: Cloud database for recipe storage
+
 ## Tech Stack
 
 - **Frontend**: Expo (Expo Go) + React Native + TypeScript
-- **Backend**: Supabase (PostgreSQL)
-- **AI**: Self-hosted Ollama LLM server
+- **Backend API**: Node.js + Express (runs in Docker container)
+- **Database**: Supabase (PostgreSQL)
+- **AI**: Self-hosted Ollama LLM server (accessed via VPN)
 
 ## Prerequisites
 
 - Node.js (v18 or later)
 - npm or yarn
+- Docker and Docker Compose (for backend API)
 - Expo Go app installed on your mobile device
 - Supabase account and project
-- Ollama server running on your home network
+- Ollama server accessible via VPN at `192.168.200.45:11434`
 
 ## Setup Instructions
 
@@ -39,35 +54,59 @@ npm install
 4. Go to Project Settings > API
 5. Copy your Project URL and anon/public key
 
-### 3. Configure Environment Variables
+### 3. Setup Backend API (Container)
+
+The backend API runs in a Docker container and has VPN access to Ollama.
+
+1. **Navigate to backend directory:**
+   ```bash
+   cd backend
+   ```
+
+2. **Create `.env` file:**
+   ```env
+   PORT=3000
+   OLLAMA_BASE_URL=http://192.168.200.45:11434
+   OLLAMA_MODEL=llama3.2:3b
+   NODE_ENV=production
+   ```
+
+3. **Build and start the container:**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Verify it's running:**
+   ```bash
+   curl http://localhost:3000/health
+   ```
+
+   You should see:
+   ```json
+   {"status":"ok","ollama_url":"http://192.168.200.45:11434","model":"llama3.2:3b"}
+   ```
+
+5. **Note the API URL** - you'll need this for the mobile app configuration:
+   - If running locally: `http://localhost:3000` or `http://<your-computer-ip>:3000`
+   - If deployed: `http://<container-host>:3000`
+
+See `backend/README.md` for detailed deployment instructions.
+
+### 4. Configure Mobile App Environment Variables
 
 Create a `.env` file in the root directory:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+EXPO_PUBLIC_API_BASE_URL=http://your-backend-api-url:3000
 ```
 
-**Note**: Expo requires the `EXPO_PUBLIC_` prefix for environment variables to be accessible in the app.
-
-### 4. Configure Ollama
-
-The Ollama configuration is in `src/lib/ollama.ts`. By default, it's set to:
-
-- **Base URL**: `http://192.168.200.45:11345`
-- **Model**: `llama3.1`
-
-To change these settings, edit the constants at the top of `src/lib/ollama.ts`:
-
-```typescript
-const OLLAMA_BASE_URL = 'http://your-ollama-server-ip:port';
-const OLLAMA_MODEL = 'your-model-name';
-```
-
-**Important**: Make sure your mobile device can reach the Ollama server IP address. If running on a different network, you may need to:
-- Use a VPN
-- Set up port forwarding
-- Use a public IP or domain name
+**Important**: 
+- `EXPO_PUBLIC_API_BASE_URL` should point to your backend API container
+- If testing locally, use your computer's IP: `http://192.168.1.2:3000` (replace with your actual IP)
+- If deployed, use the container's public URL
+- Expo requires the `EXPO_PUBLIC_` prefix for environment variables to be accessible in the app
 
 ### 5. Start the Development Server
 
@@ -211,4 +250,5 @@ Design constants (colors, spacing, border radius) are centralized in `src/lib/co
 ## License
 
 Personal use only.
+
 

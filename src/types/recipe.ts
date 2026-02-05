@@ -6,7 +6,25 @@ export type MainProtein =
   | 'beef' 
   | 'vegetables' 
   | 'beans_legumes' 
+  | 'desserts'
+  | 'guisos'
   | 'other';
+
+export type Cuisine = 
+  | 'española'
+  | 'italiana'
+  | 'mexicana'
+  | 'francesa'
+  | 'asiática'
+  | 'mediterránea'
+  | 'americana'
+  | 'india'
+  | 'japonesa'
+  | 'tailandesa'
+  | 'griega'
+  | 'turca'
+  | 'marroquí'
+  | 'otra';
 
 export interface Ingredient {
   name: string;
@@ -19,6 +37,7 @@ export interface Recipe {
   id: string | number;
   title: string;
   main_protein: MainProtein;
+  cuisine?: Cuisine;
   raw_text: string;
   ingredients: Ingredient[];
   steps: string[];
@@ -32,6 +51,7 @@ export interface Recipe {
 export interface RecipeInsertPayload {
   title: string;
   main_protein: MainProtein;
+  cuisine?: Cuisine;
   raw_text: string;
   ingredients: Ingredient[];
   steps: string[];
@@ -47,4 +67,5 @@ export interface RecipeAIAnalysis {
   total_time_minutes: number | null;
   oven_time_minutes: number | null;
 }
+
 

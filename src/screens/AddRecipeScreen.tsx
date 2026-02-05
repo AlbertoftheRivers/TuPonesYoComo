@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { analyzeRecipe } from '../lib/ollama';
 import { createRecipe } from '../api/recipes';
-import { MainProtein, RecipeAIAnalysis, Ingredient } from '../types/recipe';
+import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
@@ -33,26 +33,49 @@ interface Props {
 export default function AddRecipeScreen({ navigation }: Props) {
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
+  const [cuisine, setCuisine] = useState<Cuisine | ''>('');
   const [rawText, setRawText] = useState('');
   const [analysis, setAnalysis] = useState<RecipeAIAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
 
   const handleAnalyze = async () => {
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Please enter some recipe text to analyze.');
+      Alert.alert('Error', 'Por favor ingresa el texto de la receta para analizar.');
       return;
     }
 
     try {
       setAnalyzing(true);
+      setAnalyzeStatus('Conectando al servidor de IA...');
       const result = await analyzeRecipe(rawText, mainProtein);
+      setAnalyzeStatus('Procesando respuesta...');
       setAnalysis(result);
-      Alert.alert('Success', 'Recipe analyzed successfully!');
+      setAnalyzeStatus('');
+      Alert.alert('Éxito', '¡Receta analizada correctamente!');
     } catch (error) {
+      setAnalyzeStatus('');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error al analizar la receta. Por favor verifica la conexión con el servidor.';
+      
       Alert.alert(
-        'Analysis Error',
-        error instanceof Error ? error.message : 'Failed to analyze recipe. Please check your Ollama server connection and try again.'
+        'Error de Análisis',
+        errorMessage,
+        [
+          { text: 'OK', style: 'default' },
+          {
+            text: 'Verificar Configuración',
+            style: 'default',
+            onPress: () => {
+              Alert.alert(
+                'Configuración de API',
+                `URL de API: ${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000'}\n\nAsegúrate de:\n- El servidor API está corriendo\n- La URL de API es correcta\n- Tu dispositivo puede alcanzar el servidor`
+              );
+            }
+          }
+        ]
       );
       console.error(error);
     } finally {
@@ -62,17 +85,17 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a recipe title.');
+      Alert.alert('Error', 'Por favor ingresa un título para la receta.');
       return;
     }
 
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Please enter recipe text.');
+      Alert.alert('Error', 'Por favor ingresa el texto de la receta.');
       return;
     }
 
     if (!analysis) {
-      Alert.alert('Error', 'Please analyze the recipe first before saving.');
+      Alert.alert('Error', 'Por favor analiza la receta primero antes de guardar.');
       return;
     }
 
@@ -81,6 +104,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       const recipe = await createRecipe({
         title: title.trim(),
         main_protein: mainProtein,
+        cuisine: cuisine || undefined,
         raw_text: rawText.trim(),
         ingredients: analysis.ingredients,
         steps: analysis.steps,
@@ -89,14 +113,14 @@ export default function AddRecipeScreen({ navigation }: Props) {
         oven_time_minutes: analysis.oven_time_minutes,
       });
 
-      Alert.alert('Success', 'Recipe saved!', [
+      Alert.alert('Éxito', '¡Receta guardada!', [
         {
           text: 'OK',
           onPress: () => navigation.navigate('RecipeDetail', { recipeId: recipe.id }),
         },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to save recipe. Please try again.');
+      Alert.alert('Error', 'Error al guardar la receta. Por favor intenta de nuevo.');
       console.error(error);
     } finally {
       setSaving(false);
@@ -107,23 +131,23 @@ export default function AddRecipeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Add New Recipe</Text>
+          <Text style={styles.title}>Agregar Nueva Receta</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>Título</Text>
             <TextInput
               style={styles.input}
               value={title}
               onChangeText={setTitle}
-              placeholder="e.g., Grilled Chicken Breast"
+              placeholder="Ej: Pollo a la Plancha"
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Main Protein</Text>
+            <Text style={styles.label}>Categoría Principal</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={mainProtein}
@@ -133,7 +157,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 {MAIN_PROTEINS.map((protein) => (
                   <Picker.Item
                     key={protein.value}
-                    label={protein.label}
+                    label={`${protein.icon} ${protein.label}`}
                     value={protein.value}
                   />
                 ))}
@@ -142,12 +166,32 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Raw Recipe Text</Text>
+            <Text style={styles.label}>Cocina (Opcional)</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={cuisine}
+                onValueChange={(value) => setCuisine(value)}
+                style={styles.picker}
+              >
+                <Picker.Item label="Sin especificar" value="" />
+                {CUISINES.map((c) => (
+                  <Picker.Item
+                    key={c.value}
+                    label={`${c.flag} ${c.label}`}
+                    value={c.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Texto de la Receta</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={rawText}
               onChangeText={setRawText}
-              placeholder="Paste or type your recipe here..."
+              placeholder="Pega o escribe tu receta aquí..."
               placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={8}
@@ -161,19 +205,28 @@ export default function AddRecipeScreen({ navigation }: Props) {
             disabled={analyzing}
           >
             {analyzing ? (
-              <ActivityIndicator color="#ffffff" />
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color="#ffffff" />
+                {analyzeStatus ? (
+                  <Text style={[styles.buttonText, { marginLeft: 10 }]}>{analyzeStatus}</Text>
+                ) : null}
+              </View>
             ) : (
-              <Text style={styles.buttonText}>Analyze with AI</Text>
+              <Text style={styles.buttonText}>Analizar con IA</Text>
             )}
           </TouchableOpacity>
 
+          {analyzeStatus && !analyzing && (
+            <Text style={styles.statusText}>{analyzeStatus}</Text>
+          )}
+
           {analysis && (
             <View style={styles.analysisSection}>
-              <Text style={styles.analysisTitle}>Analysis Preview</Text>
+              <Text style={styles.analysisTitle}>Vista Previa del Análisis</Text>
 
               {analysis.ingredients.length > 0 && (
                 <View style={styles.analysisBlock}>
-                  <Text style={styles.analysisLabel}>Ingredients:</Text>
+                  <Text style={styles.analysisLabel}>Ingredientes:</Text>
                   {analysis.ingredients.map((ing, idx) => (
                     <Text key={idx} style={styles.analysisText}>
                       • {ing.quantity && `${ing.quantity} `}
@@ -187,7 +240,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
               {analysis.steps.length > 0 && (
                 <View style={styles.analysisBlock}>
-                  <Text style={styles.analysisLabel}>Steps:</Text>
+                  <Text style={styles.analysisLabel}>Pasos:</Text>
                   {analysis.steps.map((step, idx) => (
                     <Text key={idx} style={styles.analysisText}>
                       {idx + 1}. {step}
@@ -198,16 +251,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
               {analysis.gadgets.length > 0 && (
                 <View style={styles.analysisBlock}>
-                  <Text style={styles.analysisLabel}>Gadgets:</Text>
+                  <Text style={styles.analysisLabel}>Utensilios:</Text>
                   <Text style={styles.analysisText}>{analysis.gadgets.join(', ')}</Text>
                 </View>
               )}
 
               <View style={styles.analysisBlock}>
-                <Text style={styles.analysisLabel}>Time:</Text>
+                <Text style={styles.analysisLabel}>Tiempo:</Text>
                 <Text style={styles.analysisText}>
                   Total: {analysis.total_time_minutes || 'N/A'} min
-                  {analysis.oven_time_minutes && ` | Oven: ${analysis.oven_time_minutes} min`}
+                  {analysis.oven_time_minutes && ` | Horno: ${analysis.oven_time_minutes} min`}
                 </Text>
               </View>
             </View>
@@ -221,7 +274,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
             {saving ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>Save Recipe</Text>
+              <Text style={styles.buttonText}>Guardar Receta</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -300,6 +353,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusText: {
+    marginTop: SPACING.sm,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   analysisSection: {
     marginTop: SPACING.lg,

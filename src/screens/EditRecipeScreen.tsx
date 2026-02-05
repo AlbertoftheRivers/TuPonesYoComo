@@ -12,10 +12,10 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, updateRecipe } from '../api/recipes';
 import { analyzeRecipe } from '../lib/ollama';
-import { Recipe, MainProtein, RecipeAIAnalysis } from '../types/recipe';
+import { Recipe, MainProtein, RecipeAIAnalysis, Cuisine } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
@@ -38,6 +38,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
+  const [cuisine, setCuisine] = useState<Cuisine | ''>('');
   const [rawText, setRawText] = useState('');
   const [ingredients, setIngredients] = useState<RecipeAIAnalysis['ingredients']>([]);
   const [steps, setSteps] = useState<string[]>([]);
@@ -47,6 +48,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
 
   useEffect(() => {
     loadRecipe();
@@ -60,6 +62,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         setRecipe(data);
         setTitle(data.title);
         setMainProtein(data.main_protein);
+        setCuisine(data.cuisine || '');
         setRawText(data.raw_text);
         setIngredients(data.ingredients);
         setSteps(data.steps);
@@ -67,11 +70,11 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         setTotalTimeMinutes(data.total_time_minutes);
         setOvenTimeMinutes(data.oven_time_minutes);
       } else {
-        Alert.alert('Error', 'Recipe not found');
+        Alert.alert('Error', 'Receta no encontrada');
         navigation.goBack();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load recipe. Please try again.');
+      Alert.alert('Error', 'Error al cargar la receta. Por favor intenta de nuevo.');
       console.error(error);
     } finally {
       setLoading(false);
@@ -80,23 +83,44 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   const handleReAnalyze = async () => {
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Please enter some recipe text to analyze.');
+      Alert.alert('Error', 'Por favor ingresa el texto de la receta para analizar.');
       return;
     }
 
     try {
       setAnalyzing(true);
+      setAnalyzeStatus('Conectando al servidor de IA...');
       const result = await analyzeRecipe(rawText, mainProtein);
+      setAnalyzeStatus('Procesando respuesta...');
       setIngredients(result.ingredients);
       setSteps(result.steps);
       setGadgets(result.gadgets);
       setTotalTimeMinutes(result.total_time_minutes);
       setOvenTimeMinutes(result.oven_time_minutes);
-      Alert.alert('Success', 'Recipe re-analyzed successfully!');
+      setAnalyzeStatus('');
+      Alert.alert('Éxito', '¡Receta re-analizada correctamente!');
     } catch (error) {
+      setAnalyzeStatus('');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error al analizar la receta. Por favor verifica la conexión con el servidor.';
+      
       Alert.alert(
-        'Analysis Error',
-        error instanceof Error ? error.message : 'Failed to analyze recipe. Please check your Ollama server connection and try again.'
+        'Error de Análisis',
+        errorMessage,
+        [
+          { text: 'OK', style: 'default' },
+          {
+            text: 'Verificar Configuración',
+            style: 'default',
+            onPress: () => {
+              Alert.alert(
+                'Configuración de API',
+                `URL de API: ${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000'}\n\nAsegúrate de:\n- El servidor API está corriendo\n- La URL de API es correcta\n- Tu dispositivo puede alcanzar el servidor`
+              );
+            }
+          }
+        ]
       );
       console.error(error);
     } finally {
@@ -106,12 +130,12 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a recipe title.');
+      Alert.alert('Error', 'Por favor ingresa un título para la receta.');
       return;
     }
 
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Please enter recipe text.');
+      Alert.alert('Error', 'Por favor ingresa el texto de la receta.');
       return;
     }
 
@@ -120,6 +144,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       await updateRecipe(recipeId, {
         title: title.trim(),
         main_protein: mainProtein,
+        cuisine: cuisine || undefined,
         raw_text: rawText.trim(),
         ingredients,
         steps,
@@ -128,14 +153,14 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         oven_time_minutes: ovenTimeMinutes,
       });
 
-      Alert.alert('Success', 'Recipe updated!', [
+      Alert.alert('Éxito', '¡Receta actualizada!', [
         {
           text: 'OK',
           onPress: () => navigation.goBack(),
         },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to update recipe. Please try again.');
+      Alert.alert('Error', 'Error al actualizar la receta. Por favor intenta de nuevo.');
       console.error(error);
     } finally {
       setSaving(false);
@@ -154,23 +179,23 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Edit Recipe</Text>
+          <Text style={styles.title}>Editar Receta</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>Título</Text>
             <TextInput
               style={styles.input}
               value={title}
               onChangeText={setTitle}
-              placeholder="Recipe title"
+              placeholder="Título de la receta"
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Main Protein</Text>
+            <Text style={styles.label}>Categoría Principal</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={mainProtein}
@@ -180,7 +205,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 {MAIN_PROTEINS.map((protein) => (
                   <Picker.Item
                     key={protein.value}
-                    label={protein.label}
+                    label={`${protein.icon} ${protein.label}`}
                     value={protein.value}
                   />
                 ))}
@@ -189,12 +214,32 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Raw Recipe Text</Text>
+            <Text style={styles.label}>Cocina (Opcional)</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={cuisine}
+                onValueChange={(value) => setCuisine(value)}
+                style={styles.picker}
+              >
+                <Picker.Item label="Sin especificar" value="" />
+                {CUISINES.map((c) => (
+                  <Picker.Item
+                    key={c.value}
+                    label={`${c.flag} ${c.label}`}
+                    value={c.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Texto de la Receta</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={rawText}
               onChangeText={setRawText}
-              placeholder="Recipe text"
+              placeholder="Texto de la receta"
               placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={8}
@@ -208,17 +253,26 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             disabled={analyzing}
           >
             {analyzing ? (
-              <ActivityIndicator color="#ffffff" />
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color="#ffffff" />
+                {analyzeStatus ? (
+                  <Text style={[styles.buttonText, { marginLeft: 10 }]}>{analyzeStatus}</Text>
+                ) : null}
+              </View>
             ) : (
-              <Text style={styles.buttonText}>Re-run AI on raw text</Text>
+              <Text style={styles.buttonText}>Re-analizar con IA</Text>
             )}
           </TouchableOpacity>
 
+          {analyzeStatus && !analyzing && (
+            <Text style={styles.statusText}>{analyzeStatus}</Text>
+          )}
+
           <View style={styles.structuredSection}>
-            <Text style={styles.sectionTitle}>Structured Data</Text>
+            <Text style={styles.sectionTitle}>Datos Estructurados</Text>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Total Time (minutes)</Text>
+              <Text style={styles.label}>Tiempo Total (minutos)</Text>
               <TextInput
                 style={styles.input}
                 value={totalTimeMinutes?.toString() || ''}
@@ -226,14 +280,14 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                   const num = parseInt(text, 10);
                   setTotalTimeMinutes(isNaN(num) ? null : num);
                 }}
-                placeholder="e.g., 45"
+                placeholder="Ej: 45"
                 keyboardType="numeric"
                 placeholderTextColor={COLORS.textSecondary}
               />
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Oven Time (minutes)</Text>
+              <Text style={styles.label}>Tiempo en Horno (minutos)</Text>
               <TextInput
                 style={styles.input}
                 value={ovenTimeMinutes?.toString() || ''}
@@ -241,27 +295,27 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                   const num = parseInt(text, 10);
                   setOvenTimeMinutes(isNaN(num) ? null : num);
                 }}
-                placeholder="e.g., 30 (leave empty if not applicable)"
+                placeholder="Ej: 30 (dejar vacío si no aplica)"
                 keyboardType="numeric"
                 placeholderTextColor={COLORS.textSecondary}
               />
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Gadgets (comma-separated)</Text>
+              <Text style={styles.label}>Utensilios (separados por comas)</Text>
               <TextInput
                 style={styles.input}
                 value={gadgets.join(', ')}
                 onChangeText={(text) => {
                   setGadgets(text.split(',').map(g => g.trim()).filter(g => g.length > 0));
                 }}
-                placeholder="e.g., oven, pan, blender"
+                placeholder="Ej: horno, sartén, licuadora"
                 placeholderTextColor={COLORS.textSecondary}
               />
             </View>
 
             <View style={styles.readonlySection}>
-              <Text style={styles.label}>Ingredients (from AI analysis)</Text>
+              <Text style={styles.label}>Ingredientes (del análisis de IA)</Text>
               <View style={styles.readonlyBox}>
                 {ingredients.length > 0 ? (
                   ingredients.map((ing, idx) => (
@@ -273,13 +327,13 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                     </Text>
                   ))
                 ) : (
-                  <Text style={styles.readonlyText}>No ingredients yet. Run AI analysis first.</Text>
+                  <Text style={styles.readonlyText}>Sin ingredientes aún. Ejecuta el análisis de IA primero.</Text>
                 )}
               </View>
             </View>
 
             <View style={styles.readonlySection}>
-              <Text style={styles.label}>Steps (from AI analysis)</Text>
+              <Text style={styles.label}>Pasos (del análisis de IA)</Text>
               <View style={styles.readonlyBox}>
                 {steps.length > 0 ? (
                   steps.map((step, idx) => (
@@ -288,7 +342,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                     </Text>
                   ))
                 ) : (
-                  <Text style={styles.readonlyText}>No steps yet. Run AI analysis first.</Text>
+                  <Text style={styles.readonlyText}>Sin pasos aún. Ejecuta el análisis de IA primero.</Text>
                 )}
               </View>
             </View>
@@ -302,7 +356,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             {saving ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>Save Changes</Text>
+              <Text style={styles.buttonText}>Guardar Cambios</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -386,6 +440,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusText: {
+    marginTop: SPACING.sm,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   structuredSection: {
     marginTop: SPACING.lg,
