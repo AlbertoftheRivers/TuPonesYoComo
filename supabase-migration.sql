@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS public.recipes (
   id BIGSERIAL PRIMARY KEY,
   title TEXT NOT NULL,
-  main_protein TEXT NOT NULL CHECK (main_protein IN ('chicken', 'fish', 'pork', 'seafood', 'beef', 'vegetables', 'beans_legumes', 'desserts', 'guisos', 'other')),
+  main_protein TEXT NOT NULL,
   cuisines JSONB DEFAULT '[]'::jsonb,
   raw_text TEXT NOT NULL,
   ingredients JSONB NOT NULL DEFAULT '[]'::jsonb,

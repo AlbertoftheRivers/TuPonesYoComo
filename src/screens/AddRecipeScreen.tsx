@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,6 +16,7 @@ import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/
 import { analyzeRecipe } from '../lib/ollama';
 import { createRecipe } from '../api/recipes';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
+import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 
 type RootStackParamList = {
@@ -42,6 +44,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
   const [allCuisines, setAllCuisines] = useState(CUISINES);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryIcon, setNewCategoryIcon] = useState('');
+  const [showAddCuisineModal, setShowAddCuisineModal] = useState(false);
+  const [newCuisineName, setNewCuisineName] = useState('');
+  const [newCuisineFlag, setNewCuisineFlag] = useState('🌍');
 
   useEffect(() => {
     loadCustomOptions();
@@ -101,26 +109,64 @@ export default function AddRecipeScreen({ navigation }: Props) {
     }
   };
 
-  const handleAddCustomCuisine = () => {
-    Alert.alert(
-      'Añadir Nueva Cocina',
-      'Escribe el nombre de la cocina:',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Continuar',
-          onPress: () => {
-            // Note: React Native doesn't have Alert.prompt
-            // User should use the HomeScreen to add categories
-            Alert.alert(
-              'Añadir Cocina',
-              'Para añadir una nueva cocina, ve a la pantalla principal y usa la sección "Añadir Categoría"',
-              [{ text: 'OK' }]
-            );
-          },
-        },
-      ]
-    );
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un nombre para la categoría');
+      return;
+    }
+
+    try {
+      const detectedIcon = detectEmojiForCategory(newCategoryName);
+      const iconToUse = newCategoryIcon.trim() || detectedIcon;
+
+      const newProtein = {
+        value: newCategoryName.toLowerCase().replace(/\s+/g, '_'),
+        label: newCategoryName.trim(),
+        icon: iconToUse,
+      };
+
+      await addCustomProtein(newProtein);
+      await loadCustomOptions();
+      setMainProtein(newProtein.value as MainProtein);
+      
+      Alert.alert('Éxito', `Categoría "${newCategoryName}" añadida`);
+      setShowAddCategoryModal(false);
+      setNewCategoryName('');
+      setNewCategoryIcon('');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir categoría');
+    }
+  };
+
+  const handleAddCuisine = async () => {
+    if (!newCuisineName.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un nombre para la cocina');
+      return;
+    }
+
+    if (!newCuisineFlag.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un emoji de bandera');
+      return;
+    }
+
+    try {
+      const newCuisine = {
+        value: newCuisineName.toLowerCase().replace(/\s+/g, '_'),
+        label: newCuisineName.trim(),
+        flag: newCuisineFlag.trim(),
+      };
+
+      await addCustomCuisine(newCuisine);
+      await loadCustomOptions();
+      setCuisine([...cuisine, newCuisine.value as Cuisine]);
+      
+      Alert.alert('Éxito', `Cocina "${newCuisineName}" añadida`);
+      setShowAddCuisineModal(false);
+      setNewCuisineName('');
+      setNewCuisineFlag('🌍');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir cocina');
+    }
   };
 
   const handleSave = async () => {
@@ -191,7 +237,13 @@ export default function AddRecipeScreen({ navigation }: Props) {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={mainProtein}
-                onValueChange={(value) => setMainProtein(value)}
+                onValueChange={(value) => {
+                  if (value === '__add_new__') {
+                    setShowAddCategoryModal(true);
+                  } else {
+                    setMainProtein(value);
+                  }
+                }}
                 style={styles.picker}
               >
                 {allProteins.map((protein) => (
@@ -201,6 +253,10 @@ export default function AddRecipeScreen({ navigation }: Props) {
                     value={protein.value}
                   />
                 ))}
+                <Picker.Item
+                  label="➕ Otra..."
+                  value="__add_new__"
+                />
               </Picker>
             </View>
           </View>
@@ -239,7 +295,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
             </View>
             <TouchableOpacity
               style={styles.addCuisineButton}
-              onPress={handleAddCustomCuisine}
+              onPress={() => setShowAddCuisineModal(true)}
             >
               <Text style={styles.addCuisineButtonText}>+ Añadir Nueva Cocina</Text>
             </TouchableOpacity>
@@ -339,6 +395,134 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Modal para añadir categoría */}
+      <Modal
+        visible={showAddCategoryModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAddCategoryModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Añadir Nueva Categoría</Text>
+            
+            <Text style={styles.modalLabel}>Nombre de la categoría:</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newCategoryName}
+              onChangeText={(text) => {
+                setNewCategoryName(text);
+                if (text.trim()) {
+                  const detected = detectEmojiForCategory(text);
+                  setNewCategoryIcon(detected);
+                }
+              }}
+              placeholder="Ej: Cordero, Setas, etc."
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            
+            <Text style={styles.modalLabel}>Icono (emoji):</Text>
+            <View style={styles.iconPreview}>
+              <Text style={styles.iconPreviewText}>
+                {newCategoryIcon || detectEmojiForCategory(newCategoryName) || '🍽️'}
+              </Text>
+              <Text style={styles.iconPreviewLabel}>
+                {newCategoryIcon || detectEmojiForCategory(newCategoryName) || '🍽️'} 
+                {newCategoryName.trim() ? ` - ${newCategoryName}` : ' (se detectará automáticamente)'}
+              </Text>
+            </View>
+            
+            <TextInput
+              style={styles.modalInput}
+              value={newCategoryIcon}
+              onChangeText={setNewCategoryIcon}
+              placeholder="Opcional: personaliza el emoji"
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowAddCategoryModal(false);
+                  setNewCategoryName('');
+                  setNewCategoryIcon('');
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonAdd]}
+                onPress={handleAddCategory}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextAdd]}>Añadir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal para añadir cocina */}
+      <Modal
+        visible={showAddCuisineModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAddCuisineModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Añadir Nueva Cocina</Text>
+            
+            <Text style={styles.modalLabel}>Nombre de la cocina:</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newCuisineName}
+              onChangeText={setNewCuisineName}
+              placeholder="Ej: Peruana, Brasileña, etc."
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            
+            <Text style={styles.modalLabel}>Bandera (emoji):</Text>
+            <View style={styles.iconPreview}>
+              <Text style={styles.iconPreviewText}>
+                {newCuisineFlag || '🌍'}
+              </Text>
+              <Text style={styles.iconPreviewLabel}>
+                {newCuisineFlag || '🌍'} 
+                {newCuisineName.trim() ? ` - ${newCuisineName}` : ' (ejemplo)'}
+              </Text>
+            </View>
+            
+            <TextInput
+              style={styles.modalInput}
+              value={newCuisineFlag}
+              onChangeText={setNewCuisineFlag}
+              placeholder="Emoji de bandera (ej: 🇵🇪, 🇧🇷)"
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowAddCuisineModal(false);
+                  setNewCuisineName('');
+                  setNewCuisineFlag('🌍');
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonAdd]}
+                onPress={handleAddCuisine}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextAdd]}>Añadir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -521,6 +705,86 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: SPACING.lg,
+    textAlign: 'center',
+  },
+  modalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.md,
+  },
+  modalInput: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  iconPreview: {
+    alignItems: 'center',
+    padding: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+  },
+  iconPreviewText: {
+    fontSize: 48,
+    marginBottom: SPACING.xs,
+  },
+  iconPreviewLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: SPACING.lg,
+    gap: SPACING.md,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  modalButtonAdd: {
+    backgroundColor: COLORS.primary,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  modalButtonTextAdd: {
+    color: '#ffffff',
   },
 });
 
