@@ -194,7 +194,6 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </View>
       </Modal>
-      </ScrollView>
 
       <TouchableOpacity
         style={styles.addButton}
