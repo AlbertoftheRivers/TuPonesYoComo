@@ -247,43 +247,57 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Cocinas (Puedes seleccionar múltiples)</Text>
-            <View style={styles.cuisineSelector}>
-              {allCuisines.map((c) => {
-                const isSelected = cuisine.includes(c.value as Cuisine);
-                return (
-                  <TouchableOpacity
+            <Text style={styles.label}>Cocinas</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
+                onValueChange={(value) => {
+                  if (value === '__add_new__') {
+                    setShowAddCuisineModal(true);
+                  } else if (value && value !== '') {
+                    const cuisineValue = value as Cuisine;
+                    if (!selectedCuisines.includes(cuisineValue)) {
+                      setSelectedCuisines([...selectedCuisines, cuisineValue]);
+                    }
+                  }
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="Seleccionar cocina..." value="" />
+                {allCuisines.map((c) => (
+                  <Picker.Item
                     key={c.value}
-                    style={[
-                      styles.cuisineChip,
-                      isSelected && styles.cuisineChipSelected,
-                    ]}
-                    onPress={() => {
-                      if (isSelected) {
-                        setCuisine(cuisine.filter(cuis => cuis !== c.value));
-                      } else {
-                        setCuisine([...cuisine, c.value as Cuisine]);
-                      }
-                    }}
-                  >
-                    <Text style={styles.cuisineChipFlag}>{c.flag}</Text>
-                    <Text style={[
-                      styles.cuisineChipLabel,
-                      isSelected && styles.cuisineChipLabelSelected,
-                    ]}>
-                      {c.label}
-                    </Text>
-                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
-                  </TouchableOpacity>
-                );
-              })}
+                    label={`${c.flag} ${c.label}`}
+                    value={c.value}
+                  />
+                ))}
+                <Picker.Item
+                  label="➕ Añadir Nueva Cocina"
+                  value="__add_new__"
+                />
+              </Picker>
             </View>
-            <TouchableOpacity
-              style={styles.addCuisineButton}
-              onPress={() => setShowAddCuisineModal(true)}
-            >
-              <Text style={styles.addCuisineButtonText}>+ Añadir Nueva Cocina</Text>
-            </TouchableOpacity>
+            {selectedCuisines.length > 0 && (
+              <View style={styles.selectedCuisinesContainer}>
+                {selectedCuisines.map((cuisineValue, idx) => {
+                  const cuisineInfo = allCuisines.find(c => c.value === cuisineValue);
+                  return (
+                    <View key={idx} style={styles.selectedCuisineBadge}>
+                      <Text style={styles.selectedCuisineFlag}>{cuisineInfo?.flag}</Text>
+                      <Text style={styles.selectedCuisineLabel}>{cuisineInfo?.label}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedCuisines(selectedCuisines.filter(c => c !== cuisineValue));
+                        }}
+                        style={styles.removeCuisineButton}
+                      >
+                        <Text style={styles.removeCuisineText}>×</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <View style={styles.field}>
