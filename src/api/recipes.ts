@@ -50,7 +50,7 @@ export async function createRecipe(payload: RecipeInsertPayload): Promise<Recipe
       .insert({
         title: payload.title,
         main_protein: payload.main_protein,
-        cuisines: payload.cuisines ? JSON.stringify(payload.cuisines) : null,
+        cuisines: payload.cuisines || [],
         raw_text: payload.raw_text,
         ingredients: payload.ingredients,
         steps: payload.steps,
@@ -77,12 +77,20 @@ export async function updateRecipe(
   payload: Partial<RecipeInsertPayload>
 ): Promise<Recipe> {
   try {
+    // Prepare update payload, ensuring cuisines is handled correctly
+    const updatePayload: any = {
+      ...payload,
+      updated_at: new Date().toISOString(),
+    };
+    
+    // Ensure cuisines is an array or undefined (not null)
+    if ('cuisines' in payload) {
+      updatePayload.cuisines = payload.cuisines || [];
+    }
+
     const { data, error } = await supabase
       .from('recipes')
-      .update({
-        ...payload,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single();
