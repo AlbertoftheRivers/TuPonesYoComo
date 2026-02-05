@@ -13,9 +13,9 @@ import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
-import { getRecipesByProtein, updateRecipe } from '../api/recipes';
-import { getAllCuisines, addCustomCuisine } from '../lib/customCategories';
-import { Recipe, MainProtein, Cuisine } from '../types/recipe';
+import { getRecipesByProtein } from '../api/recipes';
+import { getAllCuisines } from '../lib/customCategories';
+import { Recipe, MainProtein } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
@@ -69,55 +69,6 @@ export default function RecipeListScreen({ navigation, route }: Props) {
 
   const handleRecipePress = (recipe: Recipe) => {
     navigation.navigate('RecipeDetail', { recipeId: recipe.id });
-  };
-
-  const handleEditCuisine = (recipe: Recipe) => {
-    const currentCuisines = recipe.cuisines || [];
-    
-    // Create a simple selection interface
-    const options = allCuisines.map((c) => {
-      const isSelected = currentCuisines.includes(c.value as Cuisine);
-      return {
-        text: `${isSelected ? '✓ ' : ''}${c.flag} ${c.label}`,
-        onPress: () => {
-          let newCuisines: Cuisine[];
-          if (isSelected) {
-            newCuisines = currentCuisines.filter(cuis => cuis !== c.value);
-          } else {
-            newCuisines = [...currentCuisines, c.value as Cuisine];
-          }
-          updateRecipeCuisine(recipe.id, newCuisines);
-        },
-      };
-    });
-
-    Alert.alert(
-      'Editar Cocinas',
-      'Toca para seleccionar/deseleccionar (puedes elegir múltiples):',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        ...options,
-        {
-          text: 'Limpiar todas',
-          style: 'destructive',
-          onPress: () => {
-            updateRecipeCuisine(recipe.id, []);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  const updateRecipeCuisine = async (recipeId: string | number, cuisines: Cuisine[]) => {
-    try {
-      await updateRecipe(recipeId, { cuisines: cuisines.length > 0 ? cuisines : undefined });
-      await loadRecipes();
-      Alert.alert('Éxito', 'Cocinas actualizadas');
-    } catch (error) {
-      Alert.alert('Error', 'Error al actualizar las cocinas');
-      console.error(error);
-    }
   };
 
   const proteinLabel = MAIN_PROTEINS.find(p => p.value === mainProtein)?.label || mainProtein;
@@ -207,16 +158,12 @@ export default function RecipeListScreen({ navigation, route }: Props) {
               <TouchableOpacity
                 style={styles.recipeCard}
                 onPress={() => handleRecipePress(item)}
-                onLongPress={() => handleEditCuisine(item)}
                 activeOpacity={0.7}
               >
                 <View style={styles.recipeHeader}>
-                  <Text style={styles.recipeTitle}>{item.title}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleEditCuisine(item)}
-                    activeOpacity={0.7}
-                  >
-                    {cuisineInfos.length > 0 ? (
+                  <View style={styles.recipeTitleContainer}>
+                    <Text style={styles.recipeTitle}>{item.title}</Text>
+                    {cuisineInfos.length > 0 && (
                       <View style={styles.cuisineBadgesContainer}>
                         {cuisineInfos.map((cuisineInfo, idx) => (
                           <View key={idx} style={styles.cuisineBadge}>
@@ -225,12 +172,8 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                           </View>
                         ))}
                       </View>
-                    ) : (
-                      <View style={[styles.cuisineBadge, styles.cuisineBadgeEmpty]}>
-                        <Text style={styles.cuisineLabel}>+ Cocina</Text>
-                      </View>
                     )}
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View style={styles.badges}>
                   {item.total_time_minutes && (
@@ -317,17 +260,22 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   recipeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: SPACING.sm,
+  },
+  recipeTitleContainer: {
+    flex: 1,
   },
   recipeTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.text,
-    flex: 1,
-    marginRight: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  cuisineBadgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    marginTop: SPACING.xs,
   },
   cuisineBadge: {
     flexDirection: 'row',
@@ -338,25 +286,13 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.sm,
   },
   cuisineFlag: {
-    fontSize: 16,
+    fontSize: 14,
     marginRight: SPACING.xs,
   },
   cuisineLabel: {
     fontSize: 12,
     color: COLORS.text,
     fontWeight: '500',
-  },
-  cuisineBadgeEmpty: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-  },
-  cuisineBadgesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.xs,
-    maxWidth: 200,
   },
   badges: {
     flexDirection: 'row',
