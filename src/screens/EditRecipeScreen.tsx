@@ -278,6 +278,12 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 );
               })}
             </View>
+            <TouchableOpacity
+              style={styles.addCuisineButton}
+              onPress={() => setShowAddCuisineModal(true)}
+            >
+              <Text style={styles.addCuisineButtonText}>+ Añadir Nueva Cocina</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.field}>
