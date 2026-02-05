@@ -32,7 +32,7 @@ export const MAIN_PROTEINS: Array<{ value: string; label: string; icon: string }
   { value: 'fish', label: 'Pescado', icon: '🐟' },
   { value: 'pork', label: 'Cerdo', icon: '🐷' },
   { value: 'seafood', label: 'Mariscos', icon: '🦐' },
-  { value: 'beef', label: 'Res', icon: '🐄' },
+  { value: 'beef', label: 'Ternera', icon: '🐄' },
   { value: 'vegetables', label: 'Verduras', icon: '🥕' },
   { value: 'beans_legumes', label: 'Legumbres', icon: '🫘' },
   { value: 'desserts', label: 'Postres', icon: '🍰' },

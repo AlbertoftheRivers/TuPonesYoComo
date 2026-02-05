@@ -12,6 +12,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, deleteRecipe } from '../api/recipes';
+import { getAllCuisines } from '../lib/customCategories';
 import { Recipe } from '../types/recipe';
 
 type RootStackParamList = {
@@ -34,10 +35,21 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [allCuisines, setAllCuisines] = useState(CUISINES);
 
   useEffect(() => {
     loadRecipe();
+    loadCuisines();
   }, [recipeId]);
+
+  const loadCuisines = async () => {
+    try {
+      const cuisines = await getAllCuisines();
+      setAllCuisines(cuisines);
+    } catch (error) {
+      console.error('Error loading cuisines:', error);
+    }
+  };
 
   const loadRecipe = async () => {
     try {
@@ -99,7 +111,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
   const proteinLabel = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.label || recipe.main_protein;
   const proteinIcon = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.icon || '🍽️';
-  const cuisineInfo = recipe.cuisine ? CUISINES.find(c => c.value === recipe.cuisine) : null;
+  const cuisineInfo = recipe.cuisine ? allCuisines.find(c => c.value === recipe.cuisine) : null;
 
   return (
     <View style={styles.container}>

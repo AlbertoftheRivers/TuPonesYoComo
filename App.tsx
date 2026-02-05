@@ -94,7 +94,7 @@ export default function App() {
             <Stack.Screen 
               name="AddRecipe" 
               component={AddRecipeScreen}
-              options={{ title: 'Agregar Receta' }}
+              options={{ title: 'Añadir Receta' }}
             />
             <Stack.Screen 
               name="EditRecipe" 

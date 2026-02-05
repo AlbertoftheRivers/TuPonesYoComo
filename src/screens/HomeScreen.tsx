@@ -68,7 +68,7 @@ export default function HomeScreen({ navigation }: Props) {
         onPress={handleAddRecipe}
         activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>➕ Agregar Receta</Text>
+        <Text style={styles.addButtonText}>➕ Añadir Receta</Text>
       </TouchableOpacity>
     </View>
   );

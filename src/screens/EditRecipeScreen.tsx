@@ -15,6 +15,7 @@ import { RouteProp } from '@react-navigation/native';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, updateRecipe } from '../api/recipes';
 import { analyzeRecipe } from '../lib/ollama';
+import { getAllProteins, getAllCuisines } from '../lib/customCategories';
 import { Recipe, MainProtein, RecipeAIAnalysis, Cuisine } from '../types/recipe';
 
 type RootStackParamList = {
@@ -49,10 +50,24 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
+  const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
+  const [allCuisines, setAllCuisines] = useState(CUISINES);
 
   useEffect(() => {
     loadRecipe();
+    loadCustomOptions();
   }, [recipeId]);
+
+  const loadCustomOptions = async () => {
+    try {
+      const proteins = await getAllProteins();
+      const cuisines = await getAllCuisines();
+      setAllProteins(proteins);
+      setAllCuisines(cuisines);
+    } catch (error) {
+      console.error('Error loading custom options:', error);
+    }
+  };
 
   const loadRecipe = async () => {
     try {
@@ -202,7 +217,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 onValueChange={(value) => setMainProtein(value)}
                 style={styles.picker}
               >
-                {MAIN_PROTEINS.map((protein) => (
+                {allProteins.map((protein) => (
                   <Picker.Item
                     key={protein.value}
                     label={`${protein.icon} ${protein.label}`}
@@ -222,7 +237,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 style={styles.picker}
               >
                 <Picker.Item label="Sin especificar" value="" />
-                {CUISINES.map((c) => (
+                {allCuisines.map((c) => (
                   <Picker.Item
                     key={c.value}
                     label={`${c.flag} ${c.label}`}
