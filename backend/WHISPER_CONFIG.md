@@ -6,9 +6,10 @@ Agrega estas variables a tu archivo `.env` en el directorio `backend/`:
 
 ```bash
 # Whisper Configuration
-WHISPER_MODEL=small
+WHISPER_MODEL=base
 # Opciones: tiny, base, small, medium, large
-# Recomendado: small (buen balance) o medium (mejor precisión)
+# Para sistemas con < 4GB RAM: usa 'base' o 'tiny'
+# Recomendado para tu sistema (3.8GB RAM): base
 
 WHISPER_VENV_PATH=/opt/apps/TuPonesYoComo/backend/whisper_venv
 # Ruta al entorno virtual de Whisper

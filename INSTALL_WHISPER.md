@@ -48,18 +48,23 @@ whisper --version
 ## Paso 5: Descargar modelo de Whisper
 
 Whisper necesita descargar un modelo. Hay varios tamaños:
-- `tiny` - Más rápido, menos preciso
-- `base` - Balance velocidad/precisión
-- `small` - Buen balance
-- `medium` - Más preciso, más lento
-- `large` - Más preciso, más lento y pesado
 
-Para español y recetas, recomiendo `small` o `medium`:
+**IMPORTANTE: Para sistemas con poca RAM (< 4GB), usa `base` o `tiny`**
+
+- `tiny` - ~75 MB, ~1 GB RAM, más rápido, menos preciso
+- `base` - ~150 MB, ~1.5 GB RAM, balance velocidad/precisión ⭐ **RECOMENDADO para tu sistema**
+- `small` - ~500 MB, ~2-4 GB RAM, buen balance (puede ser ajustado con 3.8GB total)
+- `medium` - ~1.5 GB, ~5-8 GB RAM, más preciso, más lento
+- `large` - ~3 GB, ~10+ GB RAM, más preciso, más lento y pesado
+
+**Para tu sistema (3.8GB RAM total):**
+- ✅ **Recomendado: `base`** - Buen balance y funcionará bien
+- ✅ Alternativa: `tiny` - Si necesitas más velocidad
+- ⚠️ `small` - Puede funcionar pero usará swap y será más lento
 
 ```bash
-# Descargar modelo (esto descargará automáticamente la primera vez que lo uses)
-# O puedes descargarlo manualmente:
-whisper --model small --help  # Esto descargará el modelo 'small'
+# Descargar modelo base (recomendado para tu sistema)
+whisper --model base --help  # Esto descargará el modelo 'base'
 ```
 
 ## Paso 6: Probar Whisper manualmente
@@ -98,22 +103,31 @@ which whisper
 
 1. **Espacio en disco**: Los modelos de Whisper ocupan espacio:
    - `tiny`: ~75 MB
-   - `base`: ~150 MB
+   - `base`: ~150 MB ⭐ **Recomendado para tu sistema**
    - `small`: ~500 MB
    - `medium`: ~1.5 GB
    - `large`: ~3 GB
 
-2. **Memoria RAM**: 
-   - `small`: ~2-4 GB RAM
-   - `medium`: ~5-8 GB RAM
-   - `large`: ~10+ GB RAM
+2. **Memoria RAM** (uso aproximado durante transcripción):
+   - `tiny`: ~1 GB RAM
+   - `base`: ~1.5 GB RAM ⭐ **Ideal para tu sistema (3.8GB total)**
+   - `small`: ~2-4 GB RAM (puede usar swap en tu sistema)
+   - `medium`: ~5-8 GB RAM (no recomendado)
+   - `large`: ~10+ GB RAM (no recomendado)
 
 3. **Tiempo de procesamiento** (aproximado para 1 minuto de audio):
+   - `tiny`: 3-5 segundos
+   - `base`: 5-8 segundos ⭐
    - `small`: 5-10 segundos
    - `medium`: 15-30 segundos
    - `large`: 30-60 segundos
 
 4. **Primera ejecución**: La primera vez que uses un modelo, Whisper lo descargará automáticamente (puede tardar).
+
+5. **Optimización para sistemas con poca RAM**:
+   - Usa el modelo `base` en lugar de `small`
+   - Asegúrate de tener swap configurado (ya lo tienes: 3.8GB)
+   - Cierra otras aplicaciones si es posible durante la transcripción
 
 ## Solución de problemas:
 

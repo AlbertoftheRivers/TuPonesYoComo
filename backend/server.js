@@ -20,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://192.168.200.45:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:3b';
-const WHISPER_MODEL = process.env.WHISPER_MODEL || 'small';
+const WHISPER_MODEL = process.env.WHISPER_MODEL || 'base'; // base is better for systems with < 4GB RAM
 const WHISPER_VENV_PATH = process.env.WHISPER_VENV_PATH || path.join(__dirname, 'whisper_venv');
 
 // Configure multer for file uploads
