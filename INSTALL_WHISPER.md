@@ -13,24 +13,32 @@ ssh logpinkylog@pinkyubuntu240403
 # Actualizar sistema
 sudo apt update && sudo apt upgrade -y
 
-# Instalar Python 3.11+ y pip
-sudo apt install -y python3.11 python3.11-venv python3-pip ffmpeg
+# Verificar versión de Python disponible
+python3 --version
 
-# Verificar versión de Python (debe ser 3.11 o superior)
-python3.11 --version
+# Instalar Python 3 y dependencias (usará la versión disponible en tu sistema)
+sudo apt install -y python3 python3-venv python3-pip ffmpeg
+
+# Verificar instalación
+python3 --version
+pip3 --version
+ffmpeg -version
 ```
+
+**Nota**: Si tu sistema tiene Python 3.8 o superior, funcionará bien. Whisper requiere Python 3.8+.
 
 ## Paso 3: Crear entorno virtual para Whisper
 
 ```bash
 cd /opt/apps/TuPonesYoComo/backend
 
-# Crear entorno virtual
-python3.11 -m venv whisper_venv
+# Crear entorno virtual (usa python3, no python3.11)
+python3 -m venv whisper_venv
 
 # Activar entorno virtual
 source whisper_venv/bin/activate
 
+# Verificar que estás en el entorno virtual (deberías ver (whisper_venv) en el prompt)
 # Actualizar pip
 pip install --upgrade pip
 ```
