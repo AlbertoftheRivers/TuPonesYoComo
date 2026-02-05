@@ -106,7 +106,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
 
     // Run Whisper transcription
     // --language es: Spanish
-    // --model small: Use small model (good balance)
+    // --model base: Use base model (good balance for limited RAM)
     // --output_dir: Where to save output
     // --output_format txt: Get plain text
     // --fp16 False: Disable FP16 (better compatibility)
