@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Recipe, RecipeInsertPayload, MainProtein } from '../types/recipe';
+import { Recipe, RecipeInsertPayload, MainProtein, Cuisine } from '../types/recipe';
 
 export async function getRecipesByProtein(mainProtein: MainProtein): Promise<Recipe[]> {
   try {
@@ -50,7 +50,7 @@ export async function createRecipe(payload: RecipeInsertPayload): Promise<Recipe
       .insert({
         title: payload.title,
         main_protein: payload.main_protein,
-        cuisine: payload.cuisine || null,
+        cuisines: payload.cuisines ? JSON.stringify(payload.cuisines) : null,
         raw_text: payload.raw_text,
         ingredients: payload.ingredients,
         steps: payload.steps,
@@ -116,11 +116,24 @@ export async function deleteRecipe(id: string | number): Promise<void> {
 
 // Helper to normalize recipe data from Supabase
 function normalizeRecipe(data: any): Recipe {
+  // Handle both old format (cuisine as string) and new format (cuisines as array)
+  let cuisines: Cuisine[] | undefined = undefined;
+  if (data.cuisines) {
+    try {
+      cuisines = typeof data.cuisines === 'string' ? JSON.parse(data.cuisines) : data.cuisines;
+    } catch {
+      cuisines = Array.isArray(data.cuisines) ? data.cuisines : undefined;
+    }
+  } else if (data.cuisine) {
+    // Legacy support: convert old single cuisine to array
+    cuisines = [data.cuisine];
+  }
+
   return {
     id: data.id,
     title: data.title || '',
     main_protein: data.main_protein,
-    cuisine: data.cuisine || undefined,
+    cuisines: cuisines,
     raw_text: data.raw_text || '',
     ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
     steps: Array.isArray(data.steps) ? data.steps : [],

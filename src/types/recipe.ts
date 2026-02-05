@@ -37,7 +37,7 @@ export interface Recipe {
   id: string | number;
   title: string;
   main_protein: MainProtein;
-  cuisine?: Cuisine;
+  cuisines?: Cuisine[]; // Changed to array for multiple selections
   raw_text: string;
   ingredients: Ingredient[];
   steps: string[];
@@ -51,7 +51,7 @@ export interface Recipe {
 export interface RecipeInsertPayload {
   title: string;
   main_protein: MainProtein;
-  cuisine?: Cuisine;
+  cuisines?: Cuisine[]; // Changed to array for multiple selections
   raw_text: string;
   ingredients: Ingredient[];
   steps: string[];

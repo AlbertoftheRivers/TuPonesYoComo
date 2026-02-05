@@ -39,7 +39,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
-  const [cuisine, setCuisine] = useState<Cuisine | ''>('');
+  const [cuisine, setCuisine] = useState<Cuisine[]>([]);
   const [rawText, setRawText] = useState('');
   const [ingredients, setIngredients] = useState<RecipeAIAnalysis['ingredients']>([]);
   const [steps, setSteps] = useState<string[]>([]);
@@ -77,7 +77,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         setRecipe(data);
         setTitle(data.title);
         setMainProtein(data.main_protein);
-        setCuisine(data.cuisine || '');
+        setCuisine(data.cuisines || []);
         setRawText(data.raw_text);
         setIngredients(data.ingredients);
         setSteps(data.steps);
@@ -159,7 +159,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       await updateRecipe(recipeId, {
         title: title.trim(),
         main_protein: mainProtein,
-        cuisine: cuisine || undefined,
+        cuisines: cuisine.length > 0 ? cuisine : undefined,
         raw_text: rawText.trim(),
         ingredients,
         steps,
@@ -229,22 +229,36 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Cocina (Opcional)</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={cuisine}
-                onValueChange={(value) => setCuisine(value)}
-                style={styles.picker}
-              >
-                <Picker.Item label="Sin especificar" value="" />
-                {allCuisines.map((c) => (
-                  <Picker.Item
+            <Text style={styles.label}>Cocinas (Puedes seleccionar múltiples)</Text>
+            <View style={styles.cuisineSelector}>
+              {allCuisines.map((c) => {
+                const isSelected = cuisine.includes(c.value as Cuisine);
+                return (
+                  <TouchableOpacity
                     key={c.value}
-                    label={`${c.flag} ${c.label}`}
-                    value={c.value}
-                  />
-                ))}
-              </Picker>
+                    style={[
+                      styles.cuisineChip,
+                      isSelected && styles.cuisineChipSelected,
+                    ]}
+                    onPress={() => {
+                      if (isSelected) {
+                        setCuisine(cuisine.filter(cuis => cuis !== c.value));
+                      } else {
+                        setCuisine([...cuisine, c.value as Cuisine]);
+                      }
+                    }}
+                  >
+                    <Text style={styles.cuisineChipFlag}>{c.flag}</Text>
+                    <Text style={[
+                      styles.cuisineChipLabel,
+                      isSelected && styles.cuisineChipLabelSelected,
+                    ]}>
+                      {c.label}
+                    </Text>
+                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
@@ -496,6 +510,46 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     lineHeight: 20,
     marginBottom: SPACING.xs,
+  },
+  cuisineSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  cuisineChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  cuisineChipSelected: {
+    backgroundColor: COLORS.accent + '30',
+    borderColor: COLORS.accent,
+    borderWidth: 2,
+  },
+  cuisineChipFlag: {
+    fontSize: 18,
+  },
+  cuisineChipLabel: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
+  cuisineChipLabelSelected: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  checkmark: {
+    fontSize: 16,
+    color: COLORS.primary,
+    fontWeight: 'bold',
+    marginLeft: SPACING.xs,
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ interface Props {
 export default function AddRecipeScreen({ navigation }: Props) {
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
-  const [cuisine, setCuisine] = useState<Cuisine | ''>('');
+  const [cuisine, setCuisine] = useState<Cuisine[]>([]);
   const [rawText, setRawText] = useState('');
   const [analysis, setAnalysis] = useState<RecipeAIAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -43,7 +43,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
   const [allCuisines, setAllCuisines] = useState(CUISINES);
 
-  React.useEffect(() => {
+  useEffect(() => {
     loadCustomOptions();
   }, []);
 
@@ -101,103 +101,25 @@ export default function AddRecipeScreen({ navigation }: Props) {
     }
   };
 
-  const handleAddCustomProtein = () => {
-    Alert.prompt(
-      'Nueva Categoría',
-      'Nombre de la categoría:',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Añadir',
-          onPress: async (proteinName) => {
-            if (!proteinName?.trim()) return;
-            
-            Alert.prompt(
-              'Icono',
-              'Emoji para la categoría (ej: 🥩, 🍖):',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'Añadir',
-                  onPress: async (icon) => {
-                    if (!icon?.trim()) {
-                      Alert.alert('Error', 'Por favor ingresa un emoji');
-                      return;
-                    }
-                    
-                    try {
-                      const newProtein = {
-                        value: proteinName.toLowerCase().replace(/\s+/g, '_'),
-                        label: proteinName.trim(),
-                        icon: icon.trim(),
-                      };
-                      await addCustomProtein(newProtein);
-                      await loadCustomOptions();
-                      setMainProtein(newProtein.value as MainProtein);
-                      Alert.alert('Éxito', 'Categoría añadida');
-                    } catch (error) {
-                      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir categoría');
-                    }
-                  },
-                },
-              ],
-              'plain-text',
-              '🥩'
-            );
-          },
-        },
-      ],
-      'plain-text'
-    );
-  };
-
   const handleAddCustomCuisine = () => {
-    Alert.prompt(
-      'Nueva Cocina',
-      'Nombre de la cocina:',
+    Alert.alert(
+      'Añadir Nueva Cocina',
+      'Escribe el nombre de la cocina:',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Añadir',
-          onPress: async (cuisineName) => {
-            if (!cuisineName?.trim()) return;
-            
-            Alert.prompt(
-              'Bandera',
-              'Emoji de bandera (ej: 🇪🇸, 🇮🇹):',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'Añadir',
-                  onPress: async (flag) => {
-                    if (!flag?.trim()) {
-                      Alert.alert('Error', 'Por favor ingresa un emoji de bandera');
-                      return;
-                    }
-                    
-                    try {
-                      const newCuisine = {
-                        value: cuisineName.toLowerCase().replace(/\s+/g, '_'),
-                        label: cuisineName.trim(),
-                        flag: flag.trim(),
-                      };
-                      await addCustomCuisine(newCuisine);
-                      await loadCustomOptions();
-                      setCuisine(newCuisine.value as Cuisine);
-                      Alert.alert('Éxito', 'Cocina añadida');
-                    } catch (error) {
-                      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir cocina');
-                    }
-                  },
-                },
-              ],
-              'plain-text',
-              '🌍'
+          text: 'Continuar',
+          onPress: () => {
+            // Note: React Native doesn't have Alert.prompt
+            // User should use the HomeScreen to add categories
+            Alert.alert(
+              'Añadir Cocina',
+              'Para añadir una nueva cocina, ve a la pantalla principal y usa la sección "Añadir Categoría"',
+              [{ text: 'OK' }]
             );
           },
         },
-      ],
-      'plain-text'
+      ]
     );
   };
 
@@ -219,10 +141,10 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
     try {
       setSaving(true);
-      const recipe = await createRecipe({
+      const recipe =       await createRecipe({
         title: title.trim(),
         main_protein: mainProtein,
-        cuisine: cuisine || undefined,
+        cuisines: cuisine.length > 0 ? cuisine : undefined,
         raw_text: rawText.trim(),
         ingredients: analysis.ingredients,
         steps: analysis.steps,
@@ -265,15 +187,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.field}>
-            <View style={styles.fieldHeader}>
-              <Text style={styles.label}>Categoría Principal</Text>
-              <TouchableOpacity
-                style={styles.addButtonSmall}
-                onPress={handleAddCustomProtein}
-              >
-                <Text style={styles.addButtonSmallText}>+ Añadir</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.label}>Categoría Principal</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={mainProtein}
@@ -292,31 +206,43 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.field}>
-            <View style={styles.fieldHeader}>
-              <Text style={styles.label}>Cocina (Opcional)</Text>
-              <TouchableOpacity
-                style={styles.addButtonSmall}
-                onPress={handleAddCustomCuisine}
-              >
-                <Text style={styles.addButtonSmallText}>+ Añadir</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={cuisine}
-                onValueChange={(value) => setCuisine(value)}
-                style={styles.picker}
-              >
-                <Picker.Item label="Sin especificar" value="" />
-                {allCuisines.map((c) => (
-                  <Picker.Item
+            <Text style={styles.label}>Cocinas (Puedes seleccionar múltiples)</Text>
+            <View style={styles.cuisineSelector}>
+              {allCuisines.map((c) => {
+                const isSelected = cuisine.includes(c.value);
+                return (
+                  <TouchableOpacity
                     key={c.value}
-                    label={`${c.flag} ${c.label}`}
-                    value={c.value}
-                  />
-                ))}
-              </Picker>
+                    style={[
+                      styles.cuisineChip,
+                      isSelected && styles.cuisineChipSelected,
+                    ]}
+                    onPress={() => {
+                      if (isSelected) {
+                        setCuisine(cuisine.filter(cuis => cuis !== c.value));
+                      } else {
+                        setCuisine([...cuisine, c.value as Cuisine]);
+                      }
+                    }}
+                  >
+                    <Text style={styles.cuisineChipFlag}>{c.flag}</Text>
+                    <Text style={[
+                      styles.cuisineChipLabel,
+                      isSelected && styles.cuisineChipLabelSelected,
+                    ]}>
+                      {c.label}
+                    </Text>
+                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
+            <TouchableOpacity
+              style={styles.addCuisineButton}
+              onPress={handleAddCustomCuisine}
+            >
+              <Text style={styles.addCuisineButtonText}>+ Añadir Nueva Cocina</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.field}>
@@ -541,6 +467,60 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
     lineHeight: 20,
+  },
+  cuisineSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  cuisineChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  cuisineChipSelected: {
+    backgroundColor: COLORS.accent + '30',
+    borderColor: COLORS.accent,
+    borderWidth: 2,
+  },
+  cuisineChipFlag: {
+    fontSize: 18,
+  },
+  cuisineChipLabel: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
+  cuisineChipLabelSelected: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  checkmark: {
+    fontSize: 16,
+    color: COLORS.primary,
+    fontWeight: 'bold',
+    marginLeft: SPACING.xs,
+  },
+  addCuisineButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    alignItems: 'center',
+  },
+  addCuisineButtonText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
   },
 });
 

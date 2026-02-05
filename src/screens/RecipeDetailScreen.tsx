@@ -111,7 +111,9 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
   const proteinLabel = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.label || recipe.main_protein;
   const proteinIcon = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.icon || '🍽️';
-  const cuisineInfo = recipe.cuisine ? allCuisines.find(c => c.value === recipe.cuisine) : null;
+  const cuisineInfos = recipe.cuisines 
+    ? recipe.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
+    : [];
 
   return (
     <View style={styles.container}>
@@ -119,10 +121,14 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{recipe.title}</Text>
-            {cuisineInfo && (
-              <View style={styles.cuisineBadge}>
-                <Text style={styles.cuisineFlag}>{cuisineInfo.flag}</Text>
-                <Text style={styles.cuisineLabel}>{cuisineInfo.label}</Text>
+            {cuisineInfos.length > 0 && (
+              <View style={styles.cuisineBadgesContainer}>
+                {cuisineInfos.map((cuisineInfo, idx) => (
+                  <View key={idx} style={styles.cuisineBadge}>
+                    <Text style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
+                    <Text style={styles.cuisineLabel}>{cuisineInfo?.label}</Text>
+                  </View>
+                ))}
               </View>
             )}
           </View>
@@ -248,6 +254,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
     fontWeight: '500',
+  },
+  cuisineBadgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    maxWidth: 200,
   },
   meta: {
     flexDirection: 'row',

@@ -72,74 +72,50 @@ export default function RecipeListScreen({ navigation, route }: Props) {
   };
 
   const handleEditCuisine = (recipe: Recipe) => {
+    const currentCuisines = recipe.cuisines || [];
+    
+    // Create a simple selection interface
+    const options = allCuisines.map((c) => {
+      const isSelected = currentCuisines.includes(c.value as Cuisine);
+      return {
+        text: `${isSelected ? '✓ ' : ''}${c.flag} ${c.label}`,
+        onPress: () => {
+          let newCuisines: Cuisine[];
+          if (isSelected) {
+            newCuisines = currentCuisines.filter(cuis => cuis !== c.value);
+          } else {
+            newCuisines = [...currentCuisines, c.value as Cuisine];
+          }
+          updateRecipeCuisine(recipe.id, newCuisines);
+        },
+      };
+    });
+
     Alert.alert(
-      'Editar Cocina',
-      'Selecciona una opción:',
+      'Editar Cocinas',
+      'Toca para seleccionar/deseleccionar (puedes elegir múltiples):',
       [
         { text: 'Cancelar', style: 'cancel' },
+        ...options,
         {
-          text: 'Seleccionar Cocina',
+          text: 'Limpiar todas',
+          style: 'destructive',
           onPress: () => {
-            Alert.alert(
-              'Seleccionar Cocina',
-              '',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                ...allCuisines.map((c) => ({
-                  text: `${c.flag} ${c.label}`,
-                  onPress: () => {
-                    updateRecipeCuisine(recipe.id, c.value as Cuisine);
-                  },
-                })),
-                {
-                  text: 'Sin cocina',
-                  onPress: () => {
-                    updateRecipeCuisine(recipe.id, undefined);
-                  },
-                },
-              ],
-              { cancelable: true }
-            );
+            updateRecipeCuisine(recipe.id, []);
           },
         },
-        {
-          text: 'Nueva Cocina',
-          onPress: () => {
-            // For React Native, we'll use a simple approach with two alerts
-            // First ask for name, then flag
-            Alert.alert(
-              'Nueva Cocina',
-              'Escribe el nombre de la cocina en el siguiente paso',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'Continuar',
-                  onPress: () => {
-                    // Note: React Native doesn't have Alert.prompt
-                    // User will need to go to Add Recipe screen to add custom cuisines
-                    // Or we can navigate there
-                    Alert.alert(
-                      'Añadir Nueva Cocina',
-                      'Para añadir una nueva cocina, ve a la pantalla de "Añadir Receta" y usa el botón "+ Añadir" junto al selector de cocina.',
-                      [{ text: 'OK' }]
-                    );
-                  },
-                },
-              ]
-            );
-          },
-        },
-      ]
+      ],
+      { cancelable: true }
     );
   };
 
-  const updateRecipeCuisine = async (recipeId: string | number, cuisine: Cuisine | undefined) => {
+  const updateRecipeCuisine = async (recipeId: string | number, cuisines: Cuisine[]) => {
     try {
-      await updateRecipe(recipeId, { cuisine });
+      await updateRecipe(recipeId, { cuisines: cuisines.length > 0 ? cuisines : undefined });
       await loadRecipes();
-      Alert.alert('Éxito', 'Cocina actualizada');
+      Alert.alert('Éxito', 'Cocinas actualizadas');
     } catch (error) {
-      Alert.alert('Error', 'Error al actualizar la cocina');
+      Alert.alert('Error', 'Error al actualizar las cocinas');
       console.error(error);
     }
   };
@@ -160,10 +136,12 @@ export default function RecipeListScreen({ navigation, route }: Props) {
         return true;
       }
 
-      // Buscar en cuisine
-      if (recipe.cuisine) {
-        const cuisineLabel = allCuisines.find(c => c.value === recipe.cuisine)?.label || '';
-        if (cuisineLabel.toLowerCase().includes(query)) {
+      // Buscar en cuisines
+      if (recipe.cuisines && recipe.cuisines.length > 0) {
+        const cuisineLabels = recipe.cuisines
+          .map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)?.label || '')
+          .join(' ');
+        if (cuisineLabels.toLowerCase().includes(query)) {
           return true;
         }
       }
@@ -222,7 +200,9 @@ export default function RecipeListScreen({ navigation, route }: Props) {
           data={filteredRecipes}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => {
-            const cuisineInfo = item.cuisine ? allCuisines.find(c => c.value === item.cuisine) : null;
+            const cuisineInfos = item.cuisines 
+              ? item.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
+              : [];
             return (
               <TouchableOpacity
                 style={styles.recipeCard}
@@ -236,10 +216,14 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                     onPress={() => handleEditCuisine(item)}
                     activeOpacity={0.7}
                   >
-                    {cuisineInfo ? (
-                      <View style={styles.cuisineBadge}>
-                        <Text style={styles.cuisineFlag}>{cuisineInfo.flag}</Text>
-                        <Text style={styles.cuisineLabel}>{cuisineInfo.label}</Text>
+                    {cuisineInfos.length > 0 ? (
+                      <View style={styles.cuisineBadgesContainer}>
+                        {cuisineInfos.map((cuisineInfo, idx) => (
+                          <View key={idx} style={styles.cuisineBadge}>
+                            <Text style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
+                            <Text style={styles.cuisineLabel}>{cuisineInfo?.label}</Text>
+                          </View>
+                        ))}
                       </View>
                     ) : (
                       <View style={[styles.cuisineBadge, styles.cuisineBadgeEmpty]}>
@@ -367,6 +351,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderStyle: 'dashed',
+  },
+  cuisineBadgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    maxWidth: 200,
   },
   badges: {
     flexDirection: 'row',

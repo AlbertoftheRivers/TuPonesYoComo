@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.recipes (
   id BIGSERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   main_protein TEXT NOT NULL CHECK (main_protein IN ('chicken', 'fish', 'pork', 'seafood', 'beef', 'vegetables', 'beans_legumes', 'desserts', 'guisos', 'other')),
-  cuisine TEXT CHECK (cuisine IN ('española', 'italiana', 'mexicana', 'francesa', 'asiática', 'mediterránea', 'americana', 'india', 'japonesa', 'tailandesa', 'griega', 'turca', 'marroquí', 'otra')),
+  cuisines JSONB DEFAULT '[]'::jsonb,
   raw_text TEXT NOT NULL,
   ingredients JSONB NOT NULL DEFAULT '[]'::jsonb,
   steps JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -22,6 +22,12 @@ CREATE INDEX IF NOT EXISTS idx_recipes_main_protein ON public.recipes(main_prote
 
 -- Create an index on title for faster sorting
 CREATE INDEX IF NOT EXISTS idx_recipes_title ON public.recipes(title);
+
+-- Migrate existing cuisine column to cuisines array (if column exists)
+-- Run this only if you have existing data with the old 'cuisine' column
+-- ALTER TABLE public.recipes ADD COLUMN IF NOT EXISTS cuisines JSONB DEFAULT '[]'::jsonb;
+-- UPDATE public.recipes SET cuisines = CASE WHEN cuisine IS NOT NULL THEN jsonb_build_array(cuisine) ELSE '[]'::jsonb END WHERE cuisines IS NULL;
+-- ALTER TABLE public.recipes DROP COLUMN IF EXISTS cuisine;
 
 -- Create a function to automatically update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
