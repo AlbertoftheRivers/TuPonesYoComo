@@ -22,8 +22,7 @@ export type Cuisine =
   | 'tailandesa'
   | 'griega'
   | 'turca'
-  | 'marroquí'
-  | 'otra';
+  | 'marroquí';
 
 export interface Ingredient {
   name: string;
