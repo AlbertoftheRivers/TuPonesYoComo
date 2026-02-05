@@ -36,7 +36,8 @@ interface Props {
 export default function AddRecipeScreen({ navigation }: Props) {
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
-  const [cuisine, setCuisine] = useState<Cuisine[]>([]);
+  const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
+  const [showCuisinePicker, setShowCuisinePicker] = useState(false);
   const [rawText, setRawText] = useState('');
   const [analysis, setAnalysis] = useState<RecipeAIAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -158,7 +159,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
       await addCustomCuisine(newCuisine);
       await loadCustomOptions();
-      setCuisine([...cuisine, newCuisine.value as Cuisine]);
+      setSelectedCuisines([...selectedCuisines, newCuisine.value as Cuisine]);
       
       Alert.alert('Éxito', `Cocina "${newCuisineName}" añadida`);
       setShowAddCuisineModal(false);
@@ -190,7 +191,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       const recipe =       await createRecipe({
         title: title.trim(),
         main_protein: mainProtein,
-        cuisines: cuisine.length > 0 ? cuisine : undefined,
+        cuisines: selectedCuisines.length > 0 ? selectedCuisines : undefined,
         raw_text: rawText.trim(),
         ingredients: analysis.ingredients,
         steps: analysis.steps,
@@ -262,43 +263,57 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Cocinas (Puedes seleccionar múltiples)</Text>
-            <View style={styles.cuisineSelector}>
-              {allCuisines.map((c) => {
-                const isSelected = cuisine.includes(c.value);
-                return (
-                  <TouchableOpacity
+            <Text style={styles.label}>Cocinas</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
+                onValueChange={(value) => {
+                  if (value === '__add_new__') {
+                    setShowAddCuisineModal(true);
+                  } else if (value && value !== '') {
+                    const cuisineValue = value as Cuisine;
+                    if (!selectedCuisines.includes(cuisineValue)) {
+                      setSelectedCuisines([...selectedCuisines, cuisineValue]);
+                    }
+                  }
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="Seleccionar cocina..." value="" />
+                {allCuisines.map((c) => (
+                  <Picker.Item
                     key={c.value}
-                    style={[
-                      styles.cuisineChip,
-                      isSelected && styles.cuisineChipSelected,
-                    ]}
-                    onPress={() => {
-                      if (isSelected) {
-                        setCuisine(cuisine.filter(cuis => cuis !== c.value));
-                      } else {
-                        setCuisine([...cuisine, c.value as Cuisine]);
-                      }
-                    }}
-                  >
-                    <Text style={styles.cuisineChipFlag}>{c.flag}</Text>
-                    <Text style={[
-                      styles.cuisineChipLabel,
-                      isSelected && styles.cuisineChipLabelSelected,
-                    ]}>
-                      {c.label}
-                    </Text>
-                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
-                  </TouchableOpacity>
-                );
-              })}
+                    label={`${c.flag} ${c.label}`}
+                    value={c.value}
+                  />
+                ))}
+                <Picker.Item
+                  label="➕ Añadir Nueva Cocina"
+                  value="__add_new__"
+                />
+              </Picker>
             </View>
-            <TouchableOpacity
-              style={styles.addCuisineButton}
-              onPress={() => setShowAddCuisineModal(true)}
-            >
-              <Text style={styles.addCuisineButtonText}>+ Añadir Nueva Cocina</Text>
-            </TouchableOpacity>
+            {selectedCuisines.length > 0 && (
+              <View style={styles.selectedCuisinesContainer}>
+                {selectedCuisines.map((cuisineValue, idx) => {
+                  const cuisineInfo = allCuisines.find(c => c.value === cuisineValue);
+                  return (
+                    <View key={idx} style={styles.selectedCuisineBadge}>
+                      <Text style={styles.selectedCuisineFlag}>{cuisineInfo?.flag}</Text>
+                      <Text style={styles.selectedCuisineLabel}>{cuisineInfo?.label}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedCuisines(selectedCuisines.filter(c => c !== cuisineValue));
+                        }}
+                        style={styles.removeCuisineButton}
+                      >
+                        <Text style={styles.removeCuisineText}>×</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <View style={styles.field}>
@@ -652,59 +667,39 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     lineHeight: 20,
   },
-  cuisineSelector: {
+  selectedCuisinesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: SPACING.sm,
-    marginBottom: SPACING.md,
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
   },
-  cuisineChip: {
+  selectedCuisineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.accent + '30',
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    borderColor: COLORS.accent,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
     gap: SPACING.xs,
   },
-  cuisineChipSelected: {
-    backgroundColor: COLORS.accent + '30',
-    borderColor: COLORS.accent,
-    borderWidth: 2,
-  },
-  cuisineChipFlag: {
-    fontSize: 18,
-  },
-  cuisineChipLabel: {
+  selectedCuisineFlag: {
     fontSize: 14,
+  },
+  selectedCuisineLabel: {
+    fontSize: 12,
     color: COLORS.text,
     fontWeight: '500',
   },
-  cuisineChipLabelSelected: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  checkmark: {
-    fontSize: 16,
-    color: COLORS.primary,
-    fontWeight: 'bold',
+  removeCuisineButton: {
     marginLeft: SPACING.xs,
+    paddingHorizontal: SPACING.xs,
   },
-  addCuisineButton: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
-    alignItems: 'center',
-  },
-  addCuisineButtonText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+  removeCuisineText: {
+    fontSize: 18,
+    color: COLORS.error,
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,

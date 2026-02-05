@@ -7,8 +7,7 @@ export type MainProtein =
   | 'vegetables' 
   | 'beans_legumes' 
   | 'desserts'
-  | 'guisos'
-  | 'other';
+  | 'guisos';
 
 export type Cuisine = 
   | 'española'

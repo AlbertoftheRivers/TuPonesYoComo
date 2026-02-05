@@ -37,7 +37,6 @@ export const MAIN_PROTEINS: Array<{ value: string; label: string; icon: string }
   { value: 'beans_legumes', label: 'Legumbres', icon: '🫘' },
   { value: 'desserts', label: 'Postres', icon: '🍰' },
   { value: 'guisos', label: 'Guisos', icon: '🍲' },
-  { value: 'other', label: 'Otros', icon: '🍽️' },
 ];
 
 export const CUISINES: Array<{ value: string; label: string; flag: string }> = [
@@ -54,7 +53,6 @@ export const CUISINES: Array<{ value: string; label: string; flag: string }> = [
   { value: 'griega', label: 'Griega', flag: '🇬🇷' },
   { value: 'turca', label: 'Turca', flag: '🇹🇷' },
   { value: 'marroquí', label: 'Marroquí', flag: '🇲🇦' },
-  { value: 'otra', label: 'Otra', flag: '🌍' },
 ];
 
 

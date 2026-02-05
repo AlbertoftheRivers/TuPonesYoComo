@@ -41,7 +41,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
-  const [cuisine, setCuisine] = useState<Cuisine[]>([]);
+  const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
   const [rawText, setRawText] = useState('');
   const [ingredients, setIngredients] = useState<RecipeAIAnalysis['ingredients']>([]);
   const [steps, setSteps] = useState<string[]>([]);
@@ -85,7 +85,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         setRecipe(data);
         setTitle(data.title);
         setMainProtein(data.main_protein);
-        setCuisine(data.cuisines || []);
+        setSelectedCuisines(data.cuisines || []);
         setRawText(data.raw_text);
         setIngredients(data.ingredients);
         setSteps(data.steps);
@@ -167,7 +167,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       await updateRecipe(recipeId, {
         title: title.trim(),
         main_protein: mainProtein,
-        cuisines: cuisine.length > 0 ? cuisine : undefined,
+        cuisines: selectedCuisines.length > 0 ? selectedCuisines : undefined,
         raw_text: rawText.trim(),
         ingredients,
         steps,
@@ -663,60 +663,39 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: SPACING.xs,
   },
-  cuisineSelector: {
+  selectedCuisinesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: SPACING.sm,
-    marginBottom: SPACING.md,
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
   },
-  cuisineChip: {
+  selectedCuisineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.accent + '30',
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    borderColor: COLORS.accent,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
     gap: SPACING.xs,
   },
-  cuisineChipSelected: {
-    backgroundColor: COLORS.accent + '30',
-    borderColor: COLORS.accent,
-    borderWidth: 2,
-  },
-  cuisineChipFlag: {
-    fontSize: 18,
-  },
-  cuisineChipLabel: {
+  selectedCuisineFlag: {
     fontSize: 14,
+  },
+  selectedCuisineLabel: {
+    fontSize: 12,
     color: COLORS.text,
     fontWeight: '500',
   },
-  cuisineChipLabelSelected: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  checkmark: {
-    fontSize: 16,
-    color: COLORS.primary,
-    fontWeight: 'bold',
+  removeCuisineButton: {
     marginLeft: SPACING.xs,
+    paddingHorizontal: SPACING.xs,
   },
-  addCuisineButton: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-  },
-  addCuisineButtonText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+  removeCuisineText: {
+    fontSize: 18,
+    color: COLORS.error,
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,
