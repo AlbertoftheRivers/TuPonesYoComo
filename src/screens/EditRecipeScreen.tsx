@@ -66,6 +66,10 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   // OCR states
   const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
+  const [showOCRConfigModal, setShowOCRConfigModal] = useState(false);
+  const [ocrLanguage, setOcrLanguage] = useState('spa');
+  const [ocrContrast, setOcrContrast] = useState(0);
+  const [ocrBrightness, setOcrBrightness] = useState(0);
 
   useEffect(() => {
     loadRecipe();
@@ -284,7 +288,12 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       setOcrStatus('processing');
       Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
 
-      const result = await extractTextFromImage(imageUri, 'spa');
+      const preprocessing = (ocrContrast !== 0 || ocrBrightness !== 0) ? {
+        contrast: ocrContrast,
+        brightness: ocrBrightness,
+      } : undefined;
+
+      const result = await extractTextFromImage(imageUri, ocrLanguage, preprocessing);
 
       const newText = rawText.trim()
         ? `${rawText.trim()}\n\n${result.text}`
@@ -292,7 +301,11 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       setRawText(newText);
 
       setOcrStatus('idle');
-      Alert.alert('Éxito', 'Texto extraído correctamente de la imagen');
+      
+      const confidenceMsg = result.confidence 
+        ? ` (Confianza: ${result.confidence.toFixed(1)}%)`
+        : '';
+      Alert.alert('Éxito', `Texto extraído correctamente de la imagen${confidenceMsg}`);
     } catch (error) {
       console.error('Error processing OCR:', error);
       setOcrStatus('idle');
@@ -310,6 +323,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       'Elige una opción para escanear la receta',
       [
         { text: 'Cancelar', style: 'cancel' },
+        { text: 'Configurar OCR', onPress: () => setShowOCRConfigModal(true) },
         { text: 'Tomar Foto', onPress: handleTakePhoto },
         { text: 'Seleccionar de Galería', onPress: handlePickImage },
       ]
@@ -759,6 +773,97 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           </View>
         </View>
       </Modal>
+
+      {/* Modal para configuración de OCR */}
+      <Modal
+        visible={showOCRConfigModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowOCRConfigModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Configuración de OCR</Text>
+            
+            <Text style={styles.modalLabel}>Idioma:</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={ocrLanguage}
+                onValueChange={setOcrLanguage}
+                style={styles.picker}
+              >
+                <Picker.Item label="Español" value="spa" />
+                <Picker.Item label="English" value="eng" />
+                <Picker.Item label="Français" value="fra" />
+                <Picker.Item label="Italiano" value="ita" />
+                <Picker.Item label="Português" value="por" />
+                <Picker.Item label="Deutsch" value="deu" />
+              </Picker>
+            </View>
+
+            <Text style={styles.modalLabel}>Contraste: {ocrContrast}</Text>
+            <View style={styles.sliderContainer}>
+              <Text style={styles.sliderLabel}>-100</Text>
+              <View style={styles.sliderWrapper}>
+                <TextInput
+                  style={styles.sliderInput}
+                  value={String(ocrContrast)}
+                  onChangeText={(text) => {
+                    const num = parseInt(text, 10);
+                    if (!isNaN(num) && num >= -100 && num <= 100) {
+                      setOcrContrast(num);
+                    }
+                  }}
+                  keyboardType="numeric"
+                />
+              </View>
+              <Text style={styles.sliderLabel}>+100</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.sliderButton}
+              onPress={() => setOcrContrast(0)}
+            >
+              <Text style={styles.sliderButtonText}>Reset Contraste</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.modalLabel}>Brillo: {ocrBrightness}</Text>
+            <View style={styles.sliderContainer}>
+              <Text style={styles.sliderLabel}>-100</Text>
+              <View style={styles.sliderWrapper}>
+                <TextInput
+                  style={styles.sliderInput}
+                  value={String(ocrBrightness)}
+                  onChangeText={(text) => {
+                    const num = parseInt(text, 10);
+                    if (!isNaN(num) && num >= -100 && num <= 100) {
+                      setOcrBrightness(num);
+                    }
+                  }}
+                  keyboardType="numeric"
+                />
+              </View>
+              <Text style={styles.sliderLabel}>+100</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.sliderButton}
+              onPress={() => setOcrBrightness(0)}
+            >
+              <Text style={styles.sliderButtonText}>Reset Brillo</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowOCRConfigModal(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cerrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1028,6 +1133,44 @@ const styles = StyleSheet.create({
   },
   modalButtonTextAdd: {
     color: '#ffffff',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    minWidth: 40,
+  },
+  sliderWrapper: {
+    flex: 1,
+  },
+  sliderInput: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  sliderButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  sliderButtonText: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '600',
   },
 });
 
