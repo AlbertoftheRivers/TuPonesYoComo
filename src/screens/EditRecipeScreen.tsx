@@ -244,8 +244,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        // No aspect ratio restriction - user can select entire photo or crop freely
+        allowsEditing: false, // Allow selecting entire photo without forced cropping
         quality: 0.9,
       });
 
@@ -268,8 +267,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        // No aspect ratio restriction - user can select entire photo or crop freely
+        allowsEditing: false, // Allow selecting entire photo without forced cropping
         quality: 0.9,
         allowsMultipleSelection: true, // Enable batch processing
       });
