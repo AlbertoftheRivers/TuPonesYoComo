@@ -1000,6 +1000,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  addButtonText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   input: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
@@ -1022,6 +1027,28 @@ const styles = StyleSheet.create({
   rowField: {
     flex: 1,
     minWidth: 0, // Important for flex items to shrink properly
+  },
+  rowFieldNarrow: {
+    flex: 0.4,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  rowFieldWide: {
+    flex: 1.3,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 50,
   },
   rowLabel: {
     fontSize: 14,
