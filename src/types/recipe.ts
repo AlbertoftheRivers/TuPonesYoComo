@@ -42,6 +42,7 @@ export interface Recipe {
   gadgets: string[];
   total_time_minutes: number | null;
   oven_time_minutes: number | null;
+  servings: number; // Number of people this recipe is for
   created_at: string;
   updated_at: string;
 }
@@ -56,6 +57,7 @@ export interface RecipeInsertPayload {
   gadgets: string[];
   total_time_minutes: number | null;
   oven_time_minutes: number | null;
+  servings: number; // Number of people this recipe is for
 }
 
 export interface RecipeAIAnalysis {

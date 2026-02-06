@@ -42,6 +42,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
+  const [servings, setServings] = useState<number>(2);
   const [rawText, setRawText] = useState('');
   const [ingredients, setIngredients] = useState<RecipeAIAnalysis['ingredients']>([]);
   const [steps, setSteps] = useState<string[]>([]);
@@ -86,6 +87,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         setTitle(data.title);
         setMainProtein(data.main_protein);
         setSelectedCuisines(data.cuisines || []);
+        setServings(data.servings || 2);
         setRawText(data.raw_text);
         setIngredients(data.ingredients);
         setSteps(data.steps);
@@ -238,6 +240,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         gadgets,
         total_time_minutes: totalTimeMinutes,
         oven_time_minutes: ovenTimeMinutes,
+        servings: servings,
       });
 
       Alert.alert('Éxito', '¡Receta actualizada!', [
@@ -279,6 +282,26 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
               placeholder="Título de la receta"
               placeholderTextColor={COLORS.textSecondary}
             />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Número de Porciones</Text>
+            <TextInput
+              style={styles.input}
+              value={servings.toString()}
+              onChangeText={(text) => {
+                const num = parseInt(text, 10);
+                if (!isNaN(num) && num > 0) {
+                  setServings(num);
+                } else if (text === '') {
+                  setServings(2);
+                }
+              }}
+              placeholder="2"
+              keyboardType="numeric"
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            <Text style={styles.hintText}>Para cuántas personas es esta receta</Text>
           </View>
 
           <View style={styles.field}>
@@ -656,6 +679,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: SPACING.sm,
+  },
+  hintText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+    marginTop: SPACING.xs,
   },
   input: {
     backgroundColor: COLORS.card,

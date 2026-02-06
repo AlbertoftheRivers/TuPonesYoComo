@@ -40,6 +40,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
   const [showCuisinePicker, setShowCuisinePicker] = useState(false);
+  const [servings, setServings] = useState<number>(2);
   const [rawText, setRawText] = useState('');
   const [analysis, setAnalysis] = useState<RecipeAIAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -312,7 +313,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
     try {
       setSaving(true);
-      const recipe =       await createRecipe({
+      const recipe = await createRecipe({
         title: title.trim(),
         main_protein: mainProtein,
         cuisines: selectedCuisines.length > 0 ? selectedCuisines : undefined,
@@ -322,6 +323,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
         gadgets: analysis.gadgets,
         total_time_minutes: analysis.total_time_minutes,
         oven_time_minutes: analysis.oven_time_minutes,
+        servings: servings,
       });
 
       Alert.alert('Éxito', '¡Receta guardada!', [
@@ -355,6 +357,26 @@ export default function AddRecipeScreen({ navigation }: Props) {
               placeholder="Ej: Pollo a la Plancha"
               placeholderTextColor={COLORS.textSecondary}
             />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Número de Porciones</Text>
+            <TextInput
+              style={styles.input}
+              value={servings.toString()}
+              onChangeText={(text) => {
+                const num = parseInt(text, 10);
+                if (!isNaN(num) && num > 0) {
+                  setServings(num);
+                } else if (text === '') {
+                  setServings(2);
+                }
+              }}
+              placeholder="2"
+              keyboardType="numeric"
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            <Text style={styles.hintText}>Para cuántas personas es esta receta</Text>
           </View>
 
           <View style={styles.field}>
@@ -759,6 +781,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
+    marginBottom: SPACING.xs,
+  },
+  hintText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+    marginTop: SPACING.xs,
   },
   addButtonSmall: {
     backgroundColor: COLORS.accent,

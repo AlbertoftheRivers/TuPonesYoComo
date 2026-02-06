@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, deleteRecipe } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
-import { Recipe } from '../types/recipe';
+import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
+import { Recipe, Ingredient } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
@@ -36,6 +38,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [allCuisines, setAllCuisines] = useState(CUISINES);
+  const [desiredServings, setDesiredServings] = useState<number>(2);
 
   useEffect(() => {
     loadRecipe();
@@ -57,6 +60,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
       const data = await getRecipeById(recipeId);
       if (data) {
         setRecipe(data);
+        setDesiredServings(data.servings || 2);
       } else {
         Alert.alert('Error', 'Receta no encontrada');
         navigation.goBack();
@@ -142,8 +146,63 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
         {recipe.ingredients.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ingredientes</Text>
-            {recipe.ingredients.map((ingredient, index) => (
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Ingredientes</Text>
+              <View style={styles.servingsSelector}>
+                <Text style={styles.servingsLabel}>Para:</Text>
+                <View style={styles.servingsInputContainer}>
+                  <TouchableOpacity
+                    style={styles.servingsButton}
+                    onPress={() => {
+                      if (desiredServings > 1) {
+                        setDesiredServings(desiredServings - 1);
+                      }
+                    }}
+                  >
+                    <Text style={styles.servingsButtonText}>−</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.servingsInput}
+                    value={desiredServings.toString()}
+                    onChangeText={(text) => {
+                      const num = parseInt(text, 10);
+                      if (!isNaN(num) && num > 0) {
+                        setDesiredServings(num);
+                      } else if (text === '') {
+                        setDesiredServings(recipe.servings || 2);
+                      }
+                    }}
+                    keyboardType="numeric"
+                    placeholderTextColor={COLORS.textSecondary}
+                  />
+                  <TouchableOpacity
+                    style={styles.servingsButton}
+                    onPress={() => setDesiredServings(desiredServings + 1)}
+                  >
+                    <Text style={styles.servingsButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.servingsLabel}>personas</Text>
+                {desiredServings !== (recipe.servings || 2) && (
+                  <TouchableOpacity
+                    style={styles.resetButton}
+                    onPress={() => setDesiredServings(recipe.servings || 2)}
+                  >
+                    <Text style={styles.resetButtonText}>Reset</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+            {desiredServings !== (recipe.servings || 2) && (
+              <Text style={styles.adjustmentHint}>
+                Ajustado de {recipe.servings || 2} porciones (×{((desiredServings / (recipe.servings || 2)) * 100) / 100})
+              </Text>
+            )}
+            {calculateAdjustedIngredients(
+              recipe.ingredients,
+              recipe.servings || 2,
+              desiredServings
+            ).map((ingredient, index) => (
               <View key={index} style={styles.ingredientItem}>
                 <Text style={styles.ingredientText}>
                   {ingredient.quantity && `${ingredient.quantity} `}
