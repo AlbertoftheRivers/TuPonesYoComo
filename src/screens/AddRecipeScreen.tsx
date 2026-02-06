@@ -554,10 +554,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
               <Text style={styles.boxTitle}>Categorías</Text>
               <View style={styles.rowPickerContainer}>
                 <Picker
-                  selectedValue={mainProtein}
+                  selectedValue={mainProtein || ''}
                   onValueChange={(value) => {
                     if (value === '__add_new__') {
                       setShowAddCategoryModal(true);
+                    } else if (value === '') {
+                      setMainProtein('');
                     } else {
                       setMainProtein(value as MainProtein);
                     }
