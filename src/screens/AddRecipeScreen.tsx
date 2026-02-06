@@ -64,10 +64,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   // OCR states
   const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
-  const [showOCRConfigModal, setShowOCRConfigModal] = useState(false);
-  const [ocrLanguage, setOcrLanguage] = useState('spa');
-  const [ocrContrast, setOcrContrast] = useState(0);
-  const [ocrBrightness, setOcrBrightness] = useState(0);
+  const [ocrLanguage, setOcrLanguage] = useState('spa'); // Default to Spanish
 
   useEffect(() => {
     loadCustomOptions();
@@ -369,12 +366,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
       setOcrStatus('processing');
       Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
 
-      const preprocessing = (ocrContrast !== 0 || ocrBrightness !== 0) ? {
-        contrast: ocrContrast,
-        brightness: ocrBrightness,
-      } : undefined;
-
-      const result = await extractTextFromImage(imageUri, ocrLanguage, preprocessing);
+      // Use default preprocessing (no adjustments)
+      const result = await extractTextFromImage(imageUri, ocrLanguage);
 
       const newText = rawText.trim()
         ? `${rawText.trim()}\n\n${result.text}`
@@ -403,13 +396,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
       setOcrStatus('processing');
       Alert.alert('Procesando', `Extrayendo texto de ${imageUris.length} imagen(es)...`);
 
-      const preprocessing = (ocrContrast !== 0 || ocrBrightness !== 0) ? {
-        contrast: ocrContrast,
-        brightness: ocrBrightness,
-      } : undefined;
-
+      // Use default preprocessing (no adjustments)
       const { extractTextFromImages } = await import('../lib/ocr');
-      const batchResult = await extractTextFromImages(imageUris, ocrLanguage, preprocessing);
+      const batchResult = await extractTextFromImages(imageUris, ocrLanguage);
 
       // Combine all extracted texts
       const allTexts = batchResult.results.map(r => r.text).filter(Boolean);
@@ -452,9 +441,26 @@ export default function AddRecipeScreen({ navigation }: Props) {
       'Elige una opción para escanear la receta',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Configurar OCR', onPress: () => setShowOCRConfigModal(true) },
         { text: 'Tomar Foto', onPress: handleTakePhoto },
         { text: 'Seleccionar de Galería', onPress: handlePickImage },
+        { 
+          text: 'Cambiar Idioma OCR', 
+          onPress: () => {
+            Alert.alert(
+              'Idioma del OCR',
+              'Selecciona el idioma de la receta para mejor reconocimiento',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Español', onPress: () => setOcrLanguage('spa') },
+                { text: 'English', onPress: () => setOcrLanguage('eng') },
+                { text: 'Français', onPress: () => setOcrLanguage('fra') },
+                { text: 'Italiano', onPress: () => setOcrLanguage('ita') },
+                { text: 'Português', onPress: () => setOcrLanguage('por') },
+                { text: 'Deutsch', onPress: () => setOcrLanguage('deu') },
+              ]
+            );
+          }
+        },
       ]
     );
   };
@@ -892,96 +898,6 @@ export default function AddRecipeScreen({ navigation }: Props) {
         </View>
       </Modal>
 
-      {/* Modal para configuración de OCR */}
-      <Modal
-        visible={showOCRConfigModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowOCRConfigModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Configuración de OCR</Text>
-            
-            <Text style={styles.modalLabel}>Idioma:</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={ocrLanguage}
-                onValueChange={setOcrLanguage}
-                style={styles.picker}
-              >
-                <Picker.Item label="Español" value="spa" />
-                <Picker.Item label="English" value="eng" />
-                <Picker.Item label="Français" value="fra" />
-                <Picker.Item label="Italiano" value="ita" />
-                <Picker.Item label="Português" value="por" />
-                <Picker.Item label="Deutsch" value="deu" />
-              </Picker>
-            </View>
-
-            <Text style={styles.modalLabel}>Contraste: {ocrContrast}</Text>
-            <View style={styles.sliderContainer}>
-              <Text style={styles.sliderLabel}>-100</Text>
-              <View style={styles.sliderWrapper}>
-                <TextInput
-                  style={styles.sliderInput}
-                  value={String(ocrContrast)}
-                  onChangeText={(text) => {
-                    const num = parseInt(text, 10);
-                    if (!isNaN(num) && num >= -100 && num <= 100) {
-                      setOcrContrast(num);
-                    }
-                  }}
-                  keyboardType="numeric"
-                />
-              </View>
-              <Text style={styles.sliderLabel}>+100</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.sliderButton}
-              onPress={() => setOcrContrast(0)}
-            >
-              <Text style={styles.sliderButtonText}>Reset Contraste</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.modalLabel}>Brillo: {ocrBrightness}</Text>
-            <View style={styles.sliderContainer}>
-              <Text style={styles.sliderLabel}>-100</Text>
-              <View style={styles.sliderWrapper}>
-                <TextInput
-                  style={styles.sliderInput}
-                  value={String(ocrBrightness)}
-                  onChangeText={(text) => {
-                    const num = parseInt(text, 10);
-                    if (!isNaN(num) && num >= -100 && num <= 100) {
-                      setOcrBrightness(num);
-                    }
-                  }}
-                  keyboardType="numeric"
-                />
-              </View>
-              <Text style={styles.sliderLabel}>+100</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.sliderButton}
-              onPress={() => setOcrBrightness(0)}
-            >
-              <Text style={styles.sliderButtonText}>Reset Brillo</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonCancel]}
-                onPress={() => {
-                  setShowOCRConfigModal(false);
-                }}
-              >
-                <Text style={styles.modalButtonText}>Cerrar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
