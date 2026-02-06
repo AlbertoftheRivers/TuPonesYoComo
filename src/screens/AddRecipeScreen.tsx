@@ -688,7 +688,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
               placeholder="Pega o escribe tu receta aquí... O usa 📷 para escanear o 🎤 para dictar"
               placeholderTextColor={COLORS.textSecondary}
               multiline
-              numberOfLines={8}
+              numberOfLines={12}
               textAlignVertical="top"
             />
           </View>
@@ -1014,6 +1014,44 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 200,
     textAlignVertical: 'top',
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+    alignItems: 'flex-start',
+  },
+  rowField: {
+    flex: 1,
+    minWidth: 0, // Important for flex items to shrink properly
+  },
+  rowLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
+  },
+  rowInput: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    fontSize: 14,
+    color: COLORS.text,
+    minHeight: 50,
+  },
+  rowPickerContainer: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    minHeight: 50,
+  },
+  rowPicker: {
+    color: COLORS.text,
+    height: 50,
   },
   pickerContainer: {
     backgroundColor: COLORS.card,
