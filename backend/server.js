@@ -27,18 +27,26 @@ const WHISPER_VENV_PATH = process.env.WHISPER_VENV_PATH || path.join(__dirname, 
 const upload = multer({
   dest: os.tmpdir(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 20 * 1024 * 1024, // 20MB limit (for images and audio)
   },
   fileFilter: (req, file, cb) => {
-    // Accept audio files
-    const allowedMimes = [
+    // Accept audio files for transcription
+    const allowedAudioMimes = [
       'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/m4a',
       'audio/wav', 'audio/webm', 'audio/ogg', 'audio/aac'
     ];
+    // Accept image files for OCR
+    const allowedImageMimes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+      'image/webp', 'image/bmp', 'image/tiff'
+    ];
+    
+    const allowedMimes = [...allowedAudioMimes, ...allowedImageMimes];
+    
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only audio files are allowed.'));
+      cb(new Error('Invalid file type. Only audio or image files are allowed.'));
     }
   },
 });
@@ -54,8 +62,71 @@ app.get('/health', (req, res) => {
     ollama_url: OLLAMA_BASE_URL, 
     model: OLLAMA_MODEL,
     whisper_model: WHISPER_MODEL,
-    whisper_venv: WHISPER_VENV_PATH
+    whisper_venv: WHISPER_VENV_PATH,
+    ocr_enabled: true,
+    ocr_engine: 'tesseract.js'
   });
+});
+
+// OCR endpoint for image text extraction
+app.post('/api/ocr', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ 
+      error: 'No image file provided. Please upload an image file.' 
+    });
+  }
+
+  const imagePath = req.file.path;
+  const language = req.body.language || 'spa'; // Spanish by default
+
+  try {
+    // Import Tesseract dynamically
+    const { createWorker } = require('tesseract.js');
+    
+    console.log(`📸 Extracting text from image (language: ${language})...`);
+    
+    // Create Tesseract worker
+    const worker = await createWorker(language);
+
+    // Perform OCR
+    const { data: { text } } = await worker.recognize(imagePath);
+
+    // Terminate worker
+    await worker.terminate();
+
+    // Clean up temporary file
+    try {
+      await fs.unlink(imagePath);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temporary image file:', cleanupError);
+    }
+
+    if (!text || !text.trim()) {
+      return res.status(500).json({ 
+        error: 'No text could be extracted from the image. The image may be unclear or contain no text.' 
+      });
+    }
+
+    console.log(`✅ OCR successful (${text.length} characters extracted)`);
+    
+    res.json({ 
+      text: text.trim(),
+      language: language
+    });
+
+  } catch (error) {
+    console.error('Error performing OCR:', error);
+
+    // Clean up on error
+    try {
+      await fs.unlink(imagePath).catch(() => {});
+    } catch {}
+
+    res.status(500).json({ 
+      error: error.message || 'Failed to extract text from image',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
 });
 
 // Speech-to-text transcription endpoint

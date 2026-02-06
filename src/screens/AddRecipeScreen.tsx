@@ -13,10 +13,12 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Audio } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { analyzeRecipe } from '../lib/ollama';
 import { createRecipe } from '../api/recipes';
 import { transcribeAudio } from '../lib/transcribe';
+import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
@@ -60,6 +62,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [recordingStatus, setRecordingStatus] = useState<'idle' | 'recording' | 'transcribing'>('idle');
   const [recordingDuration, setRecordingDuration] = useState(0);
 
+  // OCR states
+  const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
+
   useEffect(() => {
     loadCustomOptions();
     // Request audio permissions on mount
@@ -71,6 +76,14 @@ export default function AddRecipeScreen({ navigation }: Props) {
           'Se necesitan permisos de micrófono para usar la función de dictado por voz.',
           [{ text: 'OK' }]
         );
+      }
+    })();
+    // Request camera/gallery permissions
+    (async () => {
+      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+      const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
+        // Don't show alert on mount, only when user tries to use it
       }
     })();
   }, []);
@@ -295,6 +308,91 @@ export default function AddRecipeScreen({ navigation }: Props) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permisos', 'Se necesitan permisos de cámara para tomar fotos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processImageOCR(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto. Por favor intenta de nuevo.');
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permisos', 'Se necesitan permisos de galería para seleccionar imágenes.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processImageOCR(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen. Por favor intenta de nuevo.');
+    }
+  };
+
+  const processImageOCR = async (imageUri: string) => {
+    try {
+      setOcrStatus('processing');
+      Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
+
+      const result = await extractTextFromImage(imageUri, 'spa');
+
+      const newText = rawText.trim()
+        ? `${rawText.trim()}\n\n${result.text}`
+        : result.text;
+      setRawText(newText);
+
+      setOcrStatus('idle');
+      Alert.alert('Éxito', 'Texto extraído correctamente de la imagen');
+    } catch (error) {
+      console.error('Error processing OCR:', error);
+      setOcrStatus('idle');
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Error al extraer texto de la imagen. Por favor verifica la conexión con el servidor.';
+
+      Alert.alert('Error de OCR', errorMessage);
+    }
+  };
+
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Escanear Receta',
+      'Elige una opción para escanear la receta',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Tomar Foto', onPress: handleTakePhoto },
+        { text: 'Seleccionar de Galería', onPress: handlePickImage },
+      ]
+    );
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Por favor ingresa un título para la receta.');
@@ -465,24 +563,42 @@ export default function AddRecipeScreen({ navigation }: Props) {
           <View style={styles.field}>
             <View style={styles.fieldHeader}>
               <Text style={styles.label}>Texto de la Receta</Text>
-              <TouchableOpacity
-                style={[
-                  styles.micButton,
-                  recordingStatus === 'recording' && styles.micButtonRecording,
-                  recordingStatus === 'transcribing' && styles.micButtonDisabled
-                ]}
-                onPress={recording ? stopRecording : startRecording}
-                onLongPress={recording ? cancelRecording : undefined}
-                disabled={recordingStatus === 'transcribing'}
-              >
-                {recordingStatus === 'transcribing' ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
-                ) : recordingStatus === 'recording' ? (
-                  <Text style={styles.micButtonText}>⏹️ {formatDuration(recordingDuration)}</Text>
-                ) : (
-                  <Text style={styles.micButtonText}>🎤</Text>
-                )}
-              </TouchableOpacity>
+              <View style={styles.actionButtonsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    styles.cameraButton,
+                    ocrStatus === 'processing' && styles.actionButtonDisabled
+                  ]}
+                  onPress={showImagePickerOptions}
+                  disabled={ocrStatus === 'processing' || recordingStatus !== 'idle'}
+                >
+                  {ocrStatus === 'processing' ? (
+                    <ActivityIndicator color="#ffffff" size="small" />
+                  ) : (
+                    <Text style={styles.actionButtonText}>📷</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    styles.micButton,
+                    recordingStatus === 'recording' && styles.micButtonRecording,
+                    recordingStatus === 'transcribing' && styles.actionButtonDisabled
+                  ]}
+                  onPress={recording ? stopRecording : startRecording}
+                  onLongPress={recording ? cancelRecording : undefined}
+                  disabled={recordingStatus === 'transcribing' || ocrStatus === 'processing'}
+                >
+                  {recordingStatus === 'transcribing' ? (
+                    <ActivityIndicator color="#ffffff" size="small" />
+                  ) : recordingStatus === 'recording' ? (
+                    <Text style={styles.actionButtonText}>⏹️ {formatDuration(recordingDuration)}</Text>
+                  ) : (
+                    <Text style={styles.actionButtonText}>🎤</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
             {recordingStatus === 'recording' && (
               <Text style={styles.recordingHint}>
@@ -493,7 +609,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
               style={[styles.input, styles.textArea]}
               value={rawText}
               onChangeText={setRawText}
-              placeholder="Pega o escribe tu receta aquí... O toca el micrófono para dictar"
+              placeholder="Pega o escribe tu receta aquí... O usa 📷 para escanear o 🎤 para dictar"
               placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={8}
@@ -741,8 +857,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.sm,
   },
-  micButton: {
-    backgroundColor: COLORS.accent,
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  actionButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -754,14 +873,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  cameraButton: {
+    backgroundColor: COLORS.primary,
+  },
+  micButton: {
+    backgroundColor: COLORS.accent,
+  },
   micButtonRecording: {
     backgroundColor: COLORS.error,
   },
-  micButtonDisabled: {
+  actionButtonDisabled: {
     backgroundColor: COLORS.textSecondary,
     opacity: 0.6,
   },
-  micButtonText: {
+  actionButtonText: {
     fontSize: 20,
     color: '#ffffff',
   },

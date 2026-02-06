@@ -13,9 +13,11 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, updateRecipe } from '../api/recipes';
 import { analyzeRecipe } from '../lib/ollama';
+import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { Recipe, MainProtein, RecipeAIAnalysis, Cuisine } from '../types/recipe';
@@ -62,9 +64,20 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [newCuisineName, setNewCuisineName] = useState('');
   const [newCuisineFlag, setNewCuisineFlag] = useState('🌍');
 
+  // OCR states
+  const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
+
   useEffect(() => {
     loadRecipe();
     loadCustomOptions();
+    // Request camera/gallery permissions
+    (async () => {
+      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+      const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
+        // Don't show alert on mount, only when user tries to use it
+      }
+    })();
   }, [recipeId]);
 
   const loadCustomOptions = async () => {
@@ -215,6 +228,91 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   const handleRemoveCuisine = (cuisineToRemove: Cuisine) => {
     setSelectedCuisines(selectedCuisines.filter(c => c !== cuisineToRemove));
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permisos', 'Se necesitan permisos de cámara para tomar fotos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processImageOCR(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto. Por favor intenta de nuevo.');
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permisos', 'Se necesitan permisos de galería para seleccionar imágenes.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processImageOCR(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen. Por favor intenta de nuevo.');
+    }
+  };
+
+  const processImageOCR = async (imageUri: string) => {
+    try {
+      setOcrStatus('processing');
+      Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
+
+      const result = await extractTextFromImage(imageUri, 'spa');
+
+      const newText = rawText.trim()
+        ? `${rawText.trim()}\n\n${result.text}`
+        : result.text;
+      setRawText(newText);
+
+      setOcrStatus('idle');
+      Alert.alert('Éxito', 'Texto extraído correctamente de la imagen');
+    } catch (error) {
+      console.error('Error processing OCR:', error);
+      setOcrStatus('idle');
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Error al extraer texto de la imagen. Por favor verifica la conexión con el servidor.';
+
+      Alert.alert('Error de OCR', errorMessage);
+    }
+  };
+
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Escanear Receta',
+      'Elige una opción para escanear la receta',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Tomar Foto', onPress: handleTakePhoto },
+        { text: 'Seleccionar de Galería', onPress: handlePickImage },
+      ]
+    );
   };
 
   const handleSave = async () => {
@@ -388,12 +486,29 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Texto de la Receta</Text>
+            <View style={styles.fieldHeader}>
+              <Text style={styles.label}>Texto de la Receta</Text>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.cameraButton,
+                  ocrStatus === 'processing' && styles.actionButtonDisabled
+                ]}
+                onPress={showImagePickerOptions}
+                disabled={ocrStatus === 'processing'}
+              >
+                {ocrStatus === 'processing' ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <Text style={styles.actionButtonText}>📷</Text>
+                )}
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={rawText}
               onChangeText={setRawText}
-              placeholder="Texto de la receta"
+              placeholder="Texto de la receta... O usa 📷 para escanear"
               placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={8}
@@ -674,11 +789,40 @@ const styles = StyleSheet.create({
   field: {
     marginBottom: SPACING.md,
   },
+  fieldHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: SPACING.sm,
+  },
+  actionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  cameraButton: {
+    backgroundColor: COLORS.primary,
+  },
+  actionButtonDisabled: {
+    backgroundColor: COLORS.textSecondary,
+    opacity: 0.6,
+  },
+  actionButtonText: {
+    fontSize: 20,
+    color: '#ffffff',
   },
   hintText: {
     fontSize: 12,
