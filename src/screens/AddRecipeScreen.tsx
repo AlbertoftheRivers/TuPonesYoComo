@@ -39,7 +39,7 @@ interface Props {
 
 export default function AddRecipeScreen({ navigation }: Props) {
   const [title, setTitle] = useState('');
-  const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
+  const [mainProtein, setMainProtein] = useState<MainProtein | ''>('');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
   const [showCuisinePicker, setShowCuisinePicker] = useState(false);
   const [servings, setServings] = useState<number>(2);
