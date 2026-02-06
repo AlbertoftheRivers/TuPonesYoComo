@@ -7,11 +7,26 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3
 export interface OCRResult {
   text: string;
   language: string;
+  confidence?: number;
+  words?: Array<{ text: string; confidence: number }>;
+}
+
+export interface OCRPreprocessingOptions {
+  contrast?: number; // -100 to 100, default 0
+  brightness?: number; // -100 to 100, default 0
+}
+
+export interface OCRBatchResult {
+  results: OCRResult[];
+  totalImages: number;
+  successful: number;
+  failed: number;
 }
 
 export async function extractTextFromImage(
   imageUri: string,
-  language: string = 'spa'
+  language: string = 'spa',
+  preprocessing?: OCRPreprocessingOptions
 ): Promise<OCRResult> {
   try {
     // Create FormData to send image file
@@ -39,6 +54,11 @@ export async function extractTextFromImage(
     
     // Add language parameter
     formData.append('language', language);
+    
+    // Add preprocessing options if provided
+    if (preprocessing) {
+      formData.append('preprocessing', JSON.stringify(preprocessing));
+    }
 
     // Send request to backend
     const response = await fetch(`${API_BASE_URL}/api/ocr`, {
@@ -61,5 +81,36 @@ export async function extractTextFromImage(
     console.error('Error extracting text from image:', error);
     throw error;
   }
+}
+
+/**
+ * Process multiple images in batch
+ */
+export async function extractTextFromImages(
+  imageUris: string[],
+  language: string = 'spa',
+  preprocessing?: OCRPreprocessingOptions
+): Promise<OCRBatchResult> {
+  const results: OCRResult[] = [];
+  let successful = 0;
+  let failed = 0;
+
+  for (const imageUri of imageUris) {
+    try {
+      const result = await extractTextFromImage(imageUri, language, preprocessing);
+      results.push(result);
+      successful++;
+    } catch (error) {
+      console.error(`Error processing image ${imageUri}:`, error);
+      failed++;
+    }
+  }
+
+  return {
+    results,
+    totalImages: imageUris.length,
+    successful,
+    failed,
+  };
 }
 

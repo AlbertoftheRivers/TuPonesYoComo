@@ -241,8 +241,8 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        // No aspect ratio restriction - user can select entire photo or crop freely
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -265,8 +265,9 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        // No aspect ratio restriction - user can select entire photo or crop freely
+        quality: 0.9,
+        allowsMultipleSelection: true, // Enable batch processing
       });
 
       if (!result.canceled && result.assets[0]) {

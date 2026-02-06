@@ -64,6 +64,10 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   // OCR states
   const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
+  const [showOCRConfigModal, setShowOCRConfigModal] = useState(false);
+  const [ocrLanguage, setOcrLanguage] = useState('spa');
+  const [ocrContrast, setOcrContrast] = useState(0);
+  const [ocrBrightness, setOcrBrightness] = useState(0);
 
   useEffect(() => {
     loadCustomOptions();
@@ -319,8 +323,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        // No aspect ratio restriction - user can select entire photo or crop freely
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -343,12 +347,18 @@ export default function AddRecipeScreen({ navigation }: Props) {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        // No aspect ratio restriction - user can select entire photo or crop freely
+        quality: 0.9,
+        allowsMultipleSelection: true, // Enable batch processing
       });
 
-      if (!result.canceled && result.assets[0]) {
-        await processImageOCR(result.assets[0].uri);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        // Process multiple images if selected
+        if (result.assets.length > 1) {
+          await processBatchOCR(result.assets.map(asset => asset.uri));
+        } else {
+          await processImageOCR(result.assets[0].uri);
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -361,7 +371,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
       setOcrStatus('processing');
       Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
 
-      const result = await extractTextFromImage(imageUri, 'spa');
+      const preprocessing = (ocrContrast !== 0 || ocrBrightness !== 0) ? {
+        contrast: ocrContrast,
+        brightness: ocrBrightness,
+      } : undefined;
+
+      const result = await extractTextFromImage(imageUri, ocrLanguage, preprocessing);
 
       const newText = rawText.trim()
         ? `${rawText.trim()}\n\n${result.text}`
@@ -369,7 +384,11 @@ export default function AddRecipeScreen({ navigation }: Props) {
       setRawText(newText);
 
       setOcrStatus('idle');
-      Alert.alert('Éxito', 'Texto extraído correctamente de la imagen');
+      
+      const confidenceMsg = result.confidence 
+        ? ` (Confianza: ${result.confidence.toFixed(1)}%)`
+        : '';
+      Alert.alert('Éxito', `Texto extraído correctamente de la imagen${confidenceMsg}`);
     } catch (error) {
       console.error('Error processing OCR:', error);
       setOcrStatus('idle');
@@ -381,12 +400,61 @@ export default function AddRecipeScreen({ navigation }: Props) {
     }
   };
 
+  const processBatchOCR = async (imageUris: string[]) => {
+    try {
+      setOcrStatus('processing');
+      Alert.alert('Procesando', `Extrayendo texto de ${imageUris.length} imagen(es)...`);
+
+      const preprocessing = (ocrContrast !== 0 || ocrBrightness !== 0) ? {
+        contrast: ocrContrast,
+        brightness: ocrBrightness,
+      } : undefined;
+
+      const { extractTextFromImages } = await import('../lib/ocr');
+      const batchResult = await extractTextFromImages(imageUris, ocrLanguage, preprocessing);
+
+      // Combine all extracted texts
+      const allTexts = batchResult.results.map(r => r.text).filter(Boolean);
+      const combinedText = allTexts.join('\n\n---\n\n');
+
+      const newText = rawText.trim()
+        ? `${rawText.trim()}\n\n${combinedText}`
+        : combinedText;
+      setRawText(newText);
+
+      setOcrStatus('idle');
+      
+      const avgConfidence = batchResult.results
+        .map(r => r.confidence)
+        .filter(c => c !== undefined && c !== null)
+        .reduce((a, b, _, arr) => a + (b || 0) / arr.length, 0);
+      
+      const confidenceMsg = avgConfidence > 0
+        ? ` (Confianza promedio: ${avgConfidence.toFixed(1)}%)`
+        : '';
+      
+      Alert.alert(
+        'Éxito', 
+        `Procesadas ${batchResult.successful}/${batchResult.totalImages} imágenes${confidenceMsg}`
+      );
+    } catch (error) {
+      console.error('Error processing batch OCR:', error);
+      setOcrStatus('idle');
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Error al procesar las imágenes. Por favor verifica la conexión con el servidor.';
+
+      Alert.alert('Error de OCR', errorMessage);
+    }
+  };
+
   const showImagePickerOptions = () => {
     Alert.alert(
       'Escanear Receta',
       'Elige una opción para escanear la receta',
       [
         { text: 'Cancelar', style: 'cancel' },
+        { text: 'Configurar OCR', onPress: () => setShowOCRConfigModal(true) },
         { text: 'Tomar Foto', onPress: handleTakePhoto },
         { text: 'Seleccionar de Galería', onPress: handlePickImage },
       ]
@@ -825,6 +893,97 @@ export default function AddRecipeScreen({ navigation }: Props) {
           </View>
         </View>
       </Modal>
+
+      {/* Modal para configuración de OCR */}
+      <Modal
+        visible={showOCRConfigModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowOCRConfigModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Configuración de OCR</Text>
+            
+            <Text style={styles.modalLabel}>Idioma:</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={ocrLanguage}
+                onValueChange={setOcrLanguage}
+                style={styles.picker}
+              >
+                <Picker.Item label="Español" value="spa" />
+                <Picker.Item label="English" value="eng" />
+                <Picker.Item label="Français" value="fra" />
+                <Picker.Item label="Italiano" value="ita" />
+                <Picker.Item label="Português" value="por" />
+                <Picker.Item label="Deutsch" value="deu" />
+              </Picker>
+            </View>
+
+            <Text style={styles.modalLabel}>Contraste: {ocrContrast}</Text>
+            <View style={styles.sliderContainer}>
+              <Text style={styles.sliderLabel}>-100</Text>
+              <View style={styles.sliderWrapper}>
+                <TextInput
+                  style={styles.sliderInput}
+                  value={String(ocrContrast)}
+                  onChangeText={(text) => {
+                    const num = parseInt(text, 10);
+                    if (!isNaN(num) && num >= -100 && num <= 100) {
+                      setOcrContrast(num);
+                    }
+                  }}
+                  keyboardType="numeric"
+                />
+              </View>
+              <Text style={styles.sliderLabel}>+100</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.sliderButton}
+              onPress={() => setOcrContrast(0)}
+            >
+              <Text style={styles.sliderButtonText}>Reset Contraste</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.modalLabel}>Brillo: {ocrBrightness}</Text>
+            <View style={styles.sliderContainer}>
+              <Text style={styles.sliderLabel}>-100</Text>
+              <View style={styles.sliderWrapper}>
+                <TextInput
+                  style={styles.sliderInput}
+                  value={String(ocrBrightness)}
+                  onChangeText={(text) => {
+                    const num = parseInt(text, 10);
+                    if (!isNaN(num) && num >= -100 && num <= 100) {
+                      setOcrBrightness(num);
+                    }
+                  }}
+                  keyboardType="numeric"
+                />
+              </View>
+              <Text style={styles.sliderLabel}>+100</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.sliderButton}
+              onPress={() => setOcrBrightness(0)}
+            >
+              <Text style={styles.sliderButtonText}>Reset Brillo</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowOCRConfigModal(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cerrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1119,6 +1278,44 @@ const styles = StyleSheet.create({
   },
   modalButtonTextAdd: {
     color: '#ffffff',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    minWidth: 40,
+  },
+  sliderWrapper: {
+    flex: 1,
+  },
+  sliderInput: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  sliderButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  sliderButtonText: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '600',
   },
 });
 

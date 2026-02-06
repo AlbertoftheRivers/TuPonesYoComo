@@ -78,8 +78,50 @@ app.post('/api/ocr', upload.single('image'), async (req, res) => {
 
   const imagePath = req.file.path;
   const language = req.body.language || 'spa'; // Spanish by default
+  
+  // Parse preprocessing options
+  let preprocessing = null;
+  if (req.body.preprocessing) {
+    try {
+      preprocessing = typeof req.body.preprocessing === 'string' 
+        ? JSON.parse(req.body.preprocessing) 
+        : req.body.preprocessing;
+    } catch (e) {
+      console.warn('Invalid preprocessing options, ignoring:', e);
+    }
+  }
+
+  let processedImagePath = imagePath;
 
   try {
+    // Apply image preprocessing if requested
+    if (preprocessing && (preprocessing.contrast !== undefined || preprocessing.brightness !== undefined)) {
+      const sharp = require('sharp');
+      const processedPath = path.join(os.tmpdir(), `processed_${Date.now()}_${path.basename(imagePath)}`);
+      
+      let image = sharp(imagePath);
+      
+      // Apply contrast adjustment (-100 to 100, mapped to sharp's modulate)
+      if (preprocessing.contrast !== undefined && preprocessing.contrast !== 0) {
+        // Sharp uses brightness/saturation/hue modulation
+        // Contrast is achieved by adjusting brightness and saturation
+        const contrastFactor = 1 + (preprocessing.contrast / 100);
+        image = image.modulate({
+          brightness: 1 + (preprocessing.brightness || 0) / 100,
+          saturation: contrastFactor,
+        });
+      } else if (preprocessing.brightness !== undefined && preprocessing.brightness !== 0) {
+        // Just brightness adjustment
+        image = image.modulate({
+          brightness: 1 + (preprocessing.brightness / 100),
+        });
+      }
+      
+      await image.toFile(processedPath);
+      processedImagePath = processedPath;
+      console.log(`🖼️ Image preprocessed (contrast: ${preprocessing.contrast || 0}, brightness: ${preprocessing.brightness || 0})`);
+    }
+
     // Import Tesseract dynamically
     const { createWorker } = require('tesseract.js');
     
@@ -88,15 +130,26 @@ app.post('/api/ocr', upload.single('image'), async (req, res) => {
     // Create Tesseract worker
     const worker = await createWorker(language);
 
-    // Perform OCR
-    const { data: { text } } = await worker.recognize(imagePath);
+    // Perform OCR with detailed output for confidence scores
+    const { data } = await worker.recognize(processedImagePath);
+    const text = data.text;
+    const words = data.words || [];
+    
+    // Calculate average confidence
+    const confidences = words.map(w => w.confidence).filter(c => c !== undefined && c > 0);
+    const avgConfidence = confidences.length > 0
+      ? confidences.reduce((a, b) => a + b, 0) / confidences.length
+      : null;
 
     // Terminate worker
     await worker.terminate();
 
-    // Clean up temporary file
+    // Clean up temporary files
     try {
       await fs.unlink(imagePath);
+      if (processedImagePath !== imagePath) {
+        await fs.unlink(processedImagePath);
+      }
     } catch (cleanupError) {
       console.warn('Warning: Could not clean up temporary image file:', cleanupError);
     }
@@ -107,11 +160,16 @@ app.post('/api/ocr', upload.single('image'), async (req, res) => {
       });
     }
 
-    console.log(`✅ OCR successful (${text.length} characters extracted)`);
+    console.log(`✅ OCR successful (${text.length} characters extracted, confidence: ${avgConfidence ? avgConfidence.toFixed(1) : 'N/A'}%)`);
     
     res.json({ 
       text: text.trim(),
-      language: language
+      language: language,
+      confidence: avgConfidence,
+      words: words.map(w => ({
+        text: w.text,
+        confidence: w.confidence
+      }))
     });
 
   } catch (error) {
@@ -120,6 +178,9 @@ app.post('/api/ocr', upload.single('image'), async (req, res) => {
     // Clean up on error
     try {
       await fs.unlink(imagePath).catch(() => {});
+      if (processedImagePath !== imagePath) {
+        await fs.unlink(processedImagePath).catch(() => {});
+      }
     } catch {}
 
     res.status(500).json({ 
