@@ -1052,43 +1052,5 @@ const styles = StyleSheet.create({
   modalButtonTextAdd: {
     color: '#ffffff',
   },
-  sliderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-    gap: SPACING.sm,
-  },
-  sliderLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    minWidth: 40,
-  },
-  sliderWrapper: {
-    flex: 1,
-  },
-  sliderInput: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm,
-    fontSize: 16,
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  sliderButton: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm,
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  sliderButtonText: {
-    fontSize: 14,
-    color: COLORS.text,
-    fontWeight: '600',
-  },
 });
 
