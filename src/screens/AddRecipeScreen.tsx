@@ -532,7 +532,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
           {/* Row with Personas, Categoría, and Cocina */}
           <View style={styles.rowContainer}>
             <TouchableOpacity 
-              style={styles.rowFieldNarrow}
+              style={styles.rowFieldBox}
               onPress={() => {
                 Alert.prompt(
                   'Número de Personas',
@@ -556,11 +556,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 );
               }}
             >
+              <Text style={styles.boxTitle}>Personas</Text>
               <Text style={styles.addButtonText}>Añadir</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.rowFieldWide}
+              style={styles.rowFieldBox}
               onPress={() => {
                 Alert.alert(
                   'Categoría',
@@ -579,11 +580,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 );
               }}
             >
+              <Text style={styles.boxTitle}>Categoría</Text>
               <Text style={styles.addButtonText}>Añadir</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.rowFieldWide}
+              style={styles.rowFieldBox}
               onPress={() => {
                 Alert.alert(
                   'Cocina',
@@ -607,6 +609,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 );
               }}
             >
+              <Text style={styles.boxTitle}>Cocina</Text>
               <Text style={styles.addButtonText}>Añadir</Text>
             </TouchableOpacity>
           </View>
