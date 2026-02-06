@@ -1012,7 +1012,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   textArea: {
-    minHeight: 120,
+    minHeight: 200,
     textAlignVertical: 'top',
   },
   pickerContainer: {
