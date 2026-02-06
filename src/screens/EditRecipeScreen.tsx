@@ -245,7 +245,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         quality: 0.9,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         await processImageOCR(result.assets[0].uri);
       }
     } catch (error) {
@@ -269,8 +269,31 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         allowsMultipleSelection: true, // Enable batch processing
       });
 
-      if (!result.canceled && result.assets[0]) {
-        await processImageOCR(result.assets[0].uri);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        // Process multiple images if selected
+        if (result.assets.length > 1) {
+          const { extractTextFromImages } = await import('../lib/ocr');
+          // Use default preprocessing (no adjustments)
+          const batchResult = await extractTextFromImages(
+            result.assets.map(asset => asset.uri),
+            ocrLanguage
+          );
+          const allTexts = batchResult.results.map(r => r.text).filter(Boolean);
+          const combinedText = allTexts.join('\n\n---\n\n');
+          const newText = rawText.trim() ? `${rawText.trim()}\n\n${combinedText}` : combinedText;
+          setRawText(newText);
+          setOcrStatus('idle');
+          const avgConfidence = batchResult.results
+            .map(r => r.confidence)
+            .filter(c => c !== undefined && c !== null)
+            .reduce((a, b, _, arr) => a + (b || 0) / arr.length, 0);
+          Alert.alert(
+            'Éxito',
+            `Procesadas ${batchResult.successful}/${batchResult.totalImages} imágenes${avgConfidence > 0 ? ` (Confianza: ${avgConfidence.toFixed(1)}%)` : ''}`
+          );
+        } else {
+          await processImageOCR(result.assets[0].uri);
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
