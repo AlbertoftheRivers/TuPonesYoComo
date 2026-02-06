@@ -564,7 +564,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   }}
                   style={styles.rowPicker}
                 >
-                  <Picker.Item label="add" value="" />
+                  <Picker.Item label="añadir" value="" />
                   {allProteins.map((protein) => (
                     <Picker.Item
                       key={protein.value}
@@ -597,7 +597,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   }}
                   style={styles.rowPicker}
                 >
-                  <Picker.Item label="add" value="" />
+                  <Picker.Item label="añadir" value="" />
                   {allCuisines.map((c) => (
                     <Picker.Item
                       key={c.value}
