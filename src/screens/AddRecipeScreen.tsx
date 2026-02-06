@@ -529,89 +529,89 @@ export default function AddRecipeScreen({ navigation }: Props) {
             />
           </View>
 
-          {/* Row with Personas, Categoría, and Cocina */}
+          {/* Row with Personas, Categorías, and Cocina */}
           <View style={styles.rowContainer}>
-            <TouchableOpacity 
-              style={styles.rowFieldBox}
-              onPress={() => {
-                Alert.prompt(
-                  'Número de Personas',
-                  'Ingresa el número de porciones:',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'OK',
-                      onPress: (text) => {
-                        if (text) {
-                          const num = parseInt(text, 10);
-                          if (!isNaN(num) && num > 0) {
-                            setServings(num);
-                          }
-                        }
-                      },
-                    },
-                  ],
-                  'plain-text',
-                  servings.toString()
-                );
-              }}
-            >
+            <View style={styles.rowFieldNarrow}>
               <Text style={styles.boxTitle}>Personas</Text>
-              <Text style={styles.addButtonText}>Añadir</Text>
-            </TouchableOpacity>
+              <TextInput
+                style={styles.rowInput}
+                value={servings > 0 ? servings.toString() : ''}
+                onChangeText={(text) => {
+                  const num = parseInt(text, 10);
+                  if (!isNaN(num) && num > 0) {
+                    setServings(num);
+                  } else if (text === '') {
+                    setServings(0);
+                  }
+                }}
+                placeholder="add"
+                keyboardType="numeric"
+                placeholderTextColor={COLORS.textSecondary}
+              />
+            </View>
 
-            <TouchableOpacity 
-              style={styles.rowFieldBox}
-              onPress={() => {
-                Alert.alert(
-                  'Categoría',
-                  'Selecciona una categoría:',
-                  [
-                    ...allProteins.map((protein) => ({
-                      text: `${protein.icon} ${protein.label}`,
-                      onPress: () => setMainProtein(protein.value as MainProtein),
-                    })),
-                    {
-                      text: '➕ Otra...',
-                      onPress: () => setShowAddCategoryModal(true),
-                    },
-                    { text: 'Cancelar', style: 'cancel' },
-                  ]
-                );
-              }}
-            >
-              <Text style={styles.boxTitle}>Categoría</Text>
-              <Text style={styles.addButtonText}>Añadir</Text>
-            </TouchableOpacity>
+            <View style={styles.rowFieldWide}>
+              <Text style={styles.boxTitle}>Categorías</Text>
+              <View style={styles.rowPickerContainer}>
+                <Picker
+                  selectedValue={mainProtein}
+                  onValueChange={(value) => {
+                    if (value === '__add_new__') {
+                      setShowAddCategoryModal(true);
+                    } else {
+                      setMainProtein(value as MainProtein);
+                    }
+                  }}
+                  style={styles.rowPicker}
+                >
+                  <Picker.Item label="add" value="" />
+                  {allProteins.map((protein) => (
+                    <Picker.Item
+                      key={protein.value}
+                      label={`${protein.icon} ${protein.label}`}
+                      value={protein.value}
+                    />
+                  ))}
+                  <Picker.Item
+                    label="➕ Otra..."
+                    value="__add_new__"
+                  />
+                </Picker>
+              </View>
+            </View>
 
-            <TouchableOpacity 
-              style={styles.rowFieldBox}
-              onPress={() => {
-                Alert.alert(
-                  'Cocina',
-                  'Selecciona una cocina:',
-                  [
-                    ...allCuisines.map((c) => ({
-                      text: `${c.flag} ${c.label}`,
-                      onPress: () => {
-                        const cuisineValue = c.value as Cuisine;
-                        if (!selectedCuisines.includes(cuisineValue)) {
-                          setSelectedCuisines([...selectedCuisines, cuisineValue]);
-                        }
-                      },
-                    })),
-                    {
-                      text: '➕ Nueva Cocina',
-                      onPress: () => setShowAddCuisineModal(true),
-                    },
-                    { text: 'Cancelar', style: 'cancel' },
-                  ]
-                );
-              }}
-            >
+            <View style={styles.rowFieldWide}>
               <Text style={styles.boxTitle}>Cocina</Text>
-              <Text style={styles.addButtonText}>Añadir</Text>
-            </TouchableOpacity>
+              <View style={styles.rowPickerContainer}>
+                <Picker
+                  selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
+                  onValueChange={(value) => {
+                    if (value === '__add_new__') {
+                      setShowAddCuisineModal(true);
+                    } else if (value && value !== '') {
+                      const cuisineValue = value as Cuisine;
+                      if (!selectedCuisines.includes(cuisineValue)) {
+                        setSelectedCuisines([...selectedCuisines, cuisineValue]);
+                      }
+                    }
+                  }}
+                  style={styles.rowPicker}
+                >
+                  <Picker.Item label="add" value="" />
+                  {allCuisines.map((c) => (
+                    <Picker.Item
+                      key={c.value}
+                      label={`${c.flag} ${c.label}`}
+                      value={c.value}
+                    />
+                  ))}
+                  <Picker.Item
+                    label="➕ Nueva Cocina"
+                    value="__add_new__"
+                  />
+                </Picker>
+              </View>
+            </View>
           </View>
 
           {/* Selected cuisines badges below the row */}
