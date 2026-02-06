@@ -1031,27 +1031,22 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0, // Important for flex items to shrink properly
   },
-  rowFieldNarrow: {
-    flex: 0.4,
+  rowFieldBox: {
+    flex: 1,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: 50,
+    minHeight: 70,
   },
-  rowFieldWide: {
-    flex: 1.3,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 50,
+  boxTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
   },
   rowLabel: {
     fontSize: 14,
