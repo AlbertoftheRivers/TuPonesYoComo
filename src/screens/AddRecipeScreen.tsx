@@ -197,6 +197,103 @@ export default function AddRecipeScreen({ navigation }: Props) {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permisos', 'Se necesitan permisos de micrófono para grabar audio.');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(newRecording);
+      setRecordingStatus('recording');
+      setRecordingDuration(0);
+
+      const interval = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+
+      (newRecording as any)._durationInterval = interval;
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      Alert.alert('Error', 'No se pudo iniciar la grabación. Por favor intenta de nuevo.');
+      setRecordingStatus('idle');
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    try {
+      setRecordingStatus('transcribing');
+      
+      if ((recording as any)._durationInterval) {
+        clearInterval((recording as any)._durationInterval);
+      }
+
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      
+      if (!uri) {
+        throw new Error('No se pudo obtener el archivo de audio');
+      }
+
+      setRecording(null);
+      setRecordingDuration(0);
+
+      Alert.alert('Transcribiendo', 'Procesando tu audio...');
+      const result = await transcribeAudio(uri, 'es');
+
+      const newText = rawText.trim() 
+        ? `${rawText.trim()}\n\n${result.text}` 
+        : result.text;
+      setRawText(newText);
+
+      setRecordingStatus('idle');
+      Alert.alert('Éxito', 'Audio transcrito correctamente');
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+      setRecordingStatus('idle');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error al transcribir el audio. Por favor verifica la conexión con el servidor.';
+      
+      Alert.alert('Error de Transcripción', errorMessage);
+    }
+  };
+
+  const cancelRecording = async () => {
+    if (!recording) return;
+
+    try {
+      if ((recording as any)._durationInterval) {
+        clearInterval((recording as any)._durationInterval);
+      }
+
+      await recording.stopAndUnloadAsync();
+      setRecording(null);
+      setRecordingStatus('idle');
+      setRecordingDuration(0);
+    } catch (error) {
+      console.error('Error canceling recording:', error);
+    }
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Por favor ingresa un título para la receta.');
