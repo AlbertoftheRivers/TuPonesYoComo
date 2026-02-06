@@ -529,108 +529,112 @@ export default function AddRecipeScreen({ navigation }: Props) {
             />
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Número de Porciones</Text>
-            <TextInput
-              style={styles.input}
-              value={servings.toString()}
-              onChangeText={(text) => {
-                const num = parseInt(text, 10);
-                if (!isNaN(num) && num > 0) {
-                  setServings(num);
-                } else if (text === '') {
-                  setServings(2);
-                }
-              }}
-              placeholder="2"
-              keyboardType="numeric"
-              placeholderTextColor={COLORS.textSecondary}
-            />
-            <Text style={styles.hintText}>Para cuántas personas es esta receta</Text>
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Categoría Principal</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={mainProtein}
-                onValueChange={(value) => {
-                  if (value === '__add_new__') {
-                    setShowAddCategoryModal(true);
-                  } else {
-                    setMainProtein(value);
+          {/* Row with Personas, Categoría, and Cocina */}
+          <View style={styles.rowContainer}>
+            <View style={styles.rowField}>
+              <Text style={styles.rowLabel}>Personas</Text>
+              <TextInput
+                style={styles.rowInput}
+                value={servings.toString()}
+                onChangeText={(text) => {
+                  const num = parseInt(text, 10);
+                  if (!isNaN(num) && num > 0) {
+                    setServings(num);
+                  } else if (text === '') {
+                    setServings(2);
                   }
                 }}
-                style={styles.picker}
-              >
-                {allProteins.map((protein) => (
-                  <Picker.Item
-                    key={protein.value}
-                    label={`${protein.icon} ${protein.label}`}
-                    value={protein.value}
-                  />
-                ))}
-                <Picker.Item
-                  label="➕ Otra..."
-                  value="__add_new__"
-                />
-              </Picker>
+                placeholder="2"
+                keyboardType="numeric"
+                placeholderTextColor={COLORS.textSecondary}
+              />
             </View>
-          </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Cocinas</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
-                onValueChange={(value) => {
-                  if (value === '__add_new__') {
-                    setShowAddCuisineModal(true);
-                  } else if (value && value !== '') {
-                    const cuisineValue = value as Cuisine;
-                    if (!selectedCuisines.includes(cuisineValue)) {
-                      setSelectedCuisines([...selectedCuisines, cuisineValue]);
+            <View style={styles.rowField}>
+              <Text style={styles.rowLabel}>Categoría</Text>
+              <View style={styles.rowPickerContainer}>
+                <Picker
+                  selectedValue={mainProtein}
+                  onValueChange={(value) => {
+                    if (value === '__add_new__') {
+                      setShowAddCategoryModal(true);
+                    } else {
+                      setMainProtein(value);
                     }
-                  }
-                }}
-                style={styles.picker}
-              >
-                <Picker.Item label="Seleccionar cocina..." value="" />
-                {allCuisines.map((c) => (
+                  }}
+                  style={styles.rowPicker}
+                >
+                  {allProteins.map((protein) => (
+                    <Picker.Item
+                      key={protein.value}
+                      label={`${protein.icon} ${protein.label}`}
+                      value={protein.value}
+                    />
+                  ))}
                   <Picker.Item
-                    key={c.value}
-                    label={`${c.flag} ${c.label}`}
-                    value={c.value}
+                    label="➕ Otra..."
+                    value="__add_new__"
                   />
-                ))}
-                <Picker.Item
-                  label="➕ Añadir Nueva Cocina"
-                  value="__add_new__"
-                />
-              </Picker>
-            </View>
-            {selectedCuisines.length > 0 && (
-              <View style={styles.selectedCuisinesContainer}>
-                {selectedCuisines.map((cuisineValue, idx) => {
-                  const cuisineInfo = allCuisines.find(c => c.value === cuisineValue);
-                  return (
-                    <View key={idx} style={styles.selectedCuisineBadge}>
-                      <Text style={styles.selectedCuisineFlag}>{cuisineInfo?.flag}</Text>
-                      <Text style={styles.selectedCuisineLabel}>{cuisineInfo?.label}</Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setSelectedCuisines(selectedCuisines.filter(c => c !== cuisineValue));
-                        }}
-                        style={styles.removeCuisineButton}
-                      >
-                        <Text style={styles.removeCuisineText}>×</Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
+                </Picker>
               </View>
-            )}
+            </View>
+
+            <View style={styles.rowField}>
+              <Text style={styles.rowLabel}>Cocina</Text>
+              <View style={styles.rowPickerContainer}>
+                <Picker
+                  selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
+                  onValueChange={(value) => {
+                    if (value === '__add_new__') {
+                      setShowAddCuisineModal(true);
+                    } else if (value && value !== '') {
+                      const cuisineValue = value as Cuisine;
+                      if (!selectedCuisines.includes(cuisineValue)) {
+                        setSelectedCuisines([...selectedCuisines, cuisineValue]);
+                      }
+                    }
+                  }}
+                  style={styles.rowPicker}
+                >
+                  <Picker.Item label="Seleccionar..." value="" />
+                  {allCuisines.map((c) => (
+                    <Picker.Item
+                      key={c.value}
+                      label={`${c.flag} ${c.label}`}
+                      value={c.value}
+                    />
+                  ))}
+                  <Picker.Item
+                    label="➕ Nueva"
+                    value="__add_new__"
+                  />
+                </Picker>
+              </View>
+            </View>
           </View>
+
+          {/* Selected cuisines badges below the row */}
+          {selectedCuisines.length > 0 && (
+            <View style={styles.selectedCuisinesContainer}>
+              {selectedCuisines.map((cuisineValue, idx) => {
+                const cuisineInfo = allCuisines.find(c => c.value === cuisineValue);
+                return (
+                  <View key={idx} style={styles.selectedCuisineBadge}>
+                    <Text style={styles.selectedCuisineFlag}>{cuisineInfo?.flag}</Text>
+                    <Text style={styles.selectedCuisineLabel}>{cuisineInfo?.label}</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedCuisines(selectedCuisines.filter(c => c !== cuisineValue));
+                      }}
+                      style={styles.removeCuisineButton}
+                    >
+                      <Text style={styles.removeCuisineText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          )}
 
           <View style={styles.field}>
             <View style={styles.fieldHeader}>
