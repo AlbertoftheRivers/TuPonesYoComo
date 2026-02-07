@@ -2,7 +2,7 @@ import { RecipeAIAnalysis, Ingredient } from '../types/recipe';
 
 // Backend API URL - points to the containerized backend service
 // This backend has VPN access to Ollama, so the phone doesn't need VPN
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.tuponesyocomo.uk';
 
 /**
  * Analyzes raw recipe text and extracts structured data using the backend API

@@ -2,7 +2,7 @@
  * Speech-to-text transcription using Whisper backend
  */
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.tuponesyocomo.uk';
 
 export interface TranscribeResult {
   text: string;
