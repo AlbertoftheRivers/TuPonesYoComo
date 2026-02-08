@@ -189,3 +189,4 @@ Con los cambios aplicados, **la app ya no debería crashear** al iniciar, inclus
 3. **Intentar usar cámara/galería** - Debería mostrar mensaje informativo
 4. **Usar texto/dictado** - Debería funcionar normalmente
 
+

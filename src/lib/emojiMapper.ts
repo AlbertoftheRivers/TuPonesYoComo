@@ -423,3 +423,4 @@ export function detectEmojiForCategory(categoryName: string): string {
   return '🍽️';
 }
 
+

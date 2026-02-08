@@ -102,3 +102,4 @@ La PWA funcionará mejor si:
 - El manifest.json está correctamente configurado (ya está en app.json)
 - Los iconos están en los tamaños correctos (192x192 y 512x512)
 
+

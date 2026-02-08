@@ -1093,46 +1093,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Modal,
-} from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-// ImagePicker imported dynamically to avoid crash if native module is not available
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
-import { getRecipeById, updateRecipe } from '../api/recipes';
-import { analyzeRecipe } from '../lib/ollama';
-import { extractTextFromImage } from '../lib/ocr';
-import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
-import { detectEmojiForCategory } from '../lib/emojiMapper';
-import { Recipe, MainProtein, RecipeAIAnalysis, Cuisine } from '../types/recipe';
-
-type RootStackParamList = {
-  Home: undefined;
-  RecipeList: { mainProtein: string };
-  RecipeDetail: { recipeId: string | number };
-  AddRecipe: undefined;
-  EditRecipe: { recipeId: string | number };
-};
-
-type EditRecipeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'EditRecipe'>;
-type EditRecipeScreenRouteProp = RouteProp<RootStackParamList, 'EditRecipe'>;
-
-interface Props {
-  navigation: EditRecipeScreenNavigationProp;
-  route: EditRecipeScreenRouteProp;
-}
-
-export default function EditRecipeScreen({ navigation, route }: Props) {
-  const { recipeId } = route.params;
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);

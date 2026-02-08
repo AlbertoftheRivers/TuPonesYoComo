@@ -20,3 +20,4 @@ try {
 console.log('\nTo start Expo, run: npx expo start --clear');
 
 
+

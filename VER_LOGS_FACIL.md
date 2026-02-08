@@ -109,3 +109,4 @@ adb logcat -d | Select-String -Pattern "error|exception|crash|fatal" | Out-File 
 notepad crash_log.txt
 ```
 
+

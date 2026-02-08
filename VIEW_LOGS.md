@@ -309,3 +309,4 @@ adb logcat -d | grep -i -E "error|exception|crash|fatal|tuponesyocomo" > crash_l
 **Para APK standalone:** Usa **ADB Logcat** (Opción 1)  
 **Para desarrollo rápido:** Usa **Expo Go** (Opción 2)
 
+

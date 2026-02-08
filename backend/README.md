@@ -287,3 +287,4 @@ Analyze a recipe using Ollama.
 - Ensure CORS is enabled (already configured)
 - Check API URL in mobile app matches container URL
 
+

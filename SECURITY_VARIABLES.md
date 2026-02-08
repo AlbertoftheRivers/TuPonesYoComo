@@ -48,3 +48,4 @@ Supabase protege tus datos mediante:
 
 Las variables `EXPO_PUBLIC_*` que estás usando son **seguras y correctas**. Están diseñadas para ser públicas en aplicaciones cliente. La seguridad real viene de las políticas RLS en Supabase, no de ocultar estas claves.
 
+

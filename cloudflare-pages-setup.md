@@ -62,3 +62,4 @@ Asegúrate de que `package.json` tenga el script de build:
 - CDN global incluido
 - No necesitas configurar Nginx ni servidor
 
+

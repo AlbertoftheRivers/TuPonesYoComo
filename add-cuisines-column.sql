@@ -24,3 +24,4 @@ ADD COLUMN IF NOT EXISTS cuisines JSONB DEFAULT '[]'::jsonb;
 -- Refresh the schema cache (Supabase will do this automatically, but you can force it)
 -- by running a simple query like: SELECT * FROM public.recipes LIMIT 1;
 
+

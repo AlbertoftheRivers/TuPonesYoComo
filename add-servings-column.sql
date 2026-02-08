@@ -10,3 +10,4 @@ UPDATE public.recipes
 SET servings = 2 
 WHERE servings IS NULL;
 
+
