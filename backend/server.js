@@ -397,7 +397,16 @@ Extract the ingredients, steps, gadgets, and time estimates. Return the result a
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+      // Try to get error details from Ollama
+      let errorDetails = '';
+      try {
+        const errorData = await response.text();
+        errorDetails = errorData ? ` - ${errorData.substring(0, 200)}` : '';
+      } catch (e) {
+        // Ignore if we can't read the error
+      }
+      console.error(`Ollama API error ${response.status} ${response.statusText}${errorDetails}`);
+      throw new Error(`Ollama API error: ${response.status} ${response.statusText}${errorDetails}`);
     }
 
     const data = await response.json();

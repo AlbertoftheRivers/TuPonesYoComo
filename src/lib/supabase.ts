@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Get environment variables - these must be set during build time for web
+// For Cloudflare Pages, they should be configured in the Pages dashboard
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
