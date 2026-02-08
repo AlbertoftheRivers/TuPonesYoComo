@@ -466,24 +466,6 @@ const styles = StyleSheet.create({
     color: COLORS.error,
   },
 });
-
-type RootStackParamList = {
-  Home: undefined;
-  RecipeList: { mainProtein: string };
-  RecipeDetail: { recipeId: string | number };
-  AddRecipe: undefined;
-  EditRecipe: { recipeId: string | number };
-};
-
-type RecipeDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecipeDetail'>;
-type RecipeDetailScreenRouteProp = RouteProp<RootStackParamList, 'RecipeDetail'>;
-
-interface Props {
-  navigation: RecipeDetailScreenNavigationProp;
-  route: RecipeDetailScreenRouteProp;
-}
-
-export default function RecipeDetailScreen({ navigation, route }: Props) {
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
