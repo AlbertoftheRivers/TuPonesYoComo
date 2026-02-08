@@ -77,8 +77,11 @@ export default function App() {
                 backgroundColor: COLORS.primary,
               },
               headerTintColor: '#fff',
+              headerBackTitleVisible: false,
+              headerBackButtonVisible: true,
               headerTitleStyle: {
                 fontWeight: 'bold',
+                color: '#fff',
               },
             }}
           >

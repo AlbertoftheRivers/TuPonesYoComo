@@ -691,12 +691,14 @@ export default function AddRecipeScreen({ navigation }: Props) {
       }
 
       setSaving(false);
-      Alert.alert('Éxito', '¡Receta guardada!', [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('RecipeDetail', { recipeId: recipe.id }),
-        },
-      ]);
+      
+      // Navigate immediately after saving
+      navigation.navigate('RecipeDetail', { recipeId: recipe.id });
+      
+      // Show success message after a brief delay to allow navigation
+      setTimeout(() => {
+        Alert.alert('Éxito', '¡Receta guardada!');
+      }, 300);
     } catch (error) {
       console.error('❌ Error saving recipe:', error);
       setSaving(false);
