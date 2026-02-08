@@ -13,7 +13,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Audio } from 'expo-av';
-import * as ImagePicker from 'expo-image-picker';
+// ImagePicker imported dynamically to avoid crash if native module is not available
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { analyzeRecipe } from '../lib/ollama';
 import { createRecipe } from '../api/recipes';
@@ -79,21 +79,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
         );
       }
     })();
-    // Request camera/gallery permissions (only if ImagePicker is available)
-    (async () => {
-      try {
-        if (ImagePicker && typeof ImagePicker.requestCameraPermissionsAsync === 'function') {
-          const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-          const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
-            // Don't show alert on mount, only when user tries to use it
-          }
-        }
-      } catch (error) {
-        console.warn('ImagePicker not available:', error);
-        // Don't crash if ImagePicker is not available
-      }
-    })();
+    // ImagePicker permissions requested lazily when needed
   }, []);
 
   // Cleanup recording on unmount
@@ -318,7 +304,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handleTakePhoto = async () => {
     try {
-      // Check if ImagePicker is available
+      // Dynamically import ImagePicker to avoid crash if native module is not available
+      const ImagePicker = await import('expo-image-picker').catch(() => null);
       if (!ImagePicker || typeof ImagePicker.requestCameraPermissionsAsync !== 'function') {
         Alert.alert('Error', 'La funcionalidad de cámara no está disponible en esta versión de la app.');
         return;
@@ -331,7 +318,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions?.Images || ImagePicker.MediaTypeOptions.Images,
         allowsEditing: false, // Allow selecting entire photo without forced cropping
         quality: 0.9,
       });
@@ -352,7 +339,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handlePickImage = async () => {
     try {
-      // Check if ImagePicker is available
+      // Dynamically import ImagePicker to avoid crash if native module is not available
+      const ImagePicker = await import('expo-image-picker').catch(() => null);
       if (!ImagePicker || typeof ImagePicker.requestMediaLibraryPermissionsAsync !== 'function') {
         Alert.alert('Error', 'La funcionalidad de galería no está disponible en esta versión de la app.');
         return;
@@ -365,7 +353,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions?.Images || ImagePicker.MediaTypeOptions.Images,
         allowsEditing: false, // Allow selecting entire photo without forced cropping
         quality: 0.9,
         allowsMultipleSelection: true, // Enable batch processing
