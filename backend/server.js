@@ -355,10 +355,16 @@ Rules:
 - Extract all ingredients with their quantities and units if mentioned
 - Break down the recipe into clear, ordered steps
 - List all kitchen tools/gadgets needed (e.g., "oven", "pan", "blender", "knife")
-- Estimate total_time_minutes as the approximate time for the entire recipe
+- ALWAYS estimate total_time_minutes - it is REQUIRED and must be a number (never null)
+- Estimate based on: preparation time (5-15 min), cooking time (from steps), and resting time if mentioned
+- If no time is mentioned in the recipe, estimate based on the number of steps and complexity:
+  * Simple recipes (1-3 steps): 15-30 minutes
+  * Medium recipes (4-6 steps): 30-60 minutes
+  * Complex recipes (7+ steps): 60-120 minutes
+  * Recipes with oven: add 20-40 minutes for baking/roasting
 - Only set oven_time_minutes if the recipe uses an oven; otherwise set to null
 - Return ONLY valid JSON, no additional text or markdown formatting
-- If information is missing, use reasonable defaults (empty arrays, null for times)`;
+- If information is missing, use reasonable defaults (empty arrays, but ALWAYS provide total_time_minutes as a number)`;
 
   const userPrompt = `Analyze this recipe for ${mainProtein}:
 
@@ -418,6 +424,33 @@ Extract the ingredients, steps, gadgets, and time estimates. Return the result a
     }
 
     // Validate and normalize the response
+    const steps = Array.isArray(parsed.steps) 
+      ? parsed.steps.map((s) => String(s))
+      : [];
+    
+    // Estimate time if not provided or invalid
+    let estimatedTime = null;
+    if (typeof parsed.total_time_minutes === 'number' && parsed.total_time_minutes > 0) {
+      estimatedTime = parsed.total_time_minutes;
+    } else {
+      // Fallback estimation based on steps and complexity
+      const stepCount = steps.length;
+      if (stepCount <= 3) {
+        estimatedTime = 25; // Simple recipe: ~25 minutes
+      } else if (stepCount <= 6) {
+        estimatedTime = 45; // Medium recipe: ~45 minutes
+      } else {
+        estimatedTime = 75; // Complex recipe: ~75 minutes
+      }
+      
+      // Add time if oven is mentioned
+      const hasOven = parsed.gadgets && Array.isArray(parsed.gadgets) && 
+                     parsed.gadgets.some(g => String(g).toLowerCase().includes('oven'));
+      if (hasOven) {
+        estimatedTime += 30; // Add 30 minutes for oven cooking
+      }
+    }
+
     const result = {
       ingredients: Array.isArray(parsed.ingredients) 
         ? parsed.ingredients.map((ing) => ({
@@ -427,15 +460,11 @@ Extract the ingredients, steps, gadgets, and time estimates. Return the result a
             notes: ing.notes,
           }))
         : [],
-      steps: Array.isArray(parsed.steps) 
-        ? parsed.steps.map((s) => String(s))
-        : [],
+      steps: steps,
       gadgets: Array.isArray(parsed.gadgets) 
         ? parsed.gadgets.map((g) => String(g))
         : [],
-      total_time_minutes: typeof parsed.total_time_minutes === 'number' 
-        ? parsed.total_time_minutes 
-        : null,
+      total_time_minutes: estimatedTime,
       oven_time_minutes: typeof parsed.oven_time_minutes === 'number' 
         ? parsed.oven_time_minutes 
         : null,

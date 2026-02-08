@@ -481,17 +481,44 @@ export default function AddRecipeScreen({ navigation }: Props) {
       return;
     }
 
+    if (!mainProtein) {
+      Alert.alert('Error', 'Por favor selecciona una categoría principal.');
+      return;
+    }
+
+    // Ensure we have a time estimate - if not, estimate based on steps
+    let finalTime = analysis.total_time_minutes;
+    if (!finalTime || finalTime <= 0) {
+      const stepCount = analysis.steps.length;
+      if (stepCount <= 3) {
+        finalTime = 25;
+      } else if (stepCount <= 6) {
+        finalTime = 45;
+      } else {
+        finalTime = 75;
+      }
+      
+      // Add time if oven is mentioned
+      const hasOven = analysis.gadgets.some(g => 
+        String(g).toLowerCase().includes('oven') || 
+        String(g).toLowerCase().includes('horno')
+      );
+      if (hasOven) {
+        finalTime += 30;
+      }
+    }
+
     try {
       setSaving(true);
       const recipe = await createRecipe({
         title: title.trim(),
-        main_protein: mainProtein,
+        main_protein: mainProtein as MainProtein,
         cuisines: selectedCuisines.length > 0 ? selectedCuisines : undefined,
         raw_text: rawText.trim(),
         ingredients: analysis.ingredients,
         steps: analysis.steps,
         gadgets: analysis.gadgets,
-        total_time_minutes: analysis.total_time_minutes,
+        total_time_minutes: finalTime,
         oven_time_minutes: analysis.oven_time_minutes,
         servings: servings,
       });
