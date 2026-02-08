@@ -496,6 +496,11 @@ export default function AddRecipeScreen({ navigation }: Props) {
         servings: servings,
       });
 
+      // Send notification about new recipe
+      const { sendNewRecipeNotification } = await import('../lib/notifications');
+      const proteinLabel = allProteins.find(p => p.value === mainProtein)?.label || mainProtein;
+      await sendNewRecipeNotification(title.trim(), proteinLabel);
+
       Alert.alert('Éxito', '¡Receta guardada!', [
         {
           text: 'OK',

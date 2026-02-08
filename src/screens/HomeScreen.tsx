@@ -16,6 +16,7 @@ type RootStackParamList = {
   RecipeDetail: { recipeId: string | number };
   AddRecipe: undefined;
   EditRecipe: { recipeId: string | number };
+  UserGuide: undefined;
 };
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -48,6 +49,10 @@ export default function HomeScreen({ navigation }: Props) {
     navigation.navigate('AddRecipe');
   };
 
+  const handleOpenGuide = () => {
+    navigation.navigate('UserGuide');
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -55,8 +60,19 @@ export default function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>TuPonesYoComo</Text>
-          <Text style={styles.subtitle}>Selecciona una categoría para ver recetas</Text>
+          <View style={styles.headerRow}>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.title}>TuPonesYoComo</Text>
+              <Text style={styles.subtitle}>Selecciona una categoría para ver recetas</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.helpButton}
+              onPress={handleOpenGuide}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.helpButtonText}>❓</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.grid}>
@@ -110,6 +126,28 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: COLORS.textSecondary,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
+  helpButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  helpButtonText: {
+    fontSize: 20,
   },
   grid: {
     flexDirection: 'row',

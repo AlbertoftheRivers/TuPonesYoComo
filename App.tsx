@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS, MAIN_PROTEINS } from './src/lib/constants';
+import { initializeNotifications } from './src/lib/notifications';
 import HomeScreen from './src/screens/HomeScreen';
 import RecipeListScreen from './src/screens/RecipeListScreen';
 import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
 import AddRecipeScreen from './src/screens/AddRecipeScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
+import UserGuideScreen from './src/screens/UserGuideScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -16,6 +18,7 @@ export type RootStackParamList = {
   RecipeDetail: { recipeId: string | number };
   AddRecipe: undefined;
   EditRecipe: { recipeId: string | number };
+  UserGuide: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,6 +57,11 @@ class ErrorBoundary extends React.Component<
 }
 
 export default function App() {
+  useEffect(() => {
+    // Initialize notifications on app start
+    initializeNotifications();
+  }, []);
+
   try {
     return (
       <ErrorBoundary>
@@ -100,6 +108,11 @@ export default function App() {
               name="EditRecipe" 
               component={EditRecipeScreen}
               options={{ title: 'Editar Receta' }}
+            />
+            <Stack.Screen 
+              name="UserGuide" 
+              component={UserGuideScreen}
+              options={{ title: 'Guía de Usuario' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
