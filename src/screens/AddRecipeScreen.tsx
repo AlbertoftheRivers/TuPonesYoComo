@@ -589,64 +589,23 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const showImagePickerOptions = () => {
-    // En web, mostrar opciones (cámara o galería)
-    if (isWeb) {
-      Alert.alert(
-        'Escanear Receta',
-        'Elige una opción para escanear la receta',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Tomar Foto', onPress: handleTakePhotoWeb },
-          { text: 'Seleccionar de Galería', onPress: handlePickImage },
-          { 
-            text: 'Cambiar Idioma OCR', 
-            onPress: () => {
-              Alert.alert(
-                'Idioma del OCR',
-                'Selecciona el idioma de la receta para mejor reconocimiento',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  { text: 'Español', onPress: () => setOcrLanguage('spa') },
-                  { text: 'English', onPress: () => setOcrLanguage('eng') },
-                  { text: 'Français', onPress: () => setOcrLanguage('fra') },
-                  { text: 'Italiano', onPress: () => setOcrLanguage('ita') },
-                  { text: 'Português', onPress: () => setOcrLanguage('por') },
-                  { text: 'Deutsch', onPress: () => setOcrLanguage('deu') },
-                ]
-              );
-            }
-          },
-        ]
-      );
-      return;
-    }
-
-    // En móvil, mostrar opciones
+    // Same dialog for both web and mobile - exactly like APK
     Alert.alert(
       'Escanear Receta',
       'Elige una opción para escanear la receta',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Tomar Foto', onPress: handleTakePhoto },
-        { text: 'Seleccionar de Galería', onPress: handlePickImage },
         { 
-          text: 'Cambiar Idioma OCR', 
+          text: 'Tomar Foto', 
           onPress: () => {
-            Alert.alert(
-              'Idioma del OCR',
-              'Selecciona el idioma de la receta para mejor reconocimiento',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Español', onPress: () => setOcrLanguage('spa') },
-                { text: 'English', onPress: () => setOcrLanguage('eng') },
-                { text: 'Français', onPress: () => setOcrLanguage('fra') },
-                { text: 'Italiano', onPress: () => setOcrLanguage('ita') },
-                { text: 'Português', onPress: () => setOcrLanguage('por') },
-                { text: 'Deutsch', onPress: () => setOcrLanguage('deu') },
-              ]
-            );
+            if (isWeb) {
+              handleTakePhotoWeb();
+            } else {
+              handleTakePhoto();
+            }
           }
         },
+        { text: 'Seleccionar de Galería', onPress: handlePickImage },
       ]
     );
   };
