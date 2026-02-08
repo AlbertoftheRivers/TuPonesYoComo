@@ -24,7 +24,7 @@ import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 import { isWeb } from '../lib/platform';
 import { startWebSpeechRecognition, isWebSpeechAvailable, WebSpeechRecognition } from '../lib/webSpeech';
-import { pickImageFromFile, pickMultipleImagesFromFile } from '../lib/webImagePicker';
+import { pickImageFromFile, pickMultipleImagesFromFile, capturePhotoFromCamera } from '../lib/webImagePicker';
 
 type RootStackParamList = {
   Home: undefined;
@@ -576,10 +576,48 @@ export default function AddRecipeScreen({ navigation }: Props) {
     }
   };
 
+  const handleTakePhotoWeb = async () => {
+    try {
+      const imageDataUrl = await capturePhotoFromCamera();
+      if (imageDataUrl) {
+        await processImageOCR(imageDataUrl);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto. Por favor intenta de nuevo.');
+    }
+  };
+
   const showImagePickerOptions = () => {
-    // En web, directamente abrir el file picker
+    // En web, mostrar opciones (cámara o galería)
     if (isWeb) {
-      handlePickImage();
+      Alert.alert(
+        'Escanear Receta',
+        'Elige una opción para escanear la receta',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Tomar Foto', onPress: handleTakePhotoWeb },
+          { text: 'Seleccionar de Galería', onPress: handlePickImage },
+          { 
+            text: 'Cambiar Idioma OCR', 
+            onPress: () => {
+              Alert.alert(
+                'Idioma del OCR',
+                'Selecciona el idioma de la receta para mejor reconocimiento',
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  { text: 'Español', onPress: () => setOcrLanguage('spa') },
+                  { text: 'English', onPress: () => setOcrLanguage('eng') },
+                  { text: 'Français', onPress: () => setOcrLanguage('fra') },
+                  { text: 'Italiano', onPress: () => setOcrLanguage('ita') },
+                  { text: 'Português', onPress: () => setOcrLanguage('por') },
+                  { text: 'Deutsch', onPress: () => setOcrLanguage('deu') },
+                ]
+              );
+            }
+          },
+        ]
+      );
       return;
     }
 
@@ -657,7 +695,17 @@ export default function AddRecipeScreen({ navigation }: Props) {
     }
 
     try {
+      console.log('💾 Starting save process...');
       setSaving(true);
+      
+      console.log('📝 Recipe data:', {
+        title: title.trim(),
+        main_protein: mainProtein,
+        cuisines: selectedCuisines,
+        hasIngredients: analysis.ingredients.length > 0,
+        hasSteps: analysis.steps.length > 0,
+      });
+      
       const recipe = await createRecipe({
         title: title.trim(),
         main_protein: mainProtein as MainProtein,
@@ -671,11 +719,19 @@ export default function AddRecipeScreen({ navigation }: Props) {
         servings: servings,
       });
 
-      // Send notification about new recipe
-      const { sendNewRecipeNotification } = await import('../lib/notifications');
-      const proteinLabel = allProteins.find(p => p.value === mainProtein)?.label || mainProtein;
-      await sendNewRecipeNotification(title.trim(), proteinLabel);
+      console.log('✅ Recipe created successfully:', recipe.id);
 
+      // Send notification about new recipe
+      try {
+        const { sendNewRecipeNotification } = await import('../lib/notifications');
+        const proteinLabel = allProteins.find(p => p.value === mainProtein)?.label || mainProtein;
+        await sendNewRecipeNotification(title.trim(), proteinLabel);
+      } catch (notifError) {
+        console.warn('⚠️ Could not send notification:', notifError);
+        // Don't fail the save if notification fails
+      }
+
+      setSaving(false);
       Alert.alert('Éxito', '¡Receta guardada!', [
         {
           text: 'OK',
@@ -683,14 +739,22 @@ export default function AddRecipeScreen({ navigation }: Props) {
         },
       ]);
     } catch (error) {
-      console.error('Error saving recipe:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Error al guardar la receta. Por favor verifica la conexión con Supabase e intenta de nuevo.';
+      console.error('❌ Error saving recipe:', error);
+      setSaving(false);
+      
+      let errorMessage = 'Error al guardar la receta. Por favor verifica la conexión con Supabase e intenta de nuevo.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        // Provide more helpful error messages
+        if (error.message.includes('Network') || error.message.includes('fetch')) {
+          errorMessage = 'Error de conexión. Por favor verifica tu conexión a internet.';
+        } else if (error.message.includes('JWT') || error.message.includes('auth')) {
+          errorMessage = 'Error de autenticación. Por favor verifica la configuración de Supabase.';
+        }
+      }
       
       Alert.alert('Error al Guardar', errorMessage);
-    } finally {
-      setSaving(false);
     }
   };
 
