@@ -470,7 +470,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={mainProtein}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   if (value === '__add_new__') {
                     setShowAddCategoryModal(true);
                   } else if (value) {
