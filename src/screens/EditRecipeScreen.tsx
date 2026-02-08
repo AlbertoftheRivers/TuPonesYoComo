@@ -1093,9 +1093,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
-
-
-  View,
   Text,
   StyleSheet,
   ScrollView,

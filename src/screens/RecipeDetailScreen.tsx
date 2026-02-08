@@ -466,10 +466,6 @@ const styles = StyleSheet.create({
     color: COLORS.error,
   },
 });
-
-
-
-  View,
   Text,
   StyleSheet,
   ScrollView,
