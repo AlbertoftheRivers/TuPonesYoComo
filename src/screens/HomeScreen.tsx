@@ -9,6 +9,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
 import { getAllProteins } from '../lib/customCategories';
+import DesktopWarning from '../components/DesktopWarning';
 
 type RootStackParamList = {
   Home: undefined;
@@ -59,6 +60,7 @@ export default function HomeScreen({ navigation }: Props) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <DesktopWarning />
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.headerTextContainer}>

@@ -473,8 +473,8 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 onValueChange={(value) => {
                   if (value === '__add_new__') {
                     setShowAddCategoryModal(true);
-                  } else {
-                    setMainProtein(value);
+                  } else if (value) {
+                    setMainProtein(value as MainProtein);
                   }
                 }}
                 style={styles.picker}

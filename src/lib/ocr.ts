@@ -32,25 +32,40 @@ export async function extractTextFromImage(
     // Create FormData to send image file
     const formData = new FormData();
     
-    // Get file name from URI
-    const fileName = imageUri.split('/').pop() || 'image.jpg';
-    
-    // Determine MIME type from file extension
-    let mimeType = 'image/jpeg';
-    if (fileName.endsWith('.png')) {
-      mimeType = 'image/png';
-    } else if (fileName.endsWith('.gif')) {
-      mimeType = 'image/gif';
-    } else if (fileName.endsWith('.webp')) {
-      mimeType = 'image/webp';
+    // Check if it's a data URI (base64) from web picker
+    if (imageUri.startsWith('data:image/')) {
+      // Convert data URI to blob
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      
+      // Determine MIME type from data URI
+      const mimeMatch = imageUri.match(/data:image\/(\w+);/);
+      const mimeType = mimeMatch ? `image/${mimeMatch[1]}` : 'image/jpeg';
+      const extension = mimeType.split('/')[1] || 'jpg';
+      
+      formData.append('image', blob, `image.${extension}`);
+    } else {
+      // Native file URI
+      // Get file name from URI
+      const fileName = imageUri.split('/').pop() || 'image.jpg';
+      
+      // Determine MIME type from file extension
+      let mimeType = 'image/jpeg';
+      if (fileName.endsWith('.png')) {
+        mimeType = 'image/png';
+      } else if (fileName.endsWith('.gif')) {
+        mimeType = 'image/gif';
+      } else if (fileName.endsWith('.webp')) {
+        mimeType = 'image/webp';
+      }
+      
+      // Add image file to form data
+      formData.append('image', {
+        uri: imageUri,
+        type: mimeType,
+        name: fileName,
+      } as any);
     }
-    
-    // Add image file to form data
-    formData.append('image', {
-      uri: imageUri,
-      type: mimeType,
-      name: fileName,
-    } as any);
     
     // Add language parameter
     formData.append('language', language);

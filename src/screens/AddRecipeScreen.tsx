@@ -22,6 +22,9 @@ import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
+import { isWeb } from '../lib/platform';
+import { startWebSpeechRecognition, isWebSpeechAvailable, WebSpeechRecognition } from '../lib/webSpeech';
+import { pickImageFromFile, pickMultipleImagesFromFile } from '../lib/webImagePicker';
 
 type RootStackParamList = {
   Home: undefined;
@@ -61,6 +64,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordingStatus, setRecordingStatus] = useState<'idle' | 'recording' | 'transcribing'>('idle');
   const [recordingDuration, setRecordingDuration] = useState(0);
+  // Web Speech API state
+  const [webSpeechRecognition, setWebSpeechRecognition] = useState<WebSpeechRecognition | null>(null);
 
   // OCR states
   const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
@@ -68,17 +73,23 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   useEffect(() => {
     loadCustomOptions();
-    // Request audio permissions on mount
-    (async () => {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permisos de Audio',
-          'Se necesitan permisos de micrófono para usar la función de dictado por voz.',
-          [{ text: 'OK' }]
-        );
-      }
-    })();
+    // Request audio permissions on mount (only for native)
+    if (!isWeb) {
+      (async () => {
+        try {
+          const { status } = await Audio.requestPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert(
+              'Permisos de Audio',
+              'Se necesitan permisos de micrófono para usar la función de dictado por voz.',
+              [{ text: 'OK' }]
+            );
+          }
+        } catch (error) {
+          console.error('Error requesting audio permissions:', error);
+        }
+      })();
+    }
     // ImagePicker permissions requested lazily when needed
   }, []);
 
@@ -88,8 +99,15 @@ export default function AddRecipeScreen({ navigation }: Props) {
       if (recording) {
         recording.stopAndUnloadAsync();
       }
+      if (webSpeechRecognition) {
+        try {
+          webSpeechRecognition.stop();
+        } catch (error) {
+          console.error('Error stopping web speech:', error);
+        }
+      }
     };
-  }, [recording]);
+  }, [recording, webSpeechRecognition]);
 
   const loadCustomOptions = async () => {
     try {
@@ -206,6 +224,48 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const startRecording = async () => {
+    // Use Web Speech API on web
+    if (isWeb) {
+      if (!isWebSpeechAvailable()) {
+        Alert.alert('Error', 'El reconocimiento de voz no está disponible en este navegador. Por favor usa Chrome, Edge o Safari.');
+        return;
+      }
+
+      setRecordingStatus('recording');
+      setRecordingDuration(0);
+
+      const interval = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+
+      const recognition = startWebSpeechRecognition(
+        (text) => {
+          setRawText(prev => prev.trim() ? `${prev.trim()}\n\n${text}` : text);
+        },
+        (error) => {
+          clearInterval(interval);
+          setRecordingStatus('idle');
+          setRecordingDuration(0);
+          setWebSpeechRecognition(null);
+          Alert.alert('Error', error);
+        },
+        'es-ES'
+      );
+
+      if (recognition) {
+        setWebSpeechRecognition(recognition);
+        (recognition as any)._durationInterval = interval;
+        recognition.onend = () => {
+          clearInterval((recognition as any)._durationInterval);
+          setRecordingStatus('idle');
+          setRecordingDuration(0);
+          setWebSpeechRecognition(null);
+        };
+      }
+      return;
+    }
+
+    // Native recording
     try {
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
@@ -239,6 +299,27 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const stopRecording = async () => {
+    // Web Speech API
+    if (isWeb && webSpeechRecognition) {
+      try {
+        if ((webSpeechRecognition as any)._durationInterval) {
+          clearInterval((webSpeechRecognition as any)._durationInterval);
+        }
+        webSpeechRecognition.stop();
+        setWebSpeechRecognition(null);
+        setRecordingStatus('idle');
+        setRecordingDuration(0);
+        Alert.alert('Éxito', 'Dictado completado');
+      } catch (error) {
+        console.error('Error stopping web speech:', error);
+        setRecordingStatus('idle');
+        setRecordingDuration(0);
+        setWebSpeechRecognition(null);
+      }
+      return;
+    }
+
+    // Native recording
     if (!recording) return;
 
     try {
@@ -280,6 +361,23 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const cancelRecording = async () => {
+    // Web Speech API
+    if (isWeb && webSpeechRecognition) {
+      try {
+        if ((webSpeechRecognition as any)._durationInterval) {
+          clearInterval((webSpeechRecognition as any)._durationInterval);
+        }
+        webSpeechRecognition.stop();
+        setWebSpeechRecognition(null);
+        setRecordingStatus('idle');
+        setRecordingDuration(0);
+      } catch (error) {
+        console.error('Error canceling web speech:', error);
+      }
+      return;
+    }
+
+    // Native recording
     if (!recording) return;
 
     try {
@@ -338,6 +436,25 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const handlePickImage = async () => {
+    // Use web file picker on web
+    if (isWeb) {
+      try {
+        const images = await pickMultipleImagesFromFile();
+        if (images.length === 0) return;
+        
+        if (images.length > 1) {
+          await processBatchOCR(images);
+        } else {
+          await processImageOCR(images[0]);
+        }
+      } catch (error) {
+        console.error('Error picking image:', error);
+        Alert.alert('Error', 'No se pudo seleccionar la imagen. Por favor intenta de nuevo.');
+      }
+      return;
+    }
+
+    // Native image picker
     try {
       // Dynamically import ImagePicker to avoid crash if native module is not available
       const ImagePicker = await import('expo-image-picker').catch(() => null);
@@ -552,8 +669,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
         },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Error al guardar la receta. Por favor intenta de nuevo.');
-      console.error(error);
+      console.error('Error saving recipe:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error al guardar la receta. Por favor verifica la conexión con Supabase e intenta de nuevo.';
+      
+      Alert.alert('Error al Guardar', errorMessage);
     } finally {
       setSaving(false);
     }
@@ -711,16 +832,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   style={[
                     styles.actionButton,
                     styles.micButton,
-                    recordingStatus === 'recording' && styles.micButtonRecording,
+                    (recordingStatus === 'recording' || webSpeechRecognition) && styles.micButtonRecording,
                     recordingStatus === 'transcribing' && styles.actionButtonDisabled
                   ]}
-                  onPress={recording ? stopRecording : startRecording}
-                  onLongPress={recording ? cancelRecording : undefined}
+                  onPress={(recording || webSpeechRecognition) ? stopRecording : startRecording}
+                  onLongPress={(recording || webSpeechRecognition) ? cancelRecording : undefined}
                   disabled={recordingStatus === 'transcribing' || ocrStatus === 'processing'}
                 >
                   {recordingStatus === 'transcribing' ? (
                     <ActivityIndicator color="#ffffff" size="small" />
-                  ) : recordingStatus === 'recording' ? (
+                  ) : (recordingStatus === 'recording' || webSpeechRecognition) ? (
                     <Text style={styles.actionButtonText}>⏹️ {formatDuration(recordingDuration)}</Text>
                   ) : (
                     <Text style={styles.actionButtonText}>🎤</Text>
@@ -728,7 +849,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </View>
             </View>
-            {recordingStatus === 'recording' && (
+            {(recordingStatus === 'recording' || webSpeechRecognition) && (
               <Text style={styles.recordingHint}>
                 Grabando... Mantén presionado para cancelar
               </Text>
