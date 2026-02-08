@@ -85,24 +85,21 @@ export function startWebSpeechRecognition(
   }
 
   recognition.continuous = true;
-  recognition.interimResults = true;
+  recognition.interimResults = false; // No mostrar resultados intermedios
   recognition.lang = language;
 
   let finalTranscript = '';
 
   recognition.onresult = (event: SpeechRecognitionEvent) => {
-    let interimTranscript = '';
-
+    // Solo procesar resultados finales, no intermedios
     for (let i = event.resultIndex; i < event.results.length; i++) {
-      const transcript = event.results[i][0].transcript;
       if (event.results[i].isFinal) {
+        const transcript = event.results[i][0].transcript;
         finalTranscript += transcript + ' ';
-      } else {
-        interimTranscript += transcript;
       }
     }
-
-    onResult(finalTranscript + interimTranscript);
+    // Guardar en el objeto recognition para acceso externo
+    (recognition as any)._finalTranscript = finalTranscript;
   };
 
   recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -110,8 +107,12 @@ export function startWebSpeechRecognition(
   };
 
   recognition.onend = () => {
-    if (finalTranscript.trim()) {
-      onResult(finalTranscript.trim());
+    // Solo cuando termine, devolver todo el texto acumulado
+    const text = (recognition as any)._finalTranscript || finalTranscript;
+    if (text && text.trim()) {
+      onResult(text.trim());
+    } else {
+      onError('No se detectó ningún texto');
     }
   };
 

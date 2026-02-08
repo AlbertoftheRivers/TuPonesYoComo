@@ -240,7 +240,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
       const recognition = startWebSpeechRecognition(
         (text) => {
+          // Solo actualizar cuando termine la grabación
           setRawText(prev => prev.trim() ? `${prev.trim()}\n\n${text}` : text);
+          Alert.alert('Éxito', 'Dictado completado');
         },
         (error) => {
           clearInterval(interval);
@@ -255,11 +257,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
       if (recognition) {
         setWebSpeechRecognition(recognition);
         (recognition as any)._durationInterval = interval;
+        
+        // Guardar el handler original de onend
+        const originalOnEnd = recognition.onend;
         recognition.onend = () => {
           clearInterval((recognition as any)._durationInterval);
           setRecordingStatus('idle');
           setRecordingDuration(0);
           setWebSpeechRecognition(null);
+          
+          if (originalOnEnd) originalOnEnd();
         };
       }
       return;
@@ -570,6 +577,13 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const showImagePickerOptions = () => {
+    // En web, directamente abrir el file picker
+    if (isWeb) {
+      handlePickImage();
+      return;
+    }
+
+    // En móvil, mostrar opciones
     Alert.alert(
       'Escanear Receta',
       'Elige una opción para escanear la receta',
