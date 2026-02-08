@@ -466,21 +466,6 @@ const styles = StyleSheet.create({
     color: COLORS.error,
   },
 });
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-} from 'react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
-import { getRecipeById, deleteRecipe } from '../api/recipes';
-import { getAllCuisines } from '../lib/customCategories';
-import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
-import { Recipe, Ingredient } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
