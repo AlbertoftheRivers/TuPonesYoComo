@@ -18,7 +18,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.tuponesyocomo.app",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -34,7 +36,11 @@
         "WRITE_EXTERNAL_STORAGE",
         "RECEIVE_BOOT_COMPLETED"
       ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dc23fd0e-7698-4242-bf33-27d13be05c18"
+      }
     }
   }
 }
-
