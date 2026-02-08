@@ -55,6 +55,16 @@ const upload = multer({
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.path}${req.query && Object.keys(req.query).length > 0 ? '?' + new URLSearchParams(req.query).toString() : ''}`);
+  if (req.body && Object.keys(req.body).length > 0 && !req.path.includes('/api/ocr') && !req.path.includes('/api/transcribe')) {
+    console.log(`[${timestamp}] Request body:`, JSON.stringify(req.body, null, 2));
+  }
+  next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
