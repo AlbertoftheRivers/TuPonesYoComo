@@ -52,6 +52,7 @@
       "startUrl": "/",
       "description": "App para gestionar recetas con IA",
       "dir": "ltr",
+      "bundler": "metro",
       "icons": [
         {
           "src": "./assets/icon.png",
@@ -65,7 +66,11 @@
           "type": "image/png",
           "purpose": "any maskable"
         }
-      ]
+      ],
+      "apple": {
+        "icon": "./assets/icon.png",
+        "touchIcon": "./assets/icon.png"
+      }
     },
     "extra": {
       "eas": {
