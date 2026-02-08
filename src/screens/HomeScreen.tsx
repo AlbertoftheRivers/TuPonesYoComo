@@ -205,17 +205,6 @@ const styles = StyleSheet.create({
   },
 });
 
-
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
-import { getAllProteins } from '../lib/customCategories';
-
 type RootStackParamList = {
   Home: undefined;
   RecipeList: { mainProtein: string };
