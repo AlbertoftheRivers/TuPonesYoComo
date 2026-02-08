@@ -114,9 +114,6 @@ export async function extractTextFromImages(
   };
 }
 
-
- */
-
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.tuponesyocomo.uk';
 
 export interface OCRResult {
