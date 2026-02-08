@@ -1093,8 +1093,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
-  const [title, setTitle] = useState('');
-  const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
   const [servings, setServings] = useState<number>(2);
   const [rawText, setRawText] = useState('');
