@@ -58,8 +58,11 @@ class ErrorBoundary extends React.Component<
 
 export default function App() {
   useEffect(() => {
-    // Initialize notifications on app start
-    initializeNotifications();
+    // Initialize notifications on app start (non-blocking)
+    initializeNotifications().catch((error) => {
+      console.error('Failed to initialize notifications:', error);
+      // Don't crash the app if notifications fail
+    });
   }, []);
 
   try {

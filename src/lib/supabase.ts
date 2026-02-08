@@ -3,14 +3,23 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Create client with empty strings if not configured (will fail gracefully on API calls)
-// This allows the app to load even if env vars aren't set yet
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
+// Create client - use placeholder values if not configured to prevent crashes
+// The app will show errors when trying to use Supabase, but won't crash on startup
+let supabase;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('⚠️ Supabase credentials not configured. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file.');
+try {
+  if (supabaseUrl && supabaseAnonKey && supabaseUrl !== '' && supabaseAnonKey !== '') {
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+  } else {
+    // Use placeholder to prevent crashes, but log warning
+    console.warn('⚠️ Supabase credentials not configured. Using placeholder client. API calls will fail.');
+    supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+  }
+} catch (error) {
+  console.error('Error creating Supabase client:', error);
+  // Fallback to placeholder to prevent crash
+  supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
 }
+
+export { supabase };
 

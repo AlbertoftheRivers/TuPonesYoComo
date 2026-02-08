@@ -19,8 +19,10 @@
       "bundleIdentifier": "com.tuponesyocomo.app",
       "infoPlist": {
         "UIBackgroundModes": [
+          "remote-notification",
           "remote-notification"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -35,6 +37,34 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "name": "TuPonesYoComo",
+      "shortName": "TYC",
+      "lang": "es",
+      "scope": "/",
+      "themeColor": "#D2691E",
+      "backgroundColor": "#D2691E",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "description": "App para gestionar recetas con IA",
+      "dir": "ltr",
+      "icons": [
+        {
+          "src": "./assets/icon.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "./assets/icon.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
       ]
     },
     "extra": {

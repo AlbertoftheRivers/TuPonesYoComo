@@ -6,14 +6,18 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-// Configure notification behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+// Configure notification behavior (with error handling)
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+} catch (error) {
+  console.warn('Failed to set notification handler:', error);
+}
 
 /**
  * Request notification permissions
@@ -108,9 +112,15 @@ export async function sendNewRecipeNotification(recipeTitle: string, mainProtein
  */
 export async function initializeNotifications(): Promise<void> {
   try {
-    await requestNotificationPermissions();
+    // Only initialize if expo-notifications is available
+    if (typeof Notifications !== 'undefined') {
+      await requestNotificationPermissions();
+    } else {
+      console.warn('Notifications module not available');
+    }
   } catch (error) {
     console.error('Error initializing notifications:', error);
+    // Don't throw - allow app to continue without notifications
   }
 }
 
