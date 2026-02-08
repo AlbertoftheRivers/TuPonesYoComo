@@ -52,7 +52,7 @@
       "startUrl": "/",
       "description": "App para gestionar recetas con IA",
       "dir": "ltr",
-      "bundler": "webpack",
+      "bundler": "metro",
       "icons": [
         {
           "src": "./assets/icon.png",
