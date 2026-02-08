@@ -79,12 +79,19 @@ export default function AddRecipeScreen({ navigation }: Props) {
         );
       }
     })();
-    // Request camera/gallery permissions
+    // Request camera/gallery permissions (only if ImagePicker is available)
     (async () => {
-      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-      const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
-        // Don't show alert on mount, only when user tries to use it
+      try {
+        if (ImagePicker && typeof ImagePicker.requestCameraPermissionsAsync === 'function') {
+          const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+          const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
+            // Don't show alert on mount, only when user tries to use it
+          }
+        }
+      } catch (error) {
+        console.warn('ImagePicker not available:', error);
+        // Don't crash if ImagePicker is not available
       }
     })();
   }, []);
@@ -311,6 +318,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handleTakePhoto = async () => {
     try {
+      // Check if ImagePicker is available
+      if (!ImagePicker || typeof ImagePicker.requestCameraPermissionsAsync !== 'function') {
+        Alert.alert('Error', 'La funcionalidad de cámara no está disponible en esta versión de la app.');
+        return;
+      }
+
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permisos', 'Se necesitan permisos de cámara para tomar fotos.');
@@ -328,12 +341,23 @@ export default function AddRecipeScreen({ navigation }: Props) {
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'No se pudo tomar la foto. Por favor intenta de nuevo.');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      if (errorMessage.includes('native module') || errorMessage.includes('ExponentImagePicker')) {
+        Alert.alert('Error', 'La funcionalidad de cámara no está disponible. Por favor usa texto o dictado para añadir recetas.');
+      } else {
+        Alert.alert('Error', 'No se pudo tomar la foto. Por favor intenta de nuevo.');
+      }
     }
   };
 
   const handlePickImage = async () => {
     try {
+      // Check if ImagePicker is available
+      if (!ImagePicker || typeof ImagePicker.requestMediaLibraryPermissionsAsync !== 'function') {
+        Alert.alert('Error', 'La funcionalidad de galería no está disponible en esta versión de la app.');
+        return;
+      }
+
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permisos', 'Se necesitan permisos de galería para seleccionar imágenes.');
@@ -357,7 +381,12 @@ export default function AddRecipeScreen({ navigation }: Props) {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen. Por favor intenta de nuevo.');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      if (errorMessage.includes('native module') || errorMessage.includes('ExponentImagePicker')) {
+        Alert.alert('Error', 'La funcionalidad de galería no está disponible. Por favor usa texto o dictado para añadir recetas.');
+      } else {
+        Alert.alert('Error', 'No se pudo seleccionar la imagen. Por favor intenta de nuevo.');
+      }
     }
   };
 
@@ -962,12 +991,6 @@ const styles = StyleSheet.create({
   },
   field: {
     marginBottom: SPACING.md,
-  },
-  fieldHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
   },
   actionButtonsContainer: {
     flexDirection: 'row',
