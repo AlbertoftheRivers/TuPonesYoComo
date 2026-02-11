@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,18 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp, useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
 import { getAllProteins } from '../lib/customCategories';
 import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage, SupportedLanguage } from '../lib/LanguageContext';
-import { getTranslatedProtein } from '../lib/categoryTranslations';
+import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
+import { getAllRecipes } from '../api/recipes';
+import { getAllCuisines } from '../lib/customCategories';
+import { Recipe } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
@@ -34,11 +39,17 @@ export default function HomeScreen({ navigation }: Props) {
   const { language, setLanguage, t } = useLanguage();
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
+  const [allCuisines, setAllCuisines] = useState<any[]>([]);
+  const [loadingRecipes, setLoadingRecipes] = useState(false);
 
   // Reload categories when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       loadCustomProteins();
+      loadAllRecipes();
+      loadCuisines();
     }, [])
   );
 
@@ -48,6 +59,27 @@ export default function HomeScreen({ navigation }: Props) {
       setAllProteins(proteins);
     } catch (error) {
       console.error('Error loading custom proteins:', error);
+    }
+  };
+
+  const loadAllRecipes = async () => {
+    try {
+      setLoadingRecipes(true);
+      const recipes = await getAllRecipes();
+      setAllRecipes(recipes);
+    } catch (error) {
+      console.error('Error loading all recipes:', error);
+    } finally {
+      setLoadingRecipes(false);
+    }
+  };
+
+  const loadCuisines = async () => {
+    try {
+      const cuisines = await getAllCuisines();
+      setAllCuisines(cuisines);
+    } catch (error) {
+      console.error('Error loading cuisines:', error);
     }
   };
 
@@ -67,6 +99,62 @@ export default function HomeScreen({ navigation }: Props) {
   const handleOpenGuide = () => {
     navigation.navigate('UserGuide');
   };
+
+  const handleRecipePress = (recipe: Recipe) => {
+    navigation.navigate('RecipeDetail', { recipeId: recipe.id });
+  };
+
+  // Search functionality
+  const filteredRecipes = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return [];
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return allRecipes.filter((recipe) => {
+      // Search in title
+      if (recipe.title.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      // Search in ingredients
+      const ingredientNames = recipe.ingredients
+        .map(ing => ing.name.toLowerCase())
+        .join(' ');
+      if (ingredientNames.includes(query)) {
+        return true;
+      }
+
+      // Search in cuisines
+      if (recipe.cuisines && recipe.cuisines.length > 0) {
+        const cuisineLabels = recipe.cuisines
+          .map(cuisineValue => getTranslatedCuisine(cuisineValue, language))
+          .join(' ')
+          .toLowerCase();
+        if (cuisineLabels.includes(query)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }, [searchQuery, allRecipes, language]);
+
+  // Get unique recipes count
+  const uniqueRecipesCount = useMemo(() => {
+    return allRecipes.length;
+  }, [allRecipes]);
+
+  // Get unique cuisines count
+  const uniqueCuisinesCount = useMemo(() => {
+    const cuisineSet = new Set<string>();
+    allRecipes.forEach(recipe => {
+      if (recipe.cuisines && recipe.cuisines.length > 0) {
+        recipe.cuisines.forEach(cuisine => cuisineSet.add(cuisine));
+      }
+    });
+    return cuisineSet.size;
+  }, [allRecipes]);
 
   return (
     <View style={styles.container}>
@@ -98,25 +186,112 @@ export default function HomeScreen({ navigation }: Props) {
               </TouchableOpacity>
             </View>
           </View>
+          
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t('searchPlaceholder')}
+              placeholderTextColor={COLORS.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSearchQuery('')}
+              >
+                <Text style={styles.clearButtonText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Statistics */}
+          <View style={styles.statsContainer}>
+            <Text style={styles.statsText}>
+              {uniqueRecipesCount} {uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}
+            </Text>
+            <Text style={styles.statsSeparator}>•</Text>
+            <Text style={styles.statsText}>
+              {uniqueCuisinesCount} {uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.grid}>
-          {allProteins.map((protein) => (
-            <TouchableOpacity
-              key={protein.value}
-              style={styles.proteinCard}
-              onPress={() => handleProteinPress(protein.value)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
-                <Text style={styles.cardIconText}>
-                  {protein.icon}
-                </Text>
+        {/* Search Results */}
+        {searchQuery.trim() && (
+          <View style={styles.searchResultsContainer}>
+            <Text style={styles.searchResultsTitle}>
+              {t('searchResults')}: {filteredRecipes.length} {filteredRecipes.length !== 1 ? t('recipesCountPlural') : t('recipesCount')}
+            </Text>
+            {loadingRecipes ? (
+              <ActivityIndicator size="small" color={COLORS.primary} style={styles.loadingIndicator} />
+            ) : filteredRecipes.length === 0 ? (
+              <Text style={styles.noResultsText}>{t('noRecipesFound')}</Text>
+            ) : (
+              <View style={styles.searchResultsList}>
+                {filteredRecipes.map((recipe) => {
+                  const cuisineInfos = recipe.cuisines 
+                    ? recipe.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
+                    : [];
+                  return (
+                    <TouchableOpacity
+                      key={recipe.id}
+                      style={styles.searchResultCard}
+                      onPress={() => handleRecipePress(recipe)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.searchResultHeader}>
+                        <Text style={styles.searchResultTitle}>{recipe.title}</Text>
+                        {cuisineInfos.length > 0 && (
+                          <View style={styles.cuisineFlagsContainer}>
+                            {cuisineInfos.map((cuisineInfo, idx) => (
+                              <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.searchResultMeta}>
+                        <Text style={styles.searchResultMetaText}>
+                          {getTranslatedProtein(recipe.main_protein, language)}
+                        </Text>
+                        {recipe.total_time_minutes && (
+                          <>
+                            <Text style={styles.searchResultMetaText}>•</Text>
+                            <Text style={styles.searchResultMetaText}>
+                              ⏱️ {recipe.total_time_minutes} {t('min')}
+                            </Text>
+                          </>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-              <Text style={styles.cardLabel}>{getTranslatedProtein(protein.value, language)}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            )}
+          </View>
+        )}
+
+        {/* Categories Grid - Only show when not searching */}
+        {!searchQuery.trim() && (
+          <View style={styles.grid}>
+            {allProteins.map((protein) => (
+              <TouchableOpacity
+                key={protein.value}
+                style={styles.proteinCard}
+                onPress={() => handleProteinPress(protein.value)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
+                  <Text style={styles.cardIconText}>
+                    {protein.icon}
+                  </Text>
+                </View>
+                <Text style={styles.cardLabel}>{getTranslatedProtein(protein.value, language)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       <TouchableOpacity
@@ -350,6 +525,110 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  searchContainer: {
+    marginTop: SPACING.md,
+    position: 'relative',
+  },
+  searchInput: {
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    paddingRight: 40,
+    fontSize: 16,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: SPACING.sm,
+    top: SPACING.sm,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    fontWeight: 'bold',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+    justifyContent: 'center',
+  },
+  statsText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  statsSeparator: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginHorizontal: SPACING.sm,
+  },
+  searchResultsContainer: {
+    marginBottom: SPACING.lg,
+  },
+  searchResultsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: SPACING.md,
+  },
+  loadingIndicator: {
+    marginVertical: SPACING.md,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    padding: SPACING.lg,
+  },
+  searchResultsList: {
+    gap: SPACING.sm,
+  },
+  searchResultCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchResultHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.xs,
+  },
+  searchResultTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    flex: 1,
+  },
+  cuisineFlagsContainer: {
+    flexDirection: 'row',
+    marginLeft: SPACING.sm,
+  },
+  cuisineFlag: {
+    fontSize: 18,
+  },
+  searchResultMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  searchResultMetaText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 });
 

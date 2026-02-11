@@ -94,6 +94,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     searchPlaceholder: 'Buscar por nombre, cocina o ingrediente...',
     recipesCount: 'receta',
     recipesCountPlural: 'recetas',
+    cuisinesCount: 'cocina',
+    cuisinesCountPlural: 'cocinas',
+    searchResults: 'Resultados de búsqueda',
     pullToRefresh: 'Tira para actualizar',
     
     // Common UI
@@ -261,6 +264,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     searchPlaceholder: 'Buscar per nom, cuina o ingredient...',
     recipesCount: 'recepta',
     recipesCountPlural: 'receptes',
+    cuisinesCount: 'cuina',
+    cuisinesCountPlural: 'cuines',
+    searchResults: 'Resultats de cerca',
     pullToRefresh: 'Tira per actualitzar',
     
     // Common UI
@@ -427,6 +433,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     searchPlaceholder: 'Rechercher par nom, cuisine ou ingrédient...',
     recipesCount: 'recette',
     recipesCountPlural: 'recettes',
+    cuisinesCount: 'cuisine',
+    cuisinesCountPlural: 'cuisines',
+    searchResults: 'Résultats de recherche',
     pullToRefresh: 'Tirez pour actualiser',
     
     // Common UI
@@ -593,6 +602,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     searchPlaceholder: 'Search by name, cuisine or ingredient...',
     recipesCount: 'recipe',
     recipesCountPlural: 'recipes',
+    cuisinesCount: 'cuisine',
+    cuisinesCountPlural: 'cuisines',
+    searchResults: 'Search Results',
     pullToRefresh: 'Pull to refresh',
     
     // Common UI
@@ -759,6 +771,9 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     searchPlaceholder: 'Buscar por nome, culinária ou ingrediente...',
     recipesCount: 'receita',
     recipesCountPlural: 'receitas',
+    cuisinesCount: 'culinária',
+    cuisinesCountPlural: 'culinárias',
+    searchResults: 'Resultados da Busca',
     pullToRefresh: 'Puxe para atualizar',
     
     // Common UI

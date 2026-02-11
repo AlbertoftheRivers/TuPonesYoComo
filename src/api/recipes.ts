@@ -1,6 +1,24 @@
 import { supabase } from '../lib/supabase';
 import { Recipe, RecipeInsertPayload, MainProtein, Cuisine } from '../types/recipe';
 
+export async function getAllRecipes(): Promise<Recipe[]> {
+  try {
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .order('title', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).map(normalizeRecipe);
+  } catch (error) {
+    console.error('Error fetching all recipes:', error);
+    throw error;
+  }
+}
+
 export async function getRecipesByProtein(mainProtein: MainProtein): Promise<Recipe[]> {
   try {
     const { data, error } = await supabase
