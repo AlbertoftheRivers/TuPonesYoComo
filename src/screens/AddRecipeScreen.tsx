@@ -743,7 +743,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
       setSaving(false);
       
-      // Show success message and navigate to main menu
+      // Show success message and navigate to recipe detail screen
       Alert.alert(
         t('success'),
         t('recipeSavedSuccess'),
@@ -752,7 +752,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
             text: 'OK',
             style: 'default',
             onPress: () => {
-              navigation.navigate('Home');
+              navigation.navigate('RecipeDetail', { recipeId: recipe.id });
             },
           },
         ],

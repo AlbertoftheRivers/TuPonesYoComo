@@ -106,20 +106,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     loadCuisines();
   }, [recipeId]);
 
-  useLayoutEffect(() => {
-    if (recipe) {
-      navigation.setOptions({
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={styles.headerDeleteButton}
-          >
-            <Text style={styles.headerDeleteButtonText}>{t('deleteRecipe')}</Text>
-          </TouchableOpacity>
-        ),
-      });
-    }
-  }, [navigation, handleDelete, recipe]);
+  // Removed header delete button - now in bottom actions
 
   const handleGoToMainMenu = () => {
     navigation.navigate('Home');
@@ -269,6 +256,12 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           onPress={handleEdit}
         >
           <Text style={styles.buttonText}>{t('edit')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.deleteButton]}
+          onPress={handleDelete}
+        >
+          <Text style={styles.buttonText}>{t('deleteRecipe')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.mainMenuButton]}
@@ -472,6 +465,9 @@ const styles = StyleSheet.create({
   editButton: {
     backgroundColor: COLORS.primary,
   },
+  deleteButton: {
+    backgroundColor: COLORS.error,
+  },
   mainMenuButton: {
     backgroundColor: COLORS.accent,
   },
@@ -479,18 +475,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
-  },
-  headerDeleteButton: {
-    marginRight: SPACING.md,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerDeleteButtonText: {
-    fontSize: 16,
-    color: COLORS.error,
-    fontWeight: '600',
   },
 });
