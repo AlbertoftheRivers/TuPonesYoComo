@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS, MAIN_PROTEINS } from './src/lib/constants';
@@ -13,14 +13,12 @@ import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import UserGuideScreen from './src/screens/UserGuideScreen';
 
 // Custom back button component for web
-function CustomBackButton() {
-  const navigation = useNavigation();
-  
+function CustomBackButton({ navigation }: { navigation: any }) {
   if (Platform.OS !== 'web') {
     return null; // Use default on native
   }
 
-  if (!navigation.canGoBack()) {
+  if (!navigation || !navigation.canGoBack()) {
     return null; // Don't show if can't go back
   }
 
@@ -32,6 +30,8 @@ function CustomBackButton() {
         padding: 8,
         justifyContent: 'center',
         alignItems: 'center',
+        minWidth: 44,
+        minHeight: 44,
       }}
     >
       <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>←</Text>
@@ -113,7 +113,7 @@ export default function App() {
               },
               // Custom back button for web if default doesn't work
               ...(Platform.OS === 'web' && navigation.canGoBack() && {
-                headerLeft: () => <CustomBackButton />,
+                headerLeft: () => <CustomBackButton navigation={navigation} />,
                 headerLeftContainerStyle: {
                   paddingLeft: 10,
                 },
