@@ -95,3 +95,4 @@ eas build --profile preview --platform android
 Comparte los logs de `adb logcat` para identificar el error exacto.
 
 
+

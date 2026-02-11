@@ -9,3 +9,4 @@ DROP CONSTRAINT IF EXISTS recipes_main_protein_check;
 -- You can check with: SELECT constraint_name FROM information_schema.table_constraints WHERE table_name = 'recipes' AND constraint_name LIKE '%main_protein%';
 
 
+

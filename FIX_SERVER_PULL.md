@@ -82,3 +82,4 @@ git push origin main
 **Usa la Opción 2** (descartar cambios) porque `package-lock.json` se regenera automáticamente con `npm install`, así que no necesitas conservar cambios locales en ese archivo.
 
 
+

@@ -310,3 +310,4 @@ adb logcat -d | grep -i -E "error|exception|crash|fatal|tuponesyocomo" > crash_l
 **Para desarrollo rápido:** Usa **Expo Go** (Opción 2)
 
 
+

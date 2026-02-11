@@ -25,3 +25,4 @@ ADD COLUMN IF NOT EXISTS cuisines JSONB DEFAULT '[]'::jsonb;
 -- by running a simple query like: SELECT * FROM public.recipes LIMIT 1;
 
 
+

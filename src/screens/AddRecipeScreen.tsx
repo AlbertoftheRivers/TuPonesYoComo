@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -23,7 +25,7 @@ import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } fr
 import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 import { isWeb } from '../lib/platform';
-import { startWebSpeechRecognition, isWebSpeechAvailable, WebSpeechRecognition } from '../lib/webSpeech';
+import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable, WebAudioRecorder } from '../lib/webAudioRecorder';
 import { pickImageFromFile, pickMultipleImagesFromFile, capturePhotoFromCamera } from '../lib/webImagePicker';
 
 type RootStackParamList = {
@@ -64,8 +66,8 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordingStatus, setRecordingStatus] = useState<'idle' | 'recording' | 'transcribing'>('idle');
   const [recordingDuration, setRecordingDuration] = useState(0);
-  // Web Speech API state
-  const [webSpeechRecognition, setWebSpeechRecognition] = useState<WebSpeechRecognition | null>(null);
+  // Web Audio Recorder state (for Whisper backend, same as Android)
+  const [webAudioRecorder, setWebAudioRecorder] = useState<WebAudioRecorder | null>(null);
 
   // OCR states
   const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
@@ -99,15 +101,15 @@ export default function AddRecipeScreen({ navigation }: Props) {
       if (recording) {
         recording.stopAndUnloadAsync();
       }
-      if (webSpeechRecognition) {
+      if (webAudioRecorder) {
         try {
-          webSpeechRecognition.stop();
+          webAudioRecorder.cancel();
         } catch (error) {
-          console.error('Error stopping web speech:', error);
+          console.error('Error canceling web audio recorder:', error);
         }
       }
     };
-  }, [recording, webSpeechRecognition]);
+  }, [recording, webAudioRecorder]);
 
   const loadCustomOptions = async () => {
     try {
@@ -224,50 +226,34 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const startRecording = async () => {
-    // Use Web Speech API on web
+    // Use Web Audio Recorder + Whisper backend on web (same as Android)
     if (isWeb) {
-      if (!isWebSpeechAvailable()) {
-        Alert.alert('Error', 'El reconocimiento de voz no está disponible en este navegador. Por favor usa Chrome, Edge o Safari.');
+      if (!isWebAudioRecordingAvailable()) {
+        Alert.alert('Error', 'La grabación de audio no está disponible en este navegador. Por favor usa Chrome, Edge o Safari.');
         return;
       }
 
-      setRecordingStatus('recording');
-      setRecordingDuration(0);
+      try {
+        const recorder = createWebAudioRecorder();
+        if (!recorder) {
+          Alert.alert('Error', 'No se pudo crear el grabador de audio.');
+          return;
+        }
 
-      const interval = setInterval(() => {
-        setRecordingDuration(prev => prev + 1);
-      }, 1000);
+        await recorder.start();
+        setWebAudioRecorder(recorder);
+        setRecordingStatus('recording');
+        setRecordingDuration(0);
 
-      const recognition = startWebSpeechRecognition(
-        (text) => {
-          // Solo actualizar cuando termine la grabación
-          setRawText(prev => prev.trim() ? `${prev.trim()}\n\n${text}` : text);
-          Alert.alert('Éxito', 'Dictado completado');
-        },
-        (error) => {
-          clearInterval(interval);
-          setRecordingStatus('idle');
-          setRecordingDuration(0);
-          setWebSpeechRecognition(null);
-          Alert.alert('Error', error);
-        },
-        'es-ES'
-      );
+        const interval = setInterval(() => {
+          setRecordingDuration(prev => prev + 1);
+        }, 1000);
 
-      if (recognition) {
-        setWebSpeechRecognition(recognition);
-        (recognition as any)._durationInterval = interval;
-        
-        // Guardar el handler original de onend
-        const originalOnEnd = recognition.onend;
-        recognition.onend = () => {
-          clearInterval((recognition as any)._durationInterval);
-          setRecordingStatus('idle');
-          setRecordingDuration(0);
-          setWebSpeechRecognition(null);
-          
-          if (originalOnEnd) originalOnEnd();
-        };
+        (recorder as any)._durationInterval = interval;
+      } catch (error) {
+        console.error('Error starting web recording:', error);
+        Alert.alert('Error', 'No se pudo iniciar la grabación. Por favor verifica los permisos del micrófono.');
+        setRecordingStatus('idle');
       }
       return;
     }
@@ -306,22 +292,44 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const stopRecording = async () => {
-    // Web Speech API
-    if (isWeb && webSpeechRecognition) {
+    // Web Audio Recorder + Whisper backend (same as Android)
+    if (isWeb && webAudioRecorder) {
       try {
-        if ((webSpeechRecognition as any)._durationInterval) {
-          clearInterval((webSpeechRecognition as any)._durationInterval);
+        setRecordingStatus('transcribing');
+        
+        if ((webAudioRecorder as any)._durationInterval) {
+          clearInterval((webAudioRecorder as any)._durationInterval);
         }
-        webSpeechRecognition.stop();
-        setWebSpeechRecognition(null);
-        setRecordingStatus('idle');
+
+        const audioBlob = await webAudioRecorder.stop();
+        setWebAudioRecorder(null);
         setRecordingDuration(0);
-        Alert.alert('Éxito', 'Dictado completado');
+
+        if (!audioBlob) {
+          throw new Error('No se pudo obtener el archivo de audio');
+        }
+
+        Alert.alert('Transcribiendo', 'Procesando tu audio con Whisper...');
+        const result = await transcribeWebAudio(audioBlob, 'es');
+
+        const newText = rawText.trim() 
+          ? `${rawText.trim()}\n\n${result.text}` 
+          : result.text;
+        setRawText(newText);
+
+        setRecordingStatus('idle');
+        Alert.alert('Éxito', 'Audio transcrito correctamente');
       } catch (error) {
-        console.error('Error stopping web speech:', error);
+        console.error('Error transcribing web audio:', error);
         setRecordingStatus('idle');
         setRecordingDuration(0);
-        setWebSpeechRecognition(null);
+        setWebAudioRecorder(null);
+        
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : 'Error al transcribir el audio. Por favor verifica la conexión con el servidor.';
+        
+        Alert.alert('Error de Transcripción', errorMessage);
       }
       return;
     }
@@ -368,18 +376,18 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const cancelRecording = async () => {
-    // Web Speech API
-    if (isWeb && webSpeechRecognition) {
+    // Web Audio Recorder
+    if (isWeb && webAudioRecorder) {
       try {
-        if ((webSpeechRecognition as any)._durationInterval) {
-          clearInterval((webSpeechRecognition as any)._durationInterval);
+        if ((webAudioRecorder as any)._durationInterval) {
+          clearInterval((webAudioRecorder as any)._durationInterval);
         }
-        webSpeechRecognition.stop();
-        setWebSpeechRecognition(null);
+        webAudioRecorder.cancel();
+        setWebAudioRecorder(null);
         setRecordingStatus('idle');
         setRecordingDuration(0);
       } catch (error) {
-        console.error('Error canceling web speech:', error);
+        console.error('Error canceling web recording:', error);
       }
       return;
     }
@@ -871,16 +879,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   style={[
                     styles.actionButton,
                     styles.micButton,
-                    (recordingStatus === 'recording' || webSpeechRecognition) && styles.micButtonRecording,
+                    (recordingStatus === 'recording' || webAudioRecorder) && styles.micButtonRecording,
                     recordingStatus === 'transcribing' && styles.actionButtonDisabled
                   ]}
-                  onPress={(recording || webSpeechRecognition) ? stopRecording : startRecording}
-                  onLongPress={(recording || webSpeechRecognition) ? cancelRecording : undefined}
+                  onPress={(recording || webAudioRecorder) ? stopRecording : startRecording}
+                  onLongPress={(recording || webAudioRecorder) ? cancelRecording : undefined}
                   disabled={recordingStatus === 'transcribing' || ocrStatus === 'processing'}
                 >
                   {recordingStatus === 'transcribing' ? (
                     <ActivityIndicator color="#ffffff" size="small" />
-                  ) : (recordingStatus === 'recording' || webSpeechRecognition) ? (
+                  ) : (recordingStatus === 'recording' || webAudioRecorder) ? (
                     <Text style={styles.actionButtonText}>⏹️ {formatDuration(recordingDuration)}</Text>
                   ) : (
                     <Text style={styles.actionButtonText}>🎤</Text>
@@ -888,7 +896,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </View>
             </View>
-            {(recordingStatus === 'recording' || webSpeechRecognition) && (
+            {(recordingStatus === 'recording' || webAudioRecorder) && (
               <Text style={styles.recordingHint}>
                 Grabando... Mantén presionado para cancelar
               </Text>
@@ -1118,13 +1126,26 @@ export default function AddRecipeScreen({ navigation }: Props) {
   );
 }
 
+// Get screen dimensions for responsive design
+const { width: screenWidth } = Dimensions.get('window');
+const isTablet = screenWidth >= 768;
+const isDesktop = screenWidth >= 1024;
+const maxContentWidth = isDesktop ? 800 : '100%';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    ...(Platform.OS === 'web' && {
+      alignItems: 'center',
+    }),
   },
   scrollContent: {
     padding: SPACING.md,
+    ...(Platform.OS === 'web' && {
+      width: maxContentWidth,
+      maxWidth: '100%',
+    }),
   },
   header: {
     marginBottom: SPACING.lg,
@@ -1227,7 +1248,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   rowContainer: {
-    flexDirection: 'row',
+    flexDirection: isTablet ? 'row' : 'column',
     gap: SPACING.sm,
     marginBottom: SPACING.md,
     alignItems: 'flex-start',
@@ -1237,11 +1258,11 @@ const styles = StyleSheet.create({
     minWidth: 0, // Important for flex items to shrink properly
   },
   rowFieldNarrow: {
-    flex: 0.6,
+    ...(isTablet ? { flex: 0.6 } : { width: '100%' }),
     marginBottom: SPACING.md,
   },
   rowFieldWide: {
-    flex: 1.2,
+    ...(isTablet ? { flex: 1.2 } : { width: '100%' }),
     marginBottom: SPACING.md,
   },
   boxTitle: {
@@ -1390,8 +1411,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.lg,
-    width: '90%',
-    maxWidth: 400,
+    width: isTablet ? '70%' : '90%',
+    maxWidth: isDesktop ? 500 : 400,
   },
   modalTitle: {
     fontSize: 24,

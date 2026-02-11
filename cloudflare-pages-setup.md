@@ -63,3 +63,4 @@ Asegúrate de que `package.json` tenga el script de build:
 - No necesitas configurar Nginx ni servidor
 
 
+

@@ -288,3 +288,4 @@ Analyze a recipe using Ollama.
 - Check API URL in mobile app matches container URL
 
 
+

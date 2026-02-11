@@ -28,3 +28,4 @@ Error: Cannot find native module 'ExponentImagePicker'
 Este es el mismo error que ya arreglamos en el código. Necesitas rebuild el APK con las dependencias actualizadas.
 
 
+

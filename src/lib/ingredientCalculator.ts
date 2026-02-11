@@ -101,4 +101,5 @@ function decimalToFraction(decimal: number): string | null {
   }
 
   return null;
-}
+}
+

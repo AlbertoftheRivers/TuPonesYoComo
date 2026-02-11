@@ -209,4 +209,5 @@ export function detectEmojiForCategory(categoryName: string): string {
   
   // Emoji genérico por defecto
   return '🍽️';
-}
+}
+
