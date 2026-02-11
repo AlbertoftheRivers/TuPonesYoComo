@@ -405,12 +405,9 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         servings: servings,
       });
 
-      Alert.alert(t('success'), t('recipeSaved'), [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('Home'),
-        },
-      ]);
+      // Navigate directly to home screen
+      // On web, Alert.alert can cause issues, so we navigate immediately
+      navigation.navigate('Home');
     } catch (error) {
       Alert.alert('Error', 'Error al actualizar la receta. Por favor intenta de nuevo.');
       console.error(error);

@@ -89,7 +89,8 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           onPress: async () => {
             try {
               await deleteRecipe(recipe.id);
-              Alert.alert(t('success'), t('recipeDeleted'));
+              // Navigate directly to home screen
+              // Avoid nested Alert.alert which can cause issues on web
               navigation.navigate('Home');
             } catch (error) {
               Alert.alert(t('error'), 'Error al eliminar la receta. Por favor intenta de nuevo.');

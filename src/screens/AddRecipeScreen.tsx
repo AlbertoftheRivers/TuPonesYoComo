@@ -743,21 +743,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
       setSaving(false);
       
-      // Show success message and navigate to recipe detail screen
-      Alert.alert(
-        t('success'),
-        t('recipeSavedSuccess'),
-        [
-          {
-            text: 'OK',
-            style: 'default',
-            onPress: () => {
-              navigation.navigate('RecipeDetail', { recipeId: recipe.id });
-            },
-          },
-        ],
-        { cancelable: false }
-      );
+      // Navigate directly to recipe detail screen
+      // On web, Alert.alert can cause issues, so we navigate immediately
+      navigation.navigate('RecipeDetail', { recipeId: recipe.id });
     } catch (error) {
       console.error('❌ Error saving recipe:', error);
       setSaving(false);
