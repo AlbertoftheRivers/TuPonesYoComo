@@ -106,6 +106,7 @@ export function createWebAudioRecorder(): WebAudioRecorder | null {
           // Stop all tracks
           if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
+            audioStream = null;
           }
 
           // Create blob from chunks using saved mimeType
@@ -116,18 +117,12 @@ export function createWebAudioRecorder(): WebAudioRecorder | null {
           } else {
             resolve(null);
           }
+          
+          // Clean up mediaRecorder reference after handler completes
+          mediaRecorder = null;
         };
 
         mediaRecorder.stop();
-        // Don't set to null immediately - let onstop handler finish first
-        // But we'll clean it up after a short delay
-        setTimeout(() => {
-          mediaRecorder = null;
-          if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-            audioStream = null;
-          }
-        }, 100);
       });
     },
 
