@@ -743,13 +743,28 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
       setSaving(false);
       
-      // Navigate immediately after saving
-      navigation.navigate('RecipeDetail', { recipeId: recipe.id });
-      
-      // Show success message after a brief delay to allow navigation
-      setTimeout(() => {
-        Alert.alert('Éxito', '¡Receta guardada!');
-      }, 300);
+      // Show success message with options
+      Alert.alert(
+        t('success'),
+        t('recipeSavedSuccess'),
+        [
+          {
+            text: t('backToMainMenu'),
+            style: 'default',
+            onPress: () => {
+              navigation.navigate('Home');
+            },
+          },
+          {
+            text: t('viewRecipe'),
+            style: 'default',
+            onPress: () => {
+              navigation.navigate('RecipeDetail', { recipeId: recipe.id });
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (error) {
       console.error('❌ Error saving recipe:', error);
       setSaving(false);
