@@ -683,6 +683,89 @@ Rules:
   }
 });
 
+// Translation endpoint
+app.post('/translate', async (req, res) => {
+  const { text, target_language } = req.body;
+
+  if (!text || !target_language) {
+    return res.status(400).json({ 
+      error: 'Missing required fields: text and target_language are required' 
+    });
+  }
+
+  // Map language codes to full names for better translation
+  const languageNames = {
+    'es': 'Spanish',
+    'ca': 'Catalan',
+    'fr': 'French',
+    'en': 'English',
+    'pt': 'Portuguese'
+  };
+
+  const targetLanguageName = languageNames[target_language] || target_language;
+
+  try {
+    // Create timeout controller
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout for translation
+
+    // Use Ollama to translate the text
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        prompt: `Translate the following text to ${targetLanguageName}. Only return the translation, nothing else. Do not add explanations, comments, or any other text. Just the translated text:\n\n${text}`,
+        stream: false,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.text().catch(() => '');
+      throw new Error(`Ollama translation failed: ${response.status} ${response.statusText}${errorData ? ' - ' + errorData.substring(0, 200) : ''}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.response) {
+      throw new Error('Invalid response from Ollama: missing response field');
+    }
+
+    // Clean up the response - remove any extra text that Ollama might have added
+    let translatedText = data.response.trim();
+    
+    // Remove common prefixes that LLMs sometimes add
+    translatedText = translatedText.replace(/^(Translation|Traducción|Traduction|Tradução):\s*/i, '');
+    translatedText = translatedText.replace(/^Here's the translation:\s*/i, '');
+    translatedText = translatedText.trim();
+
+    console.log(`✅ Translation successful (${text.length} → ${translatedText.length} characters, ${target_language})`);
+    
+    res.json({ 
+      translated_text: translatedText 
+    });
+
+  } catch (error) {
+    console.error('Error translating text:', error);
+    
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ 
+        error: 'Translation request timed out. The Ollama server may be slow or unreachable.' 
+      });
+    }
+
+    res.status(500).json({ 
+      error: error.message || 'Failed to translate text',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Backend API server running on port ${PORT}`);

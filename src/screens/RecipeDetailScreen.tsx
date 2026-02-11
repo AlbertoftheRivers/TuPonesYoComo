@@ -18,6 +18,7 @@ import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
 import { Recipe, Ingredient } from '../types/recipe';
 import { useLanguage } from '../lib/LanguageContext';
 import { isWeb } from '../lib/platform';
+import { translateRecipe } from '../lib/recipeTranslation';
 
 type RootStackParamList = {
   Home: undefined;
@@ -36,10 +37,12 @@ interface Props {
 }
 
 export default function RecipeDetailScreen({ navigation, route }: Props) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [translatedRecipe, setTranslatedRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [translating, setTranslating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [allCuisines, setAllCuisines] = useState(CUISINES);
   const [desiredServings, setDesiredServings] = useState<number>(2);
@@ -60,6 +63,12 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
       if (data) {
         setRecipe(data);
         setDesiredServings(data.servings || 2);
+        // Translate recipe if language is not Spanish (default)
+        if (language !== 'es') {
+          translateRecipeContent(data, language);
+        } else {
+          setTranslatedRecipe(data);
+        }
       } else {
         Alert.alert('Error', 'Receta no encontrada');
         navigation.goBack();
@@ -71,6 +80,29 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
       setLoading(false);
     }
   };
+
+  const translateRecipeContent = async (recipeData: Recipe, targetLanguage: string) => {
+    try {
+      setTranslating(true);
+      const translated = await translateRecipe(recipeData, targetLanguage as any);
+      setTranslatedRecipe(translated);
+    } catch (error) {
+      console.error('Error translating recipe:', error);
+      // If translation fails, use original recipe
+      setTranslatedRecipe(recipeData);
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  // Re-translate when language changes
+  useEffect(() => {
+    if (recipe && language !== 'es') {
+      translateRecipeContent(recipe, language);
+    } else if (recipe) {
+      setTranslatedRecipe(recipe);
+    }
+  }, [language, recipe]);
 
   const handleEdit = () => {
     if (recipe) {
@@ -153,14 +185,20 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
+        {translating && (
+          <Text style={styles.errorText}>{t('loading')}...</Text>
+        )}
       </View>
     );
   }
 
-  const proteinLabel = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.label || recipe.main_protein;
-  const proteinIcon = MAIN_PROTEINS.find(p => p.value === recipe.main_protein)?.icon || '🍽️';
-  const cuisineInfos = recipe.cuisines 
-    ? recipe.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
+  // Use translated recipe if available, otherwise use original
+  const displayRecipe = translatedRecipe || recipe;
+
+  const proteinLabel = MAIN_PROTEINS.find(p => p.value === displayRecipe.main_protein)?.label || displayRecipe.main_protein;
+  const proteinIcon = MAIN_PROTEINS.find(p => p.value === displayRecipe.main_protein)?.icon || '🍽️';
+  const cuisineInfos = displayRecipe.cuisines 
+    ? displayRecipe.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
     : [];
 
   return (
@@ -168,7 +206,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{recipe.title}</Text>
+            <Text style={styles.title}>{displayRecipe.title}</Text>
             {cuisineInfos.length > 0 && (
               <View style={styles.cuisineFlagsContainer}>
                 {cuisineInfos.map((cuisineInfo, idx) => (
@@ -179,16 +217,16 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.meta}>
             <Text style={styles.metaText}>{proteinIcon} {proteinLabel}</Text>
-            {recipe.total_time_minutes && (
-              <Text style={styles.metaText}>• ⏱️ {recipe.total_time_minutes} {t('min')}</Text>
+            {displayRecipe.total_time_minutes && (
+              <Text style={styles.metaText}>• ⏱️ {displayRecipe.total_time_minutes} {t('min')}</Text>
             )}
-            {recipe.oven_time_minutes && (
-              <Text style={styles.metaText}>• 🔥 {t('oven')}: {recipe.oven_time_minutes} {t('min')}</Text>
+            {displayRecipe.oven_time_minutes && (
+              <Text style={styles.metaText}>• 🔥 {t('oven')}: {displayRecipe.oven_time_minutes} {t('min')}</Text>
             )}
           </View>
         </View>
 
-        {recipe.ingredients.length > 0 && (
+        {displayRecipe.ingredients.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('ingredients')}</Text>
@@ -213,7 +251,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
                       if (!isNaN(num) && num > 0) {
                         setDesiredServings(num);
                       } else if (text === '') {
-                        setDesiredServings(recipe.servings || 2);
+                        setDesiredServings(displayRecipe.servings || 2);
                       }
                     }}
                     keyboardType="numeric"
@@ -227,24 +265,24 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.servingsLabel}>{t('servings')}</Text>
-                {desiredServings !== (recipe.servings || 2) && (
+                {desiredServings !== (displayRecipe.servings || 2) && (
                   <TouchableOpacity
                     style={styles.resetButton}
-                    onPress={() => setDesiredServings(recipe.servings || 2)}
+                    onPress={() => setDesiredServings(displayRecipe.servings || 2)}
                   >
                     <Text style={styles.resetButtonText}>Reset</Text>
                   </TouchableOpacity>
                 )}
               </View>
             </View>
-            {desiredServings !== (recipe.servings || 2) && (
-              <Text style={styles.adjustmentHint}>
-                {t('adjustedFrom')} {recipe.servings || 2} {t('portions')} (×{((desiredServings / (recipe.servings || 2)) * 100) / 100})
-              </Text>
-            )}
+              {desiredServings !== (displayRecipe.servings || 2) && (
+                <Text style={styles.adjustmentHint}>
+                  {t('adjustedFrom')} {displayRecipe.servings || 2} {t('portions')} (×{((desiredServings / (displayRecipe.servings || 2)) * 100) / 100})
+                </Text>
+              )}
             {calculateAdjustedIngredients(
-              recipe.ingredients,
-              recipe.servings || 2,
+              displayRecipe.ingredients,
+              displayRecipe.servings || 2,
               desiredServings
             ).map((ingredient, index) => (
               <View key={index} style={styles.ingredientItem}>
@@ -261,10 +299,10 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {recipe.steps.length > 0 && (
+        {displayRecipe.steps.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('steps')}</Text>
-            {recipe.steps.map((step, index) => (
+            {displayRecipe.steps.map((step, index) => (
               <View key={index} style={styles.stepItem}>
                 <Text style={styles.stepNumber}>{index + 1}.</Text>
                 <Text style={styles.stepText}>{step}</Text>
@@ -273,11 +311,11 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {recipe.gadgets.length > 0 && (
+        {displayRecipe.gadgets.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('gadgets')}</Text>
             <View style={styles.gadgetsContainer}>
-              {recipe.gadgets.map((gadget, index) => (
+              {displayRecipe.gadgets.map((gadget, index) => (
                 <View key={index} style={styles.gadgetPill}>
                   <Text style={styles.gadgetText}>{gadget}</Text>
                 </View>
