@@ -17,6 +17,7 @@ import { getAllCuisines } from '../lib/customCategories';
 import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
 import { Recipe, Ingredient } from '../types/recipe';
 import { t } from '../lib/i18n';
+import { isWeb } from '../lib/platform';
 
 type RootStackParamList = {
   Home: undefined;
@@ -38,6 +39,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [allCuisines, setAllCuisines] = useState(CUISINES);
   const [desiredServings, setDesiredServings] = useState<number>(2);
 
@@ -75,31 +77,64 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleDelete = useCallback(() => {
-    if (!recipe) return;
+  const handleDelete = useCallback(async () => {
+    console.log('🗑️ [DELETE] handleDelete called');
+    if (!recipe) {
+      console.log('🗑️ [DELETE] No recipe found, returning');
+      return;
+    }
 
-    Alert.alert(
-      t('delete'),
-      `¿Estás seguro de que quieres eliminar "${recipe.title}"?`,
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteRecipe(recipe.id);
-              // Navigate directly to home screen
-              // Avoid nested Alert.alert which can cause issues on web
-              navigation.navigate('Home');
-            } catch (error) {
-              Alert.alert(t('error'), 'Error al eliminar la receta. Por favor intenta de nuevo.');
-              console.error(error);
-            }
-          },
-        },
-      ]
-    );
+    console.log('🗑️ [DELETE] Recipe to delete:', { id: recipe.id, title: recipe.title });
+
+    // Use window.confirm on web, Alert.alert on native
+    const confirmMessage = `¿Estás seguro de que quieres eliminar "${recipe.title}"?`;
+    let confirmed = false;
+
+    if (isWeb && typeof window !== 'undefined' && window.confirm) {
+      confirmed = window.confirm(confirmMessage);
+      console.log('🗑️ [DELETE] Web confirmation result:', confirmed);
+    } else {
+      // For native, we'll use a promise-based Alert
+      confirmed = await new Promise<boolean>((resolve) => {
+        Alert.alert(
+          'Eliminar Receta',
+          confirmMessage,
+          [
+            { 
+              text: 'Cancelar', 
+              style: 'cancel',
+              onPress: () => resolve(false)
+            },
+            {
+              text: 'Eliminar',
+              style: 'destructive',
+              onPress: () => resolve(true)
+            },
+          ]
+        );
+      });
+      console.log('🗑️ [DELETE] Native confirmation result:', confirmed);
+    }
+
+    if (!confirmed) {
+      console.log('🗑️ [DELETE] User cancelled deletion');
+      return;
+    }
+
+    try {
+      console.log('🗑️ [DELETE] Starting deletion process...');
+      setDeleting(true);
+      console.log('🗑️ [DELETE] Calling deleteRecipe with id:', recipe.id);
+      await deleteRecipe(recipe.id);
+      console.log('🗑️ [DELETE] Recipe deleted successfully');
+      console.log('🗑️ [DELETE] Navigating to Home...');
+      // Navigate directly to home screen
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('🗑️ [DELETE] Error deleting recipe:', error);
+      setDeleting(false);
+      Alert.alert('Error', 'Error al eliminar la receta. Por favor intenta de nuevo.');
+    }
   }, [recipe, navigation]);
 
   useEffect(() => {
@@ -259,10 +294,15 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           <Text style={styles.buttonText}>{t('edit')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
+          style={[styles.button, styles.deleteButton, deleting && styles.buttonDisabled]}
           onPress={handleDelete}
+          disabled={deleting}
         >
-          <Text style={styles.buttonText}>{t('deleteRecipe')}</Text>
+          {deleting ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.buttonText}>Eliminar receta</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.mainMenuButton]}
@@ -471,6 +511,9 @@ const styles = StyleSheet.create({
   },
   mainMenuButton: {
     backgroundColor: COLORS.accent,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     fontSize: 16,
