@@ -7,7 +7,23 @@
  */
 export function capturePhotoFromCamera(): Promise<string | null> {
   return new Promise((resolve) => {
+    // Check if we're in a secure context (HTTPS or localhost)
+    if (typeof window === 'undefined' || !window.isSecureContext) {
+      const errorMsg = 'La cámara requiere una conexión segura (HTTPS). Por favor, accede a la aplicación a través de HTTPS.';
+      console.error(errorMsg);
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(errorMsg);
+      }
+      resolve(null);
+      return;
+    }
+
     if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const errorMsg = 'La API de cámara no está disponible en este navegador. Por favor, usa Chrome, Edge o Safari.';
+      console.error(errorMsg);
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(errorMsg);
+      }
       resolve(null);
       return;
     }
