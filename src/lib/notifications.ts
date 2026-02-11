@@ -87,6 +87,12 @@ export async function getExpoPushToken(projectId?: string): Promise<string | nul
  */
 export async function sendNewRecipeNotification(recipeTitle: string, mainProtein: string): Promise<void> {
   try {
+    // Notifications are not available on web
+    if (Platform.OS === 'web') {
+      console.log('Notifications not available on web');
+      return;
+    }
+
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
       console.warn('Cannot send notification: permissions not granted');
@@ -103,7 +109,12 @@ export async function sendNewRecipeNotification(recipeTitle: string, mainProtein
       trigger: null, // Show immediately
     });
   } catch (error) {
-    console.error('Error sending notification:', error);
+    // Silently fail on web or if notifications are not available
+    if (Platform.OS === 'web') {
+      console.log('Notifications not available on web');
+    } else {
+      console.error('Error sending notification:', error);
+    }
   }
 }
 

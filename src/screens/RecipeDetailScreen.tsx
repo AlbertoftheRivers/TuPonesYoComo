@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -41,24 +41,6 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
   const [allCuisines, setAllCuisines] = useState(CUISINES);
   const [desiredServings, setDesiredServings] = useState<number>(2);
 
-  useEffect(() => {
-    loadRecipe();
-    loadCuisines();
-  }, [recipeId]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={handleDelete}
-          style={styles.headerDeleteButton}
-        >
-          <Text style={styles.headerDeleteButtonText}>{t('deleteRecipe')}</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, recipe]);
-
   const loadCuisines = async () => {
     try {
       const cuisines = await getAllCuisines();
@@ -93,7 +75,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!recipe) return;
 
     Alert.alert(
@@ -117,7 +99,27 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
         },
       ]
     );
-  };
+  }, [recipe, navigation]);
+
+  useEffect(() => {
+    loadRecipe();
+    loadCuisines();
+  }, [recipeId]);
+
+  useLayoutEffect(() => {
+    if (recipe) {
+      navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handleDelete}
+            style={styles.headerDeleteButton}
+          >
+            <Text style={styles.headerDeleteButtonText}>{t('deleteRecipe')}</Text>
+          </TouchableOpacity>
+        ),
+      });
+    }
+  }, [navigation, handleDelete, recipe]);
 
   const handleGoToMainMenu = () => {
     navigation.navigate('Home');
