@@ -1103,6 +1103,60 @@ export default function AddRecipeScreen({ navigation }: Props) {
         </View>
       </Modal>
 
+      {/* Modal para seleccionar imagen (OCR) - Web only */}
+      <Modal
+        visible={showImagePickerModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          console.log('📷 [OCR] Image picker modal closed');
+          setShowImagePickerModal(false);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Escanear Receta</Text>
+            <Text style={[styles.modalLabel, { marginTop: 0 }]}>
+              Elige una opción para escanear la receta
+            </Text>
+            
+            <View style={[styles.modalButtons, { flexDirection: 'column', gap: SPACING.sm }]}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonAdd]}
+                onPress={() => {
+                  console.log('📷 [OCR] "Tomar Foto" button pressed from modal');
+                  setShowImagePickerModal(false);
+                  handleTakePhotoWeb();
+                }}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextAdd]}>📷 Tomar Foto</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonAdd]}
+                onPress={() => {
+                  console.log('📷 [OCR] "Seleccionar de Galería" button pressed from modal');
+                  setShowImagePickerModal(false);
+                  handlePickImage();
+                }}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextAdd]}>🖼️ Seleccionar de Galería</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  console.log('📷 [OCR] User cancelled from modal');
+                  setShowImagePickerModal(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal para añadir cocina */}
       <Modal
         visible={showAddCuisineModal}
