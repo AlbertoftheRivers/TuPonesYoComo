@@ -16,7 +16,7 @@ import { getRecipeById, deleteRecipe } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
 import { Recipe, Ingredient } from '../types/recipe';
-import { t } from '../lib/i18n';
+import { useLanguage } from '../lib/LanguageContext';
 import { isWeb } from '../lib/platform';
 
 type RootStackParamList = {
@@ -36,6 +36,7 @@ interface Props {
 }
 
 export default function RecipeDetailScreen({ navigation, route }: Props) {
+  const { t } = useLanguage();
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
@@ -179,10 +180,10 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           <View style={styles.meta}>
             <Text style={styles.metaText}>{proteinIcon} {proteinLabel}</Text>
             {recipe.total_time_minutes && (
-              <Text style={styles.metaText}>• ⏱️ {recipe.total_time_minutes} min</Text>
+              <Text style={styles.metaText}>• ⏱️ {recipe.total_time_minutes} {t('min')}</Text>
             )}
             {recipe.oven_time_minutes && (
-              <Text style={styles.metaText}>• 🔥 Horno: {recipe.oven_time_minutes} min</Text>
+              <Text style={styles.metaText}>• 🔥 {t('oven')}: {recipe.oven_time_minutes} {t('min')}</Text>
             )}
           </View>
         </View>
@@ -190,9 +191,9 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
         {recipe.ingredients.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Ingredientes</Text>
+              <Text style={styles.sectionTitle}>{t('ingredients')}</Text>
               <View style={styles.servingsSelector}>
-                <Text style={styles.servingsLabel}>Para:</Text>
+                <Text style={styles.servingsLabel}>{t('servings')}:</Text>
                 <View style={styles.servingsInputContainer}>
                   <TouchableOpacity
                     style={styles.servingsButton}
@@ -225,7 +226,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
                     <Text style={styles.servingsButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.servingsLabel}>personas</Text>
+                <Text style={styles.servingsLabel}>{t('servings')}</Text>
                 {desiredServings !== (recipe.servings || 2) && (
                   <TouchableOpacity
                     style={styles.resetButton}
@@ -238,7 +239,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
             </View>
             {desiredServings !== (recipe.servings || 2) && (
               <Text style={styles.adjustmentHint}>
-                Ajustado de {recipe.servings || 2} porciones (×{((desiredServings / (recipe.servings || 2)) * 100) / 100})
+                {t('adjustedFrom')} {recipe.servings || 2} {t('portions')} (×{((desiredServings / (recipe.servings || 2)) * 100) / 100})
               </Text>
             )}
             {calculateAdjustedIngredients(
@@ -262,7 +263,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
         {recipe.steps.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pasos</Text>
+            <Text style={styles.sectionTitle}>{t('steps')}</Text>
             {recipe.steps.map((step, index) => (
               <View key={index} style={styles.stepItem}>
                 <Text style={styles.stepNumber}>{index + 1}.</Text>
@@ -274,7 +275,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
         {recipe.gadgets.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Utensilios</Text>
+            <Text style={styles.sectionTitle}>{t('gadgets')}</Text>
             <View style={styles.gadgetsContainer}>
               {recipe.gadgets.map((gadget, index) => (
                 <View key={index} style={styles.gadgetPill}>

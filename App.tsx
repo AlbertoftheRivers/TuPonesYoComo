@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS, MAIN_PROTEINS } from './src/lib/constants';
 import { initializeNotifications } from './src/lib/notifications';
-import { loadLanguage, t } from './src/lib/i18n';
+import { LanguageProvider, useLanguage } from './src/lib/LanguageContext';
 import HomeScreen from './src/screens/HomeScreen';
 import RecipeListScreen from './src/screens/RecipeListScreen';
 import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
@@ -84,24 +84,12 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-export default function App() {
-  useEffect(() => {
-    // Initialize language on app start
-    loadLanguage().catch((error) => {
-      console.error('Failed to load language:', error);
-    });
-    
-    // Initialize notifications on app start (non-blocking)
-    initializeNotifications().catch((error) => {
-      console.error('Failed to initialize notifications:', error);
-      // Don't crash the app if notifications fail
-    });
-  }, []);
+function AppContent() {
+  const { t } = useLanguage();
 
   try {
     return (
-      <ErrorBoundary>
-        <NavigationContainer>
+      <NavigationContainer>
           <StatusBar style="auto" />
           <Stack.Navigator
             initialRouteName="Home"
@@ -181,7 +169,6 @@ export default function App() {
                 />
           </Stack.Navigator>
         </NavigationContainer>
-      </ErrorBoundary>
     );
   } catch (error) {
     console.error('App initialization error:', error);
@@ -192,6 +179,24 @@ export default function App() {
       </View>
     );
   }
+}
+
+export default function App() {
+  useEffect(() => {
+    // Initialize notifications on app start (non-blocking)
+    initializeNotifications().catch((error) => {
+      console.error('Failed to initialize notifications:', error);
+      // Don't crash the app if notifications fail
+    });
+  }, []);
+
+  return (
+    <ErrorBoundary>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </ErrorBoundary>
+  );
 }
 
 const styles = StyleSheet.create({

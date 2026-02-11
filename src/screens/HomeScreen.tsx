@@ -12,7 +12,7 @@ import { NativeStackNavigationProp, useFocusEffect } from '@react-navigation/nat
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
 import { getAllProteins } from '../lib/customCategories';
 import DesktopWarning from '../components/DesktopWarning';
-import { t, loadLanguage, saveLanguage, getCurrentLanguage, SupportedLanguage } from '../lib/i18n';
+import { useLanguage, SupportedLanguage } from '../lib/LanguageContext';
 
 type RootStackParamList = {
   Home: undefined;
@@ -30,14 +30,9 @@ interface Props {
 }
 
 export default function HomeScreen({ navigation }: Props) {
+  const { language, setLanguage, t } = useLanguage();
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
-  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('es');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
-
-  // Load language on mount
-  useEffect(() => {
-    loadLanguage();
-  }, []);
 
   // Reload categories when screen comes into focus
   useFocusEffect(
@@ -45,11 +40,6 @@ export default function HomeScreen({ navigation }: Props) {
       loadCustomProteins();
     }, [])
   );
-
-  const loadLanguage = async () => {
-    const lang = await loadLanguage();
-    setCurrentLanguage(lang);
-  };
 
   const loadCustomProteins = async () => {
     try {
@@ -60,9 +50,8 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
-  const handleLanguageChange = async (language: SupportedLanguage) => {
-    await saveLanguage(language);
-    setCurrentLanguage(language);
+  const handleLanguageChange = async (lang: SupportedLanguage) => {
+    await setLanguage(lang);
     setShowLanguageModal(false);
   };
 
@@ -149,35 +138,35 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
             
             <TouchableOpacity
-              style={[styles.languageOption, currentLanguage === 'es' && styles.languageOptionActive]}
+              style={[styles.languageOption, language === 'es' && styles.languageOptionActive]}
               onPress={() => handleLanguageChange('es')}
             >
               <Text style={styles.languageOptionText}>🇪🇸 {t('spanish')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.languageOption, currentLanguage === 'ca' && styles.languageOptionActive]}
+              style={[styles.languageOption, language === 'ca' && styles.languageOptionActive]}
               onPress={() => handleLanguageChange('ca')}
             >
               <Text style={styles.languageOptionText}>🇪🇸 {t('catalan')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.languageOption, currentLanguage === 'fr' && styles.languageOptionActive]}
+              style={[styles.languageOption, language === 'fr' && styles.languageOptionActive]}
               onPress={() => handleLanguageChange('fr')}
             >
               <Text style={styles.languageOptionText}>🇫🇷 {t('french')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.languageOption, currentLanguage === 'en' && styles.languageOptionActive]}
+              style={[styles.languageOption, language === 'en' && styles.languageOptionActive]}
               onPress={() => handleLanguageChange('en')}
             >
               <Text style={styles.languageOptionText}>🇬🇧 {t('english')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.languageOption, currentLanguage === 'pt' && styles.languageOptionActive]}
+              style={[styles.languageOption, language === 'pt' && styles.languageOptionActive]}
               onPress={() => handleLanguageChange('pt')}
             >
               <Text style={styles.languageOptionText}>🇵🇹 {t('portuguese')}</Text>
