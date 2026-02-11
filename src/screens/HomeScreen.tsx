@@ -10,11 +10,13 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { NativeStackNavigationProp, useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
 import { getAllProteins } from '../lib/customCategories';
 import DesktopWarning from '../components/DesktopWarning';
-import { useLanguage, SupportedLanguage } from '../lib/LanguageContext';
+import { useLanguage } from '../lib/LanguageContext';
+import { SupportedLanguage } from '../lib/i18n';
 import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
 import { getAllRecipes } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
