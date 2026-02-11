@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS, MAIN_PROTEINS } from './src/lib/constants';
@@ -11,6 +11,33 @@ import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
 import AddRecipeScreen from './src/screens/AddRecipeScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import UserGuideScreen from './src/screens/UserGuideScreen';
+
+// Custom back button component for web
+function CustomBackButton() {
+  const navigation = useNavigation();
+  
+  if (Platform.OS !== 'web') {
+    return null; // Use default on native
+  }
+
+  if (!navigation.canGoBack()) {
+    return null; // Don't show if can't go back
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.goBack()}
+      style={{
+        marginLeft: 10,
+        padding: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>←</Text>
+    </TouchableOpacity>
+  );
+}
 
 export type RootStackParamList = {
   Home: undefined;
@@ -72,7 +99,7 @@ export default function App() {
           <StatusBar style="auto" />
           <Stack.Navigator
             initialRouteName="Home"
-            screenOptions={{
+            screenOptions={({ navigation, route }) => ({
               headerStyle: {
                 backgroundColor: COLORS.primary,
               },
@@ -84,13 +111,14 @@ export default function App() {
                 fontWeight: 'bold',
                 color: '#fff',
               },
-              // Ensure back button is visible on web
-              ...(Platform.OS === 'web' && {
+              // Custom back button for web if default doesn't work
+              ...(Platform.OS === 'web' && navigation.canGoBack() && {
+                headerLeft: () => <CustomBackButton />,
                 headerLeftContainerStyle: {
                   paddingLeft: 10,
                 },
               }),
-            }}
+            })}
           >
             <Stack.Screen 
               name="Home" 
