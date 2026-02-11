@@ -23,6 +23,7 @@ import { transcribeAudio } from '../lib/transcribe';
 import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
+import { t } from '../lib/i18n';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 import { isWeb } from '../lib/platform';
 import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable, WebAudioRecorder } from '../lib/webAudioRecorder';
@@ -125,7 +126,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handleAnalyze = async () => {
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Por favor ingresa el texto de la receta para analizar.');
+      Alert.alert(t('error'), t('pleaseEnterName'));
       return;
     }
 
@@ -136,7 +137,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       setAnalyzeStatus('Procesando respuesta...');
       setAnalysis(result);
       setAnalyzeStatus('');
-      Alert.alert('Éxito', '¡Receta analizada correctamente!');
+      Alert.alert(t('success'), '¡Receta analizada correctamente!');
     } catch (error) {
       setAnalyzeStatus('');
       const errorMessage = error instanceof Error 
@@ -168,7 +169,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un nombre para la categoría');
+      Alert.alert(t('error'), t('pleaseEnterName'));
       return;
     }
 
@@ -186,23 +187,23 @@ export default function AddRecipeScreen({ navigation }: Props) {
       await loadCustomOptions();
       setMainProtein(newProtein.value as MainProtein);
       
-      Alert.alert('Éxito', `Categoría "${newCategoryName}" añadida`);
+      Alert.alert(t('success'), `${t('categoryAdded')}: "${newCategoryName}"`);
       setShowAddCategoryModal(false);
       setNewCategoryName('');
       setNewCategoryIcon('');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir categoría');
+      Alert.alert(t('error'), error instanceof Error ? error.message : t('error'));
     }
   };
 
   const handleAddCuisine = async () => {
     if (!newCuisineName.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un nombre para la cocina');
+      Alert.alert(t('error'), t('pleaseEnterName'));
       return;
     }
 
     if (!newCuisineFlag.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un emoji de bandera');
+      Alert.alert(t('error'), t('pleaseEnterFlag'));
       return;
     }
 
@@ -217,7 +218,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       await loadCustomOptions();
       setSelectedCuisines([...selectedCuisines, newCuisine.value as Cuisine]);
       
-      Alert.alert('Éxito', `Cocina "${newCuisineName}" añadida`);
+      Alert.alert(t('success'), `${t('cuisineAdded')}: "${newCuisineName}"`);
       setShowAddCuisineModal(false);
       setNewCuisineName('');
       setNewCuisineFlag('🌍');

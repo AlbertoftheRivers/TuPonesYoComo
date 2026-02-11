@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS, MAIN_PROTEINS } from './src/lib/constants';
 import { initializeNotifications } from './src/lib/notifications';
+import { loadLanguage, t } from './src/lib/i18n';
 import HomeScreen from './src/screens/HomeScreen';
 import RecipeListScreen from './src/screens/RecipeListScreen';
 import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
@@ -85,6 +86,11 @@ class ErrorBoundary extends React.Component<
 
 export default function App() {
   useEffect(() => {
+    // Initialize language on app start
+    loadLanguage().catch((error) => {
+      console.error('Failed to load language:', error);
+    });
+    
     // Initialize notifications on app start (non-blocking)
     initializeNotifications().catch((error) => {
       console.error('Failed to initialize notifications:', error);
@@ -136,38 +142,38 @@ export default function App() {
                 };
               }}
             />
-            <Stack.Screen 
-              name="RecipeDetail" 
-              component={RecipeDetailScreen}
-              options={{ 
-                title: 'Detalles de la Receta',
-                headerBackVisible: true,
-              }}
-            />
-            <Stack.Screen 
-              name="AddRecipe" 
-              component={AddRecipeScreen}
-              options={{ 
-                title: 'Añadir Receta',
-                headerBackVisible: true,
-              }}
-            />
-            <Stack.Screen 
-              name="EditRecipe" 
-              component={EditRecipeScreen}
-              options={{ 
-                title: 'Editar Receta',
-                headerBackVisible: true,
-              }}
-            />
-            <Stack.Screen 
-              name="UserGuide" 
-              component={UserGuideScreen}
-              options={{ 
-                title: 'Guía de Usuario',
-                headerBackVisible: true,
-              }}
-            />
+                <Stack.Screen
+                  name="RecipeDetail"
+                  component={RecipeDetailScreen}
+                  options={{
+                    title: t('recipeDetails'),
+                    headerBackVisible: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="AddRecipe"
+                  component={AddRecipeScreen}
+                  options={{
+                    title: t('addRecipeTitle'),
+                    headerBackVisible: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="EditRecipe"
+                  component={EditRecipeScreen}
+                  options={{
+                    title: t('editRecipe'),
+                    headerBackVisible: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="UserGuide"
+                  component={UserGuideScreen}
+                  options={{
+                    title: t('userGuide'),
+                    headerBackVisible: true,
+                  }}
+                />
           </Stack.Navigator>
         </NavigationContainer>
       </ErrorBoundary>

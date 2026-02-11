@@ -5,11 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  Alert,
 } from 'react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
 import { getAllProteins } from '../lib/customCategories';
 import DesktopWarning from '../components/DesktopWarning';
+import { t, loadLanguage, saveLanguage, getCurrentLanguage, SupportedLanguage } from '../lib/i18n';
 
 type RootStackParamList = {
   Home: undefined;
@@ -28,10 +31,25 @@ interface Props {
 
 export default function HomeScreen({ navigation }: Props) {
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('es');
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
+  // Load language on mount
   useEffect(() => {
-    loadCustomProteins();
+    loadLanguage();
   }, []);
+
+  // Reload categories when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCustomProteins();
+    }, [])
+  );
+
+  const loadLanguage = async () => {
+    const lang = await loadLanguage();
+    setCurrentLanguage(lang);
+  };
 
   const loadCustomProteins = async () => {
     try {
@@ -40,6 +58,12 @@ export default function HomeScreen({ navigation }: Props) {
     } catch (error) {
       console.error('Error loading custom proteins:', error);
     }
+  };
+
+  const handleLanguageChange = async (language: SupportedLanguage) => {
+    await saveLanguage(language);
+    setCurrentLanguage(language);
+    setShowLanguageModal(false);
   };
 
   const handleProteinPress = (protein: string) => {
@@ -64,16 +88,25 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.title}>TuPonesYoComo</Text>
-              <Text style={styles.subtitle}>Selecciona una categoría para ver recetas</Text>
+              <Text style={styles.title}>{t('appName')}</Text>
+              <Text style={styles.subtitle}>{t('selectCategory')}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.helpButton}
-              onPress={handleOpenGuide}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.helpButtonText}>❓</Text>
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                style={styles.languageButton}
+                onPress={() => setShowLanguageModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.languageButtonText}>🌐</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.helpButton}
+                onPress={handleOpenGuide}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.helpButtonText}>❓</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -101,8 +134,64 @@ export default function HomeScreen({ navigation }: Props) {
         onPress={handleAddRecipe}
         activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>➕ Añadir Receta</Text>
+        <Text style={styles.addButtonText}>➕ {t('addRecipe')}</Text>
       </TouchableOpacity>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguageModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
+            
+            <TouchableOpacity
+              style={[styles.languageOption, currentLanguage === 'es' && styles.languageOptionActive]}
+              onPress={() => handleLanguageChange('es')}
+            >
+              <Text style={styles.languageOptionText}>🇪🇸 {t('spanish')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.languageOption, currentLanguage === 'ca' && styles.languageOptionActive]}
+              onPress={() => handleLanguageChange('ca')}
+            >
+              <Text style={styles.languageOptionText}>🇪🇸 {t('catalan')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.languageOption, currentLanguage === 'fr' && styles.languageOptionActive]}
+              onPress={() => handleLanguageChange('fr')}
+            >
+              <Text style={styles.languageOptionText}>🇫🇷 {t('french')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.languageOption, currentLanguage === 'en' && styles.languageOptionActive]}
+              onPress={() => handleLanguageChange('en')}
+            >
+              <Text style={styles.languageOptionText}>🇬🇧 {t('english')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.languageOption, currentLanguage === 'pt' && styles.languageOptionActive]}
+              onPress={() => handleLanguageChange('pt')}
+            >
+              <Text style={styles.languageOptionText}>🇵🇹 {t('portuguese')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowLanguageModal(false)}
+            >
+              <Text style={styles.modalCancelButtonText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -137,6 +226,25 @@ const styles = StyleSheet.create({
   headerTextContainer: {
     flex: 1,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: SPACING.md,
+  },
+  languageButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  languageButtonText: {
+    fontSize: 20,
+  },
   helpButton: {
     width: 40,
     height: 40,
@@ -144,7 +252,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -204,6 +311,55 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: SPACING.lg,
+    textAlign: 'center',
+  },
+  languageOption: {
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
+    marginBottom: SPACING.sm,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  languageOptionActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary + '20',
+  },
+  languageOptionText: {
+    fontSize: 18,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  modalCancelButton: {
+    marginTop: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.border,
+  },
+  modalCancelButtonText: {
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 
