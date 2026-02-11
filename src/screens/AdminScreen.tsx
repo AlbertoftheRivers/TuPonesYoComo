@@ -51,13 +51,21 @@ export default function AdminScreen({ navigation }: Props) {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('🔄 [ADMIN] Loading custom proteins and cuisines...');
       const proteins = await getCustomProteins();
       const cuisines = await getCustomCuisines();
+      console.log('✅ [ADMIN] Loaded proteins:', proteins.length, proteins);
+      console.log('✅ [ADMIN] Loaded cuisines:', cuisines.length, cuisines);
       setCustomProteins(proteins);
       setCustomCuisines(cuisines);
-    } catch (error) {
-      console.error('Error loading admin data:', error);
-      Alert.alert(t('error'), 'Error al cargar las categorías');
+    } catch (error: any) {
+      console.error('❌ [ADMIN] Error loading admin data:', error);
+      const errorMessage = error?.message || 'Error desconocido';
+      console.error('❌ [ADMIN] Error details:', errorMessage);
+      Alert.alert(
+        t('error'), 
+        `Error al cargar las categorías: ${errorMessage}\n\n¿Has ejecutado la migración SQL en Supabase?`
+      );
     } finally {
       setLoading(false);
     }
@@ -170,12 +178,8 @@ export default function AdminScreen({ navigation }: Props) {
   };
 
   const renderItem = (item: CustomProtein | CustomCuisine, type: 'protein' | 'cuisine') => {
-    const isDefault = type === 'protein'
-      ? MAIN_PROTEINS.some(p => p.value === item.value)
-      : CUISINES.some(c => c.value === item.value);
-
-    if (isDefault) return null; // Don't show default items in admin
-
+    // Don't filter out default items - show all custom items from database
+    // The database only contains custom items, so we don't need to filter
     return (
       <View key={item.id} style={styles.itemCard}>
         <View style={styles.itemContent}>
@@ -256,13 +260,29 @@ export default function AdminScreen({ navigation }: Props) {
 
           {activeTab === 'proteins' ? (
             customProteins.length === 0 ? (
-              <Text style={styles.emptyText}>No hay categorías personalizadas</Text>
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No hay categorías personalizadas</Text>
+                <Text style={styles.emptyHint}>
+                  Añade una nueva categoría usando el botón de arriba
+                </Text>
+                <Text style={styles.emptyHint}>
+                  Si has ejecutado la migración SQL, verifica que las tablas existan en Supabase
+                </Text>
+              </View>
             ) : (
               customProteins.map(item => renderItem(item, 'protein'))
             )
           ) : (
             customCuisines.length === 0 ? (
-              <Text style={styles.emptyText}>No hay cocinas personalizadas</Text>
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No hay cocinas personalizadas</Text>
+                <Text style={styles.emptyHint}>
+                  Añade una nueva cocina usando el botón de arriba
+                </Text>
+                <Text style={styles.emptyHint}>
+                  Si has ejecutado la migración SQL, verifica que las tablas existan en Supabase
+                </Text>
+              </View>
             ) : (
               customCuisines.map(item => renderItem(item, 'cuisine'))
             )
@@ -413,11 +433,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  emptyContainer: {
+    marginTop: SPACING.xl,
+    padding: SPACING.lg,
+  },
   emptyText: {
     textAlign: 'center',
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: SPACING.md,
+  },
+  emptyHint: {
+    textAlign: 'center',
     color: COLORS.textSecondary,
-    fontSize: 16,
-    marginTop: SPACING.xl,
+    fontSize: 14,
+    marginTop: SPACING.sm,
   },
   itemCard: {
     backgroundColor: COLORS.card,

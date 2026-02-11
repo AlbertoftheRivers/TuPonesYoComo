@@ -21,18 +21,24 @@ export interface CustomCuisine {
 // Get all custom proteins
 export async function getCustomProteins(): Promise<CustomProtein[]> {
   try {
+    console.log('📡 [API] Fetching custom proteins from Supabase...');
     const { data, error } = await supabase
       .from('custom_proteins')
       .select('*')
       .order('label', { ascending: true });
 
     if (error) {
+      console.error('❌ [API] Supabase error fetching custom proteins:', error);
+      console.error('❌ [API] Error code:', error.code);
+      console.error('❌ [API] Error message:', error.message);
+      console.error('❌ [API] Error details:', error.details);
       throw error;
     }
 
+    console.log('✅ [API] Fetched custom proteins:', data?.length || 0, 'items');
     return data || [];
   } catch (error) {
-    console.error('Error fetching custom proteins:', error);
+    console.error('❌ [API] Error fetching custom proteins:', error);
     throw error;
   }
 }
@@ -40,18 +46,24 @@ export async function getCustomProteins(): Promise<CustomProtein[]> {
 // Get all custom cuisines
 export async function getCustomCuisines(): Promise<CustomCuisine[]> {
   try {
+    console.log('📡 [API] Fetching custom cuisines from Supabase...');
     const { data, error } = await supabase
       .from('custom_cuisines')
       .select('*')
       .order('label', { ascending: true });
 
     if (error) {
+      console.error('❌ [API] Supabase error fetching custom cuisines:', error);
+      console.error('❌ [API] Error code:', error.code);
+      console.error('❌ [API] Error message:', error.message);
+      console.error('❌ [API] Error details:', error.details);
       throw error;
     }
 
+    console.log('✅ [API] Fetched custom cuisines:', data?.length || 0, 'items');
     return data || [];
   } catch (error) {
-    console.error('Error fetching custom cuisines:', error);
+    console.error('❌ [API] Error fetching custom cuisines:', error);
     throw error;
   }
 }
