@@ -1,0 +1,247 @@
+[
+  {
+    "name": "Crêpes",
+    "ingredients": [
+      {
+        "name": "huevos",
+        "quantity": 3,
+        "unit": "unidades"
+      },
+      {
+        "name": "harina",
+        "quantity": 250,
+        "unit": "gramos"
+      },
+      {
+        "name": "leche",
+        "quantity": 500,
+        "unit": "mililitros"
+      },
+      {
+        "name": "mantequilla",
+        "quantity": 50,
+        "unit": "gramos",
+        "notes": "derretida"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "pizca"
+      },
+      {
+        "name": "azúcar",
+        "quantity": 1,
+        "unit": "cucharadita",
+        "notes": "opcional para crêpes dulces"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "En un bol grande, batir los huevos con un batidor de varillas.",
+      "Añadir la harina tamizada poco a poco mientras se bate, evitando grumos.",
+      "Incorporar la leche gradualmente, batiendo hasta obtener una masa homogénea y sin grumos.",
+      "Añadir la mantequilla derretida, la sal y el azúcar (si se desea). Mezclar bien.",
+      "Dejar reposar la masa en la nevera durante al menos 30 minutos.",
+      "Calentar una sartén antiadherente o crepera a fuego medio-alto.",
+      "Engrasar ligeramente la sartén con mantequilla o aceite usando un papel de cocina.",
+      "Verter una cucharada de masa en el centro de la sartén caliente.",
+      "Inclinar rápidamente la sartén en círculos para extender la masa de forma uniforme.",
+      "Cocinar durante 1-2 minutos hasta que los bordes se doren y se despeguen.",
+      "Dar la vuelta con una espátula y cocinar el otro lado durante 30 segundos a 1 minuto.",
+      "Repetir el proceso con el resto de la masa, engrasando la sartén entre cada crêpe."
+    ],
+    "gadgets": [
+      "sartén antiadherente",
+      "crepera",
+      "batidor de varillas",
+      "bol grande",
+      "espátula",
+      "colador o tamiz",
+      "cuchara o cucharón"
+    ],
+    "total_time_minutes": 60,
+    "oven_time_minutes": null,
+    "raw_text": "Crêpes para 4 personas. Ingredientes: 3 huevos, 250 gramos de harina, 500 mililitros de leche, 50 gramos de mantequilla derretida, una pizca de sal y una cucharadita de azúcar opcional. Pasos: Batir los huevos en un bol grande. Añadir la harina tamizada poco a poco batiendo. Incorporar la leche gradualmente hasta obtener masa homogénea. Añadir mantequilla, sal y azúcar. Dejar reposar 30 minutos en nevera. Calentar sartén antiadherente a fuego medio-alto. Engrasar ligeramente. Verter una cucharada de masa y extenderla inclinando la sartén. Cocinar 1-2 minutos, dar la vuelta y cocinar otro minuto. Repetir con el resto. Utensilios: sartén antiadherente, crepera, batidor, bol, espátula, colador, cuchara. Tiempo total: 60 minutos."
+  },
+  {
+    "name": "Tortilla de Patatas",
+    "ingredients": [
+      {
+        "name": "huevos",
+        "quantity": 6,
+        "unit": "unidades"
+      },
+      {
+        "name": "patatas",
+        "quantity": 4,
+        "unit": "unidades",
+        "notes": "medianas"
+      },
+      {
+        "name": "cebolla",
+        "quantity": 1,
+        "unit": "unidad",
+        "notes": "grande"
+      },
+      {
+        "name": "aceite de oliva",
+        "quantity": 200,
+        "unit": "mililitros"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "cucharadita"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Pelar y cortar las patatas en rodajas finas de aproximadamente 1 cm de grosor.",
+      "Pelar y cortar la cebolla en juliana fina.",
+      "Calentar abundante aceite de oliva en una sartén grande a fuego medio.",
+      "Freír las patatas en el aceite caliente durante 15-20 minutos hasta que estén tiernas pero sin dorarse demasiado.",
+      "Añadir la cebolla a la sartén y continuar friendo junto con las patatas durante 10 minutos más hasta que estén bien cocidas.",
+      "Escurrir las patatas y cebolla, reservando el aceite. Dejar enfriar ligeramente.",
+      "Batir los huevos en un bol grande con una pizca de sal.",
+      "Añadir las patatas y cebolla escurridas a los huevos batidos. Mezclar suavemente con una espátula.",
+      "Dejar reposar la mezcla durante 5 minutos para que se integren los sabores.",
+      "Calentar una sartén antiadherente a fuego medio-alto con un poco del aceite reservado.",
+      "Verter la mezcla de huevos y patatas en la sartén caliente.",
+      "Cocinar durante 3-4 minutos hasta que la base esté dorada y cuajada.",
+      "Dar la vuelta a la tortilla con ayuda de un plato o usando la técnica del vuelco.",
+      "Cocinar el otro lado durante 2-3 minutos más hasta que esté dorado.",
+      "Servir caliente o a temperatura ambiente."
+    ],
+    "gadgets": [
+      "sartén grande",
+      "sartén antiadherente",
+      "cuchillo",
+      "tabla de cortar",
+      "batidor de varillas",
+      "bol grande",
+      "espátula",
+      "plato plano",
+      "colador o escurridor"
+    ],
+    "total_time_minutes": 45,
+    "oven_time_minutes": null,
+    "raw_text": "Tortilla de patatas para 4 personas. Ingredientes: 6 huevos, 4 patatas medianas, 1 cebolla grande, 200 mililitros de aceite de oliva, 1 cucharadita de sal. Pasos: Pelar y cortar patatas en rodajas de 1 cm. Cortar cebolla en juliana. Calentar aceite en sartén grande. Freír patatas 15-20 minutos. Añadir cebolla y freír 10 minutos más. Escurrir y dejar enfriar. Batir huevos con sal. Mezclar patatas y cebolla con huevos. Reposar 5 minutos. Calentar sartén antiadherente con aceite. Verter mezcla y cocinar 3-4 minutos. Dar la vuelta y cocinar 2-3 minutos más. Utensilios: sartén grande, sartén antiadherente, cuchillo, tabla, batidor, bol, espátula, plato, colador. Tiempo total: 45 minutos."
+  },
+  {
+    "name": "Lubina a la Sal con Patatas Panaderas",
+    "ingredients": [
+      {
+        "name": "lubina",
+        "quantity": 1,
+        "unit": "unidad",
+        "notes": "entera, de aproximadamente 1 kg"
+      },
+      {
+        "name": "sal gorda",
+        "quantity": 2,
+        "unit": "kilogramos"
+      },
+      {
+        "name": "clara de huevo",
+        "quantity": 2,
+        "unit": "unidades"
+      },
+      {
+        "name": "patatas",
+        "quantity": 6,
+        "unit": "unidades",
+        "notes": "medianas"
+      },
+      {
+        "name": "cebolla",
+        "quantity": 2,
+        "unit": "unidades",
+        "notes": "medianas"
+      },
+      {
+        "name": "pimiento rojo",
+        "quantity": 1,
+        "unit": "unidad",
+        "notes": "grande"
+      },
+      {
+        "name": "aceite de oliva",
+        "quantity": 100,
+        "unit": "mililitros"
+      },
+      {
+        "name": "vino blanco",
+        "quantity": 100,
+        "unit": "mililitros"
+      },
+      {
+        "name": "ajo",
+        "quantity": 4,
+        "unit": "dientes"
+      },
+      {
+        "name": "tomillo",
+        "quantity": 3,
+        "unit": "ramitas"
+      },
+      {
+        "name": "romero",
+        "quantity": 2,
+        "unit": "ramitas"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "cucharadita"
+      },
+      {
+        "name": "pimienta negra",
+        "quantity": 1,
+        "unit": "pizca"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Limpiar la lubina sin escamarla, solo retirando las vísceras por la abertura del vientre. Mantener las escamas.",
+      "Secar bien la lubina por dentro y por fuera con papel de cocina.",
+      "En un bol grande, mezclar la sal gorda con las claras de huevo hasta formar una pasta consistente.",
+      "Forrar una bandeja de horno con papel de hornear.",
+      "Colocar una capa de la mezcla de sal sobre el papel, del tamaño de la lubina.",
+      "Colocar la lubina sobre la capa de sal.",
+      "Cubrir completamente la lubina con el resto de la mezcla de sal, formando una costra uniforme.",
+      "Hornear la lubina durante 30-35 minutos a 200°C.",
+      "Mientras tanto, preparar las patatas panaderas: pelar y cortar las patatas en rodajas de 1 cm de grosor.",
+      "Cortar las cebollas en rodajas finas.",
+      "Cortar el pimiento rojo en tiras.",
+      "Pelar y picar los ajos finamente.",
+      "En una sartén grande, calentar el aceite de oliva a fuego medio.",
+      "Sofreír las cebollas durante 5 minutos hasta que estén transparentes.",
+      "Añadir el pimiento rojo y los ajos, cocinar 3 minutos más.",
+      "Añadir las patatas, el vino blanco, el tomillo y el romero.",
+      "Sazonar con sal y pimienta.",
+      "Cocinar a fuego medio-bajo durante 20-25 minutos, removiendo ocasionalmente, hasta que las patatas estén tiernas.",
+      "Retirar la lubina del horno y dejar reposar 5 minutos.",
+      "Romper la costra de sal con un martillo o el dorso de un cuchillo.",
+      "Retirar la costra de sal y la piel de la lubina.",
+      "Filetear la lubina y servir con las patatas panaderas calientes."
+    ],
+    "gadgets": [
+      "horno",
+      "bandeja de horno",
+      "papel de hornear",
+      "bol grande",
+      "sartén grande",
+      "cuchillo",
+      "tabla de cortar",
+      "espátula",
+      "papel de cocina",
+      "martillo o mazo",
+      "pinzas"
+    ],
+    "total_time_minutes": 75,
+    "oven_time_minutes": 35,
+    "raw_text": "Lubina a la sal con patatas panaderas para 4 personas. Ingredientes: 1 lubina entera de 1 kg, 2 kg de sal gorda, 2 claras de huevo, 6 patatas medianas, 2 cebollas medianas, 1 pimiento rojo grande, 100 ml de aceite de oliva, 100 ml de vino blanco, 4 dientes de ajo, 3 ramitas de tomillo, 2 ramitas de romero, sal y pimienta. Pasos: Precalentar horno a 200°C. Limpiar lubina sin escamarla, solo vísceras. Secar bien. Mezclar sal gorda con claras hasta formar pasta. Forrar bandeja con papel. Colocar capa de sal, poner lubina encima y cubrir completamente con sal. Hornear 30-35 minutos a 200°C. Para patatas: cortar patatas en rodajas, cebollas en rodajas, pimiento en tiras, picar ajos. Sofreír cebollas 5 min, añadir pimiento y ajos 3 min, añadir patatas, vino, hierbas, sal y pimienta. Cocinar 20-25 min hasta tiernas. Retirar lubina, reposar 5 min, romper costra de sal, retirar piel y filetear. Servir con patatas. Utensilios: horno, bandeja, papel de hornear, bol, sartén, cuchillo, tabla, espátula, papel de cocina, martillo, pinzas. Tiempo total: 75 minutos, tiempo de horno: 35 minutos."
+  }
+]
+

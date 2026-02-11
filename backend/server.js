@@ -13,8 +13,21 @@ const { promisify } = require('util');
 const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
+const { createClient } = require('@supabase/supabase-js');
 
 const execAsync = promisify(exec);
+
+// Initialize Supabase client (optional - only if credentials are provided)
+let supabase = null;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Use service key for backend access
+
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+  supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  console.log('✅ Supabase client initialized for RAG');
+} else {
+  console.log('⚠️  Supabase not configured - RAG will use example recipes only');
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -333,6 +346,92 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   }
 });
 
+/**
+ * Find similar recipes from database or examples
+ * Uses RAG (Retrieval Augmented Generation) to improve prompts
+ */
+async function findSimilarRecipes(rawText, mainProtein, limit = 3) {
+  const examples = [];
+  
+  // Load example recipes
+  try {
+    const exampleRecipesPath = path.join(__dirname, 'example-recipes.json');
+    const exampleData = await fs.readFile(exampleRecipesPath, 'utf-8');
+    const exampleRecipes = JSON.parse(exampleData);
+    
+    // Filter by main protein if possible
+    const filtered = exampleRecipes.filter(r => {
+      const text = (r.raw_text || '').toLowerCase();
+      return text.includes(mainProtein.toLowerCase()) || mainProtein === 'vegetables';
+    });
+    
+    examples.push(...filtered.slice(0, limit));
+  } catch (error) {
+    console.warn('Could not load example recipes:', error.message);
+  }
+  
+  // Try to get similar recipes from Supabase if available
+  if (supabase && mainProtein) {
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('raw_text, ingredients, steps, gadgets, total_time_minutes, servings')
+        .eq('main_protein', mainProtein)
+        .limit(limit)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data && data.length > 0) {
+        // Convert Supabase recipes to example format
+        const dbExamples = data.map(recipe => ({
+          raw_text: recipe.raw_text,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+          gadgets: recipe.gadgets,
+          total_time_minutes: recipe.total_time_minutes,
+          servings: recipe.servings
+        }));
+        
+        // Combine with examples, prioritizing database recipes
+        examples.unshift(...dbExamples.slice(0, limit));
+        console.log(`📚 Found ${dbExamples.length} similar recipes from database`);
+      }
+    } catch (error) {
+      console.warn('Error fetching similar recipes from Supabase:', error.message);
+    }
+  }
+  
+  return examples.slice(0, limit); // Return max limit examples
+}
+
+/**
+ * Build enhanced prompt with RAG examples
+ */
+function buildEnhancedPrompt(rawText, mainProtein, examples) {
+  let examplesText = '';
+  
+  if (examples.length > 0) {
+    examplesText = '\n\nEXAMPLES OF SIMILAR RECIPES (use these as reference for format and structure):\n\n';
+    
+    examples.forEach((example, idx) => {
+      examplesText += `Example ${idx + 1}:\n`;
+      examplesText += `Raw text: ${(example.raw_text || '').substring(0, 200)}...\n`;
+      examplesText += `Extracted JSON:\n${JSON.stringify({
+        ingredients: example.ingredients || [],
+        steps: example.steps || [],
+        gadgets: example.gadgets || [],
+        total_time_minutes: example.total_time_minutes || null,
+        oven_time_minutes: example.oven_time_minutes || null
+      }, null, 2)}\n\n`;
+    });
+  }
+  
+  return `Analyze this recipe for ${mainProtein}:
+
+${rawText}
+${examplesText}
+Extract the ingredients, steps, gadgets, and time estimates. Return the result as JSON matching the schema above.`;
+}
+
 // Recipe analysis endpoint
 app.post('/api/analyze-recipe', async (req, res) => {
   const { rawText, mainProtein } = req.body;
@@ -343,7 +442,17 @@ app.post('/api/analyze-recipe', async (req, res) => {
     });
   }
 
-  const systemPrompt = `You are a recipe analysis assistant. Your task is to extract structured information from raw recipe text and return it as valid JSON.
+  // Find similar recipes for RAG
+  const similarRecipes = await findSimilarRecipes(rawText, mainProtein, 3);
+  console.log(`📚 Using ${similarRecipes.length} similar recipes for RAG enhancement`);
+
+  const systemPrompt = `You are an expert recipe analysis assistant specialized in multilingual recipes (Spanish, Portuguese, Catalan, French). Your task is to extract structured information from raw recipe text and return it as valid JSON.
+
+VOCABULARY AND TERMINOLOGY:
+- Ingredients: Know common cooking ingredients in Spanish, Portuguese, Catalan, and French
+- Techniques: saltear, hervir, asar, hornear, marinar, rehogar, sofreír, freír, cocer, guisar, etc.
+- Utensils: sartén, olla, horno, batidora, cuchillo, tabla de cortar, espátula, colador, etc.
+- Units: gramos, kilogramos, mililitros, litros, tazas, cucharadas, cucharaditas, unidades, etc.
 
 The JSON schema you must return is:
 {
@@ -362,9 +471,9 @@ The JSON schema you must return is:
 }
 
 Rules:
-- Extract all ingredients with their quantities and units if mentioned
-- Break down the recipe into clear, ordered steps
-- List all kitchen tools/gadgets needed (e.g., "oven", "pan", "blender", "knife")
+- Extract ALL ingredients with their quantities and units if mentioned
+- Break down the recipe into clear, ordered steps (each step should be a complete instruction)
+- List ALL kitchen tools/gadgets needed (e.g., "horno", "sartén", "batidora", "cuchillo", "tabla de cortar")
 - ALWAYS estimate total_time_minutes - it is REQUIRED and must be a number (never null)
 - Estimate based on: preparation time (5-15 min), cooking time (from steps), and resting time if mentioned
 - If no time is mentioned in the recipe, estimate based on the number of steps and complexity:
@@ -374,13 +483,11 @@ Rules:
   * Recipes with oven: add 20-40 minutes for baking/roasting
 - Only set oven_time_minutes if the recipe uses an oven; otherwise set to null
 - Return ONLY valid JSON, no additional text or markdown formatting
-- If information is missing, use reasonable defaults (empty arrays, but ALWAYS provide total_time_minutes as a number)`;
+- If information is missing, use reasonable defaults (empty arrays, but ALWAYS provide total_time_minutes as a number)
+- Pay attention to cooking techniques and translate them correctly
+- Recognize common ingredient names in multiple languages`;
 
-  const userPrompt = `Analyze this recipe for ${mainProtein}:
-
-${rawText}
-
-Extract the ingredients, steps, gadgets, and time estimates. Return the result as JSON matching the schema above.`;
+  const userPrompt = buildEnhancedPrompt(rawText, mainProtein, similarRecipes);
 
   try {
     // Retry logic for Ollama (max 2 retries)
