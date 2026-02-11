@@ -26,6 +26,7 @@ import {
   CustomCuisine,
 } from '../api/categories';
 import { MAIN_PROTEINS, CUISINES } from '../lib/constants';
+import { getAllProteins, getAllCuisines } from '../lib/customCategories';
 
 type RootStackParamList = {
   Home: undefined;
@@ -41,6 +42,8 @@ interface Props {
 export default function AdminScreen({ navigation }: Props) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'proteins' | 'cuisines'>('proteins');
+  const [allProteins, setAllProteins] = useState<Array<{ value: string; label: string; icon: string; isDefault?: boolean }>>([]);
+  const [allCuisines, setAllCuisines] = useState<Array<{ value: string; label: string; flag: string; isDefault?: boolean }>>([]);
   const [customProteins, setCustomProteins] = useState<CustomProtein[]>([]);
   const [customCuisines, setCustomCuisines] = useState<CustomCuisine[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,13 +54,35 @@ export default function AdminScreen({ navigation }: Props) {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('🔄 [ADMIN] Loading custom proteins and cuisines...');
-      const proteins = await getCustomProteins();
-      const cuisines = await getCustomCuisines();
-      console.log('✅ [ADMIN] Loaded proteins:', proteins.length, proteins);
-      console.log('✅ [ADMIN] Loaded cuisines:', cuisines.length, cuisines);
-      setCustomProteins(proteins);
-      setCustomCuisines(cuisines);
+      console.log('🔄 [ADMIN] Loading all proteins and cuisines...');
+      
+      // Load all proteins (default + custom)
+      const allProteinsData = await getAllProteins();
+      const allProteinsWithFlag = allProteinsData.map(p => ({
+        ...p,
+        isDefault: MAIN_PROTEINS.some(mp => mp.value === p.value)
+      }));
+      
+      // Load all cuisines (default + custom)
+      const allCuisinesData = await getAllCuisines();
+      const allCuisinesWithFlag = allCuisinesData.map(c => ({
+        ...c,
+        isDefault: CUISINES.some(mc => mc.value === c.value)
+      }));
+      
+      // Also load custom only for editing/deleting
+      const customProteinsData = await getCustomProteins();
+      const customCuisinesData = await getCustomCuisines();
+      
+      console.log('✅ [ADMIN] Loaded all proteins:', allProteinsWithFlag.length);
+      console.log('✅ [ADMIN] Loaded all cuisines:', allCuisinesWithFlag.length);
+      console.log('✅ [ADMIN] Custom proteins:', customProteinsData.length);
+      console.log('✅ [ADMIN] Custom cuisines:', customCuisinesData.length);
+      
+      setAllProteins(allProteinsWithFlag);
+      setAllCuisines(allCuisinesWithFlag);
+      setCustomProteins(customProteinsData);
+      setCustomCuisines(customCuisinesData);
     } catch (error: any) {
       console.error('❌ [ADMIN] Error loading admin data:', error);
       const errorMessage = error?.message || 'Error desconocido';
@@ -177,38 +202,46 @@ export default function AdminScreen({ navigation }: Props) {
     setShowAddModal(true);
   };
 
-  const renderItem = (item: CustomProtein | CustomCuisine, type: 'protein' | 'cuisine') => {
-    // Don't filter out default items - show all custom items from database
-    // The database only contains custom items, so we don't need to filter
+  const renderItem = (item: { value: string; label: string; icon?: string; flag?: string; isDefault?: boolean }, type: 'protein' | 'cuisine') => {
+    const isDefault = item.isDefault || false;
+    const customItem = type === 'protein' 
+      ? customProteins.find(p => p.value === item.value)
+      : customCuisines.find(c => c.value === item.value);
+    
     return (
-      <View key={item.id} style={styles.itemCard}>
+      <View key={item.value} style={[styles.itemCard, isDefault && styles.defaultItemCard]}>
         <View style={styles.itemContent}>
           <View style={styles.itemHeader}>
-            {type === 'protein' && 'icon' in item && (
+            {type === 'protein' && item.icon && (
               <Text style={styles.itemIcon}>{item.icon}</Text>
             )}
-            {type === 'cuisine' && 'flag' in item && (
+            {type === 'cuisine' && item.flag && (
               <Text style={styles.itemIcon}>{item.flag}</Text>
             )}
             <View style={styles.itemText}>
               <Text style={styles.itemLabel}>{item.label}</Text>
               <Text style={styles.itemValue}>{item.value}</Text>
+              {isDefault && (
+                <Text style={styles.defaultBadge}>Predeterminada</Text>
+              )}
             </View>
           </View>
-          <View style={styles.itemActions}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.editButton]}
-              onPress={() => handleEdit(item)}
-            >
-              <Text style={styles.actionButtonText}>✏️</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.deleteButton]}
-              onPress={() => handleDelete(item, type)}
-            >
-              <Text style={styles.actionButtonText}>🗑️</Text>
-            </TouchableOpacity>
-          </View>
+          {!isDefault && customItem && (
+            <View style={styles.itemActions}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.editButton]}
+                onPress={() => handleEdit(customItem)}
+              >
+                <Text style={styles.actionButtonText}>✏️</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.deleteButton]}
+                onPress={() => handleDelete(customItem, type)}
+              >
+                <Text style={styles.actionButtonText}>🗑️</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -232,7 +265,7 @@ export default function AdminScreen({ navigation }: Props) {
           onPress={() => setActiveTab('proteins')}
         >
           <Text style={[styles.tabText, activeTab === 'proteins' && styles.tabTextActive]}>
-            Categorías ({customProteins.length})
+            Categorías ({allProteins.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -240,7 +273,7 @@ export default function AdminScreen({ navigation }: Props) {
           onPress={() => setActiveTab('cuisines')}
         >
           <Text style={[styles.tabText, activeTab === 'cuisines' && styles.tabTextActive]}>
-            Cocinas ({customCuisines.length})
+            Cocinas ({allCuisines.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -259,32 +292,26 @@ export default function AdminScreen({ navigation }: Props) {
           </TouchableOpacity>
 
           {activeTab === 'proteins' ? (
-            customProteins.length === 0 ? (
+            allProteins.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No hay categorías personalizadas</Text>
+                <Text style={styles.emptyText}>No hay categorías</Text>
                 <Text style={styles.emptyHint}>
                   Añade una nueva categoría usando el botón de arriba
                 </Text>
-                <Text style={styles.emptyHint}>
-                  Si has ejecutado la migración SQL, verifica que las tablas existan en Supabase
-                </Text>
               </View>
             ) : (
-              customProteins.map(item => renderItem(item, 'protein'))
+              allProteins.map(item => renderItem(item, 'protein'))
             )
           ) : (
-            customCuisines.length === 0 ? (
+            allCuisines.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No hay cocinas personalizadas</Text>
+                <Text style={styles.emptyText}>No hay cocinas</Text>
                 <Text style={styles.emptyHint}>
                   Añade una nueva cocina usando el botón de arriba
                 </Text>
-                <Text style={styles.emptyHint}>
-                  Si has ejecutado la migración SQL, verifica que las tablas existan en Supabase
-                </Text>
               </View>
             ) : (
-              customCuisines.map(item => renderItem(item, 'cuisine'))
+              allCuisines.map(item => renderItem(item, 'cuisine'))
             )
           )}
         </ScrollView>
@@ -458,6 +485,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
+  defaultItemCard: {
+    backgroundColor: COLORS.background,
+    borderColor: COLORS.primary + '40',
+    borderWidth: 2,
+  },
   itemContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -483,6 +515,12 @@ const styles = StyleSheet.create({
   itemValue: {
     fontSize: 14,
     color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+  },
+  defaultBadge: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
     marginTop: SPACING.xs,
   },
   itemActions: {

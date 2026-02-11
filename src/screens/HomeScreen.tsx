@@ -297,12 +297,12 @@ export default function HomeScreen({ navigation }: Props) {
                 onPress={() => handleProteinPress(protein.value)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
-                  <Text style={styles.cardIconText}>
-                    {protein.icon}
-                  </Text>
-                </View>
-                <Text style={styles.cardLabel}>{getTranslatedProtein(protein.value, language)}</Text>
+              <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
+                <Text style={styles.cardIconText}>
+                  {protein.icon || '🍽️'}
+                </Text>
+              </View>
+                <Text style={styles.cardLabel}>{protein.label || getTranslatedProtein(protein.value, language)}</Text>
               </TouchableOpacity>
             ))}
           </View>
