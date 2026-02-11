@@ -53,7 +53,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           onPress={handleDelete}
           style={styles.headerDeleteButton}
         >
-          <Text style={styles.headerDeleteButtonText}>🗑️</Text>
+          <Text style={styles.headerDeleteButtonText}>{t('deleteRecipe')}</Text>
         </TouchableOpacity>
       ),
     });
