@@ -187,34 +187,37 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
           </View>
           
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t('searchPlaceholder')}
-              placeholderTextColor={COLORS.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={() => setSearchQuery('')}
-              >
-                <Text style={styles.clearButtonText}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Statistics */}
-          <View style={styles.statsContainer}>
-            <Text style={styles.statsText}>
-              {uniqueRecipesCount} {uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}
-            </Text>
-            <Text style={styles.statsSeparator}>•</Text>
-            <Text style={styles.statsText}>
-              {uniqueCuisinesCount} {uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}
-            </Text>
+          {/* Search Bar and Statistics in same row */}
+          <View style={styles.searchRow}>
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder={t('searchPlaceholder')}
+                placeholderTextColor={COLORS.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={() => setSearchQuery('')}
+                >
+                  <Text style={styles.clearButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {/* Statistics */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statBadge}>
+                <Text style={styles.statNumber}>{uniqueRecipesCount}</Text>
+                <Text style={styles.statLabel}>{uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}</Text>
+              </View>
+              <View style={styles.statBadge}>
+                <Text style={styles.statNumber}>{uniqueCuisinesCount}</Text>
+                <Text style={styles.statLabel}>{uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}</Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -526,8 +529,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  searchContainer: {
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: SPACING.md,
+    gap: SPACING.sm,
+  },
+  searchContainer: {
+    flex: 1,
     position: 'relative',
   },
   searchInput: {
@@ -557,18 +566,25 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SPACING.sm,
-    justifyContent: 'center',
+    gap: SPACING.xs,
   },
-  statsText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+  statBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    alignItems: 'center',
+    minWidth: 60,
   },
-  statsSeparator: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginHorizontal: SPACING.sm,
+  statNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#ffffff',
+    textTransform: 'uppercase',
   },
   searchResultsContainer: {
     marginBottom: SPACING.lg,
