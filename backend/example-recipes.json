@@ -1,6 +1,7 @@
 [
   {
     "name": "Crêpes",
+    "language": "es",
     "ingredients": [
       {
         "name": "huevos",
@@ -64,7 +65,268 @@
     "raw_text": "Crêpes para 4 personas. Ingredientes: 3 huevos, 250 gramos de harina, 500 mililitros de leche, 50 gramos de mantequilla derretida, una pizca de sal y una cucharadita de azúcar opcional. Pasos: Batir los huevos en un bol grande. Añadir la harina tamizada poco a poco batiendo. Incorporar la leche gradualmente hasta obtener masa homogénea. Añadir mantequilla, sal y azúcar. Dejar reposar 30 minutos en nevera. Calentar sartén antiadherente a fuego medio-alto. Engrasar ligeramente. Verter una cucharada de masa y extenderla inclinando la sartén. Cocinar 1-2 minutos, dar la vuelta y cocinar otro minuto. Repetir con el resto. Utensilios: sartén antiadherente, crepera, batidor, bol, espátula, colador, cuchara. Tiempo total: 60 minutos."
   },
   {
+    "name": "Crêpes",
+    "language": "pt",
+    "ingredients": [
+      {
+        "name": "ovos",
+        "quantity": 3,
+        "unit": "unidades"
+      },
+      {
+        "name": "farinha",
+        "quantity": 250,
+        "unit": "gramas"
+      },
+      {
+        "name": "leite",
+        "quantity": 500,
+        "unit": "mililitros"
+      },
+      {
+        "name": "manteiga",
+        "quantity": 50,
+        "unit": "gramas",
+        "notes": "derretida"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "pitada"
+      },
+      {
+        "name": "açúcar",
+        "quantity": 1,
+        "unit": "colher de chá",
+        "notes": "opcional para crêpes doces"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Numa tigela grande, bater os ovos com um batedor de varas.",
+      "Adicionar a farinha peneirada pouco a pouco enquanto se bate, evitando grumos.",
+      "Incorporar o leite gradualmente, batendo até obter uma massa homogénea e sem grumos.",
+      "Adicionar a manteiga derretida, o sal e o açúcar (se desejar). Misturar bem.",
+      "Deixar repousar a massa no frigorífico durante pelo menos 30 minutos.",
+      "Aquecer uma frigideira antiaderente ou crepeira em lume médio-alto.",
+      "Untar ligeiramente a frigideira com manteiga ou azeite usando um papel de cozinha.",
+      "Verter uma colher de massa no centro da frigideira quente.",
+      "Inclinar rapidamente a frigideira em círculos para estender a massa de forma uniforme.",
+      "Cozinhar durante 1-2 minutos até que as bordas fiquem douradas e se soltem.",
+      "Virar com uma espátula e cozinhar o outro lado durante 30 segundos a 1 minuto.",
+      "Repetir o processo com o resto da massa, untando a frigideira entre cada crêpe."
+    ],
+    "gadgets": [
+      "frigideira antiaderente",
+      "crepeira",
+      "batedor de varas",
+      "tigela grande",
+      "espátula",
+      "coador ou peneira",
+      "colher ou concha"
+    ],
+    "total_time_minutes": 60,
+    "oven_time_minutes": null,
+    "raw_text": "Crêpes para 4 pessoas. Ingredientes: 3 ovos, 250 gramas de farinha, 500 mililitros de leite, 50 gramas de manteiga derretida, uma pitada de sal e uma colher de chá de açúcar opcional. Passos: Bater os ovos numa tigela grande. Adicionar a farinha peneirada pouco a pouco batendo. Incorporar o leite gradualmente até obter massa homogénea. Adicionar manteiga, sal e açúcar. Deixar repousar 30 minutos no frigorífico. Aquecer frigideira antiaderente em lume médio-alto. Untar ligeiramente. Verter uma colher de massa e estendê-la inclinando a frigideira. Cozinhar 1-2 minutos, virar e cozinhar outro minuto. Repetir com o resto. Utensílios: frigideira antiaderente, crepeira, batedor, tigela, espátula, coador, colher. Tempo total: 60 minutos."
+  },
+  {
+    "name": "Crêpes",
+    "language": "ca",
+    "ingredients": [
+      {
+        "name": "ous",
+        "quantity": 3,
+        "unit": "unitats"
+      },
+      {
+        "name": "farina",
+        "quantity": 250,
+        "unit": "grams"
+      },
+      {
+        "name": "llet",
+        "quantity": 500,
+        "unit": "mil·lilitres"
+      },
+      {
+        "name": "mantega",
+        "quantity": 50,
+        "unit": "grams",
+        "notes": "fosa"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "pessic"
+      },
+      {
+        "name": "sucre",
+        "quantity": 1,
+        "unit": "culleradeta",
+        "notes": "opcional per crêpes dolces"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "En un bol gran, batre els ous amb un batedor de varetes.",
+      "Afegir la farina tamisada poc a poc mentre es batega, evitant grumolls.",
+      "Incorporar la llet gradualment, bategant fins obtenir una massa homogènia i sense grumolls.",
+      "Afegir la mantega fosa, la sal i el sucre (si es desitja). Barrejar bé.",
+      "Deixar reposar la massa a la nevera durant almenys 30 minuts.",
+      "Escalfar una paella antiadherent o crepera a foc mitjà-alt.",
+      "Untar lleugerament la paella amb mantega o oli usant un paper de cuina.",
+      "Abocar una cullera de massa al centre de la paella calenta.",
+      "Inclinar ràpidament la paella en cercles per estendre la massa de forma uniforme.",
+      "Coure durant 1-2 minuts fins que les vores es daurin i es desenganxin.",
+      "Donar la volta amb una espàtula i coure l'altre costat durant 30 segons a 1 minut.",
+      "Repetir el procés amb la resta de la massa, untant la paella entre cada crêpe."
+    ],
+    "gadgets": [
+      "paella antiadherent",
+      "crepera",
+      "batedor de varetes",
+      "bol gran",
+      "espàtula",
+      "colador o tamís",
+      "cullera o cullera gran"
+    ],
+    "total_time_minutes": 60,
+    "oven_time_minutes": null,
+    "raw_text": "Crêpes per a 4 persones. Ingredients: 3 ous, 250 grams de farina, 500 mil·lilitres de llet, 50 grams de mantega fosa, una pessic de sal i una culleradeta de sucre opcional. Passos: Batre els ous en un bol gran. Afegir la farina tamisada poc a poc bategant. Incorporar la llet gradualment fins obtenir massa homogènia. Afegir mantega, sal i sucre. Deixar reposar 30 minuts a la nevera. Escalfar paella antiadherent a foc mitjà-alt. Untar lleugerament. Abocar una cullera de massa i estendre-la inclinant la paella. Coure 1-2 minuts, donar la volta i coure altre minut. Repetir amb la resta. Eines: paella antiadherent, crepera, batedor, bol, espàtula, colador, cullera. Temps total: 60 minuts."
+  },
+  {
+    "name": "Crêpes",
+    "language": "en",
+    "ingredients": [
+      {
+        "name": "eggs",
+        "quantity": 3,
+        "unit": "units"
+      },
+      {
+        "name": "flour",
+        "quantity": 250,
+        "unit": "grams"
+      },
+      {
+        "name": "milk",
+        "quantity": 500,
+        "unit": "milliliters"
+      },
+      {
+        "name": "butter",
+        "quantity": 50,
+        "unit": "grams",
+        "notes": "melted"
+      },
+      {
+        "name": "salt",
+        "quantity": 1,
+        "unit": "pinch"
+      },
+      {
+        "name": "sugar",
+        "quantity": 1,
+        "unit": "teaspoon",
+        "notes": "optional for sweet crêpes"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "In a large bowl, beat the eggs with a whisk.",
+      "Add the sifted flour little by little while beating, avoiding lumps.",
+      "Gradually incorporate the milk, beating until you get a homogeneous and smooth batter.",
+      "Add the melted butter, salt and sugar (if desired). Mix well.",
+      "Let the batter rest in the refrigerator for at least 30 minutes.",
+      "Heat a non-stick pan or crepe pan over medium-high heat.",
+      "Lightly grease the pan with butter or oil using a paper towel.",
+      "Pour a spoonful of batter into the center of the hot pan.",
+      "Quickly tilt the pan in circles to spread the batter evenly.",
+      "Cook for 1-2 minutes until the edges are golden and come loose.",
+      "Flip with a spatula and cook the other side for 30 seconds to 1 minute.",
+      "Repeat the process with the rest of the batter, greasing the pan between each crêpe."
+    ],
+    "gadgets": [
+      "non-stick pan",
+      "crepe pan",
+      "whisk",
+      "large bowl",
+      "spatula",
+      "strainer or sieve",
+      "spoon or ladle"
+    ],
+    "total_time_minutes": 60,
+    "oven_time_minutes": null,
+    "raw_text": "Crêpes for 4 people. Ingredients: 3 eggs, 250 grams of flour, 500 milliliters of milk, 50 grams of melted butter, a pinch of salt and an optional teaspoon of sugar. Steps: Beat the eggs in a large bowl. Add the sifted flour little by little while beating. Gradually incorporate the milk until you get a homogeneous batter. Add butter, salt and sugar. Let rest 30 minutes in the refrigerator. Heat non-stick pan over medium-high heat. Lightly grease. Pour a spoonful of batter and spread it by tilting the pan. Cook 1-2 minutes, flip and cook another minute. Repeat with the rest. Utensils: non-stick pan, crepe pan, whisk, bowl, spatula, strainer, spoon. Total time: 60 minutes."
+  },
+  {
+    "name": "Crêpes",
+    "language": "fr",
+    "ingredients": [
+      {
+        "name": "œufs",
+        "quantity": 3,
+        "unit": "unités"
+      },
+      {
+        "name": "farine",
+        "quantity": 250,
+        "unit": "grammes"
+      },
+      {
+        "name": "lait",
+        "quantity": 500,
+        "unit": "millilitres"
+      },
+      {
+        "name": "beurre",
+        "quantity": 50,
+        "unit": "grammes",
+        "notes": "fondu"
+      },
+      {
+        "name": "sel",
+        "quantity": 1,
+        "unit": "pincée"
+      },
+      {
+        "name": "sucre",
+        "quantity": 1,
+        "unit": "cuillère à café",
+        "notes": "optionnel pour crêpes sucrées"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Dans un grand bol, battre les œufs avec un fouet.",
+      "Ajouter la farine tamisée petit à petit en battant, en évitant les grumeaux.",
+      "Incorporer le lait progressivement, en battant jusqu'à obtenir une pâte homogène et sans grumeaux.",
+      "Ajouter le beurre fondu, le sel et le sucre (si désiré). Bien mélanger.",
+      "Laisser reposer la pâte au réfrigérateur pendant au moins 30 minutes.",
+      "Chauffer une poêle antiadhésive ou une crêpière à feu moyen-élevé.",
+      "Graisser légèrement la poêle avec du beurre ou de l'huile en utilisant un papier de cuisine.",
+      "Verser une cuillère de pâte au centre de la poêle chaude.",
+      "Incliner rapidement la poêle en cercles pour étaler la pâte uniformément.",
+      "Cuire pendant 1-2 minutes jusqu'à ce que les bords soient dorés et se détachent.",
+      "Retourner avec une spatule et cuire l'autre côté pendant 30 secondes à 1 minute.",
+      "Répéter le processus avec le reste de la pâte, en graissant la poêle entre chaque crêpe."
+    ],
+    "gadgets": [
+      "poêle antiadhésive",
+      "crêpière",
+      "fouet",
+      "grand bol",
+      "spatule",
+      "passoire ou tamis",
+      "cuillère ou louche"
+    ],
+    "total_time_minutes": 60,
+    "oven_time_minutes": null,
+    "raw_text": "Crêpes pour 4 personnes. Ingrédients: 3 œufs, 250 grammes de farine, 500 millilitres de lait, 50 grammes de beurre fondu, une pincée de sel et une cuillère à café de sucre optionnelle. Étapes: Battre les œufs dans un grand bol. Ajouter la farine tamisée petit à petit en battant. Incorporer le lait progressivement jusqu'à obtenir une pâte homogène. Ajouter le beurre, le sel et le sucre. Laisser reposer 30 minutes au réfrigérateur. Chauffer une poêle antiadhésive à feu moyen-élevé. Graisser légèrement. Verser une cuillère de pâte et l'étaler en inclinant la poêle. Cuire 1-2 minutes, retourner et cuire encore une minute. Répéter avec le reste. Ustensiles: poêle antiadhésive, crêpière, fouet, bol, spatule, passoire, cuillère. Temps total: 60 minutes."
+  },
+  {
     "name": "Tortilla de Patatas",
+    "language": "es",
     "ingredients": [
       {
         "name": "huevos",
@@ -128,7 +390,268 @@
     "raw_text": "Tortilla de patatas para 4 personas. Ingredientes: 6 huevos, 4 patatas medianas, 1 cebolla grande, 200 mililitros de aceite de oliva, 1 cucharadita de sal. Pasos: Pelar y cortar patatas en rodajas de 1 cm. Cortar cebolla en juliana. Calentar aceite en sartén grande. Freír patatas 15-20 minutos. Añadir cebolla y freír 10 minutos más. Escurrir y dejar enfriar. Batir huevos con sal. Mezclar patatas y cebolla con huevos. Reposar 5 minutos. Calentar sartén antiadherente con aceite. Verter mezcla y cocinar 3-4 minutos. Dar la vuelta y cocinar 2-3 minutos más. Utensilios: sartén grande, sartén antiadherente, cuchillo, tabla, batidor, bol, espátula, plato, colador. Tiempo total: 45 minutos."
   },
   {
+    "name": "Tortilha de Batatas",
+    "language": "pt",
+    "ingredients": [
+      {
+        "name": "ovos",
+        "quantity": 6,
+        "unit": "unidades"
+      },
+      {
+        "name": "batatas",
+        "quantity": 4,
+        "unit": "unidades",
+        "notes": "médias"
+      },
+      {
+        "name": "cebola",
+        "quantity": 1,
+        "unit": "unidade",
+        "notes": "grande"
+      },
+      {
+        "name": "azeite de oliva",
+        "quantity": 200,
+        "unit": "mililitros"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "colher de chá"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Descascar e cortar as batatas em rodelas finas de aproximadamente 1 cm de espessura.",
+      "Descascar e cortar a cebola em juliana fina.",
+      "Aquecer bastante azeite de oliva numa frigideira grande em lume médio.",
+      "Fritar as batatas no azeite quente durante 15-20 minutos até ficarem macias mas sem dourar demais.",
+      "Adicionar a cebola à frigideira e continuar a fritar junto com as batatas durante mais 10 minutos até ficarem bem cozidas.",
+      "Escorrer as batatas e cebola, reservando o azeite. Deixar arrefecer ligeiramente.",
+      "Bater os ovos numa tigela grande com uma pitada de sal.",
+      "Adicionar as batatas e cebola escorridas aos ovos batidos. Misturar suavemente com uma espátula.",
+      "Deixar repousar a mistura durante 5 minutos para que os sabores se integrem.",
+      "Aquecer uma frigideira antiaderente em lume médio-alto com um pouco do azeite reservado.",
+      "Verter a mistura de ovos e batatas na frigideira quente.",
+      "Cozinhar durante 3-4 minutos até a base ficar dourada e cozida.",
+      "Virar a tortilha com a ajuda de um prato ou usando a técnica do volteio.",
+      "Cozinhar o outro lado durante mais 2-3 minutos até ficar dourado.",
+      "Servir quente ou à temperatura ambiente."
+    ],
+    "gadgets": [
+      "frigideira grande",
+      "frigideira antiaderente",
+      "faca",
+      "tábua de cortar",
+      "batedor de varas",
+      "tigela grande",
+      "espátula",
+      "prato plano",
+      "coador ou escorredor"
+    ],
+    "total_time_minutes": 45,
+    "oven_time_minutes": null,
+    "raw_text": "Tortilha de batatas para 4 pessoas. Ingredientes: 6 ovos, 4 batatas médias, 1 cebola grande, 200 mililitros de azeite de oliva, 1 colher de chá de sal. Passos: Descascar e cortar batatas em rodelas de 1 cm. Cortar cebola em juliana. Aquecer azeite em frigideira grande. Fritar batatas 15-20 minutos. Adicionar cebola e fritar mais 10 minutos. Escorrer e deixar arrefecer. Bater ovos com sal. Misturar batatas e cebola com ovos. Repousar 5 minutos. Aquecer frigideira antiaderente com azeite. Verter mistura e cozinhar 3-4 minutos. Virar e cozinhar mais 2-3 minutos. Utensílios: frigideira grande, frigideira antiaderente, faca, tábua, batedor, tigela, espátula, prato, coador. Tempo total: 45 minutos."
+  },
+  {
+    "name": "Tortilla de Patates",
+    "language": "ca",
+    "ingredients": [
+      {
+        "name": "ous",
+        "quantity": 6,
+        "unit": "unitats"
+      },
+      {
+        "name": "patates",
+        "quantity": 4,
+        "unit": "unitats",
+        "notes": "mitjanes"
+      },
+      {
+        "name": "ceba",
+        "quantity": 1,
+        "unit": "unitat",
+        "notes": "gran"
+      },
+      {
+        "name": "oli d'oliva",
+        "quantity": 200,
+        "unit": "mil·lilitres"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "culleradeta"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Pelar i tallar les patates en rodanxes fines d'aproximadament 1 cm de gruix.",
+      "Pelar i tallar la ceba en juliana fina.",
+      "Escalfar abundant oli d'oliva en una paella gran a foc mitjà.",
+      "Fregir les patates en l'oli calent durant 15-20 minuts fins que estiguin tendres però sense daurar-se massa.",
+      "Afegir la ceba a la paella i continuar fregint juntament amb les patates durant 10 minuts més fins que estiguin ben cuites.",
+      "Escórrer les patates i ceba, reservant l'oli. Deixar refredar lleugerament.",
+      "Batre els ous en un bol gran amb una pessic de sal.",
+      "Afegir les patates i ceba escoades als ous batuts. Barrejar suaument amb una espàtula.",
+      "Deixar reposar la barreja durant 5 minuts perquè s'integren els sabors.",
+      "Escalfar una paella antiadherent a foc mitjà-alt amb una mica de l'oli reservat.",
+      "Abocar la barreja d'ous i patates a la paella calenta.",
+      "Coure durant 3-4 minuts fins que la base estigui daurada i curada.",
+      "Donar la volta a la tortilla amb l'ajuda d'un plat o usant la tècnica del volteig.",
+      "Coure l'altre costat durant 2-3 minuts més fins que estigui daurat.",
+      "Servir calenta o a temperatura ambient."
+    ],
+    "gadgets": [
+      "paella gran",
+      "paella antiadherent",
+      "ganivet",
+      "tauler de tallar",
+      "batedor de varetes",
+      "bol gran",
+      "espàtula",
+      "plat pla",
+      "colador o escurridor"
+    ],
+    "total_time_minutes": 45,
+    "oven_time_minutes": null,
+    "raw_text": "Tortilla de patates per a 4 persones. Ingredients: 6 ous, 4 patates mitjanes, 1 ceba gran, 200 mil·lilitres d'oli d'oliva, 1 culleradeta de sal. Passos: Pelar i tallar patates en rodanxes de 1 cm. Tallar ceba en juliana. Escalfar oli en paella gran. Fregir patates 15-20 minuts. Afegir ceba i fregir 10 minuts més. Escórrer i deixar refredar. Batre ous amb sal. Barrejar patates i ceba amb ous. Reposar 5 minuts. Escalfar paella antiadherent amb oli. Abocar barreja i coure 3-4 minuts. Donar la volta i coure 2-3 minuts més. Eines: paella gran, paella antiadherent, ganivet, tauler, batedor, bol, espàtula, plat, colador. Temps total: 45 minuts."
+  },
+  {
+    "name": "Spanish Omelette",
+    "language": "en",
+    "ingredients": [
+      {
+        "name": "eggs",
+        "quantity": 6,
+        "unit": "units"
+      },
+      {
+        "name": "potatoes",
+        "quantity": 4,
+        "unit": "units",
+        "notes": "medium"
+      },
+      {
+        "name": "onion",
+        "quantity": 1,
+        "unit": "unit",
+        "notes": "large"
+      },
+      {
+        "name": "olive oil",
+        "quantity": 200,
+        "unit": "milliliters"
+      },
+      {
+        "name": "salt",
+        "quantity": 1,
+        "unit": "teaspoon"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Peel and cut the potatoes into thin slices approximately 1 cm thick.",
+      "Peel and cut the onion into thin julienne strips.",
+      "Heat plenty of olive oil in a large pan over medium heat.",
+      "Fry the potatoes in the hot oil for 15-20 minutes until tender but not too browned.",
+      "Add the onion to the pan and continue frying together with the potatoes for another 10 minutes until well cooked.",
+      "Drain the potatoes and onion, reserving the oil. Let cool slightly.",
+      "Beat the eggs in a large bowl with a pinch of salt.",
+      "Add the drained potatoes and onion to the beaten eggs. Mix gently with a spatula.",
+      "Let the mixture rest for 5 minutes so the flavors integrate.",
+      "Heat a non-stick pan over medium-high heat with some of the reserved oil.",
+      "Pour the egg and potato mixture into the hot pan.",
+      "Cook for 3-4 minutes until the base is golden and set.",
+      "Flip the omelette with the help of a plate or using the flipping technique.",
+      "Cook the other side for another 2-3 minutes until golden.",
+      "Serve hot or at room temperature."
+    ],
+    "gadgets": [
+      "large pan",
+      "non-stick pan",
+      "knife",
+      "cutting board",
+      "whisk",
+      "large bowl",
+      "spatula",
+      "flat plate",
+      "strainer or colander"
+    ],
+    "total_time_minutes": 45,
+    "oven_time_minutes": null,
+    "raw_text": "Spanish omelette for 4 people. Ingredients: 6 eggs, 4 medium potatoes, 1 large onion, 200 milliliters of olive oil, 1 teaspoon of salt. Steps: Peel and cut potatoes into 1 cm slices. Cut onion into julienne. Heat oil in large pan. Fry potatoes 15-20 minutes. Add onion and fry 10 more minutes. Drain and let cool. Beat eggs with salt. Mix potatoes and onion with eggs. Rest 5 minutes. Heat non-stick pan with oil. Pour mixture and cook 3-4 minutes. Flip and cook 2-3 more minutes. Utensils: large pan, non-stick pan, knife, board, whisk, bowl, spatula, plate, strainer. Total time: 45 minutes."
+  },
+  {
+    "name": "Tortilla de Pommes de Terre",
+    "language": "fr",
+    "ingredients": [
+      {
+        "name": "œufs",
+        "quantity": 6,
+        "unit": "unités"
+      },
+      {
+        "name": "pommes de terre",
+        "quantity": 4,
+        "unit": "unités",
+        "notes": "moyennes"
+      },
+      {
+        "name": "oignon",
+        "quantity": 1,
+        "unit": "unité",
+        "notes": "gros"
+      },
+      {
+        "name": "huile d'olive",
+        "quantity": 200,
+        "unit": "millilitres"
+      },
+      {
+        "name": "sel",
+        "quantity": 1,
+        "unit": "cuillère à café"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Éplucher et couper les pommes de terre en fines tranches d'environ 1 cm d'épaisseur.",
+      "Éplucher et couper l'oignon en fines juliennes.",
+      "Chauffer beaucoup d'huile d'olive dans une grande poêle à feu moyen.",
+      "Faire frire les pommes de terre dans l'huile chaude pendant 15-20 minutes jusqu'à ce qu'elles soient tendres mais pas trop dorées.",
+      "Ajouter l'oignon à la poêle et continuer à faire frire avec les pommes de terre pendant encore 10 minutes jusqu'à ce qu'elles soient bien cuites.",
+      "Égoutter les pommes de terre et l'oignon, en réservant l'huile. Laisser refroidir légèrement.",
+      "Battre les œufs dans un grand bol avec une pincée de sel.",
+      "Ajouter les pommes de terre et l'oignon égouttés aux œufs battus. Mélanger délicatement avec une spatule.",
+      "Laisser reposer le mélange pendant 5 minutes pour que les saveurs s'intègrent.",
+      "Chauffer une poêle antiadhésive à feu moyen-élevé avec un peu de l'huile réservée.",
+      "Verser le mélange d'œufs et de pommes de terre dans la poêle chaude.",
+      "Cuire pendant 3-4 minutes jusqu'à ce que la base soit dorée et prise.",
+      "Retourner la tortilla avec l'aide d'une assiette ou en utilisant la technique du retournement.",
+      "Cuire l'autre côté pendant encore 2-3 minutes jusqu'à ce qu'il soit doré.",
+      "Servir chaud ou à température ambiante."
+    ],
+    "gadgets": [
+      "grande poêle",
+      "poêle antiadhésive",
+      "couteau",
+      "planche à découper",
+      "fouet",
+      "grand bol",
+      "spatule",
+      "assiette plate",
+      "passoire ou égouttoir"
+    ],
+    "total_time_minutes": 45,
+    "oven_time_minutes": null,
+    "raw_text": "Tortilla de pommes de terre pour 4 personnes. Ingrédients: 6 œufs, 4 pommes de terre moyennes, 1 gros oignon, 200 millilitres d'huile d'olive, 1 cuillère à café de sel. Étapes: Éplucher et couper les pommes de terre en tranches de 1 cm. Couper l'oignon en julienne. Chauffer l'huile dans une grande poêle. Faire frire les pommes de terre 15-20 minutes. Ajouter l'oignon et faire frire 10 minutes de plus. Égoutter et laisser refroidir. Battre les œufs avec du sel. Mélanger les pommes de terre et l'oignon avec les œufs. Reposer 5 minutes. Chauffer une poêle antiadhésive avec de l'huile. Verser le mélange et cuire 3-4 minutes. Retourner et cuire encore 2-3 minutes. Ustensiles: grande poêle, poêle antiadhésive, couteau, planche, fouet, bol, spatule, assiette, passoire. Temps total: 45 minutes."
+  },
+  {
     "name": "Lubina a la Sal con Patatas Panaderas",
+    "language": "es",
     "ingredients": [
       {
         "name": "lubina",
@@ -242,6 +765,473 @@
     "total_time_minutes": 75,
     "oven_time_minutes": 35,
     "raw_text": "Lubina a la sal con patatas panaderas para 4 personas. Ingredientes: 1 lubina entera de 1 kg, 2 kg de sal gorda, 2 claras de huevo, 6 patatas medianas, 2 cebollas medianas, 1 pimiento rojo grande, 100 ml de aceite de oliva, 100 ml de vino blanco, 4 dientes de ajo, 3 ramitas de tomillo, 2 ramitas de romero, sal y pimienta. Pasos: Precalentar horno a 200°C. Limpiar lubina sin escamarla, solo vísceras. Secar bien. Mezclar sal gorda con claras hasta formar pasta. Forrar bandeja con papel. Colocar capa de sal, poner lubina encima y cubrir completamente con sal. Hornear 30-35 minutos a 200°C. Para patatas: cortar patatas en rodajas, cebollas en rodajas, pimiento en tiras, picar ajos. Sofreír cebollas 5 min, añadir pimiento y ajos 3 min, añadir patatas, vino, hierbas, sal y pimienta. Cocinar 20-25 min hasta tiernas. Retirar lubina, reposar 5 min, romper costra de sal, retirar piel y filetear. Servir con patatas. Utensilios: horno, bandeja, papel de hornear, bol, sartén, cuchillo, tabla, espátula, papel de cocina, martillo, pinzas. Tiempo total: 75 minutos, tiempo de horno: 35 minutos."
+  },
+  {
+    "name": "Robalo à Sal com Batatas Panadeiras",
+    "language": "pt",
+    "ingredients": [
+      {
+        "name": "robalo",
+        "quantity": 1,
+        "unit": "unidade",
+        "notes": "inteiro, de aproximadamente 1 kg"
+      },
+      {
+        "name": "sal grosso",
+        "quantity": 2,
+        "unit": "quilogramas"
+      },
+      {
+        "name": "clara de ovo",
+        "quantity": 2,
+        "unit": "unidades"
+      },
+      {
+        "name": "batatas",
+        "quantity": 6,
+        "unit": "unidades",
+        "notes": "médias"
+      },
+      {
+        "name": "cebola",
+        "quantity": 2,
+        "unit": "unidades",
+        "notes": "médias"
+      },
+      {
+        "name": "pimento vermelho",
+        "quantity": 1,
+        "unit": "unidade",
+        "notes": "grande"
+      },
+      {
+        "name": "azeite de oliva",
+        "quantity": 100,
+        "unit": "mililitros"
+      },
+      {
+        "name": "vinho branco",
+        "quantity": 100,
+        "unit": "mililitros"
+      },
+      {
+        "name": "alho",
+        "quantity": 4,
+        "unit": "dentes"
+      },
+      {
+        "name": "tomilho",
+        "quantity": 3,
+        "unit": "ramos"
+      },
+      {
+        "name": "alecrim",
+        "quantity": 2,
+        "unit": "ramos"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "colher de chá"
+      },
+      {
+        "name": "pimenta preta",
+        "quantity": 1,
+        "unit": "pitada"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Pré-aquecer o forno a 200°C.",
+      "Limpar o robalo sem escamar, apenas retirando as vísceras pela abertura da barriga. Manter as escamas.",
+      "Secar bem o robalo por dentro e por fora com papel de cozinha.",
+      "Numa tigela grande, misturar o sal grosso com as claras de ovo até formar uma pasta consistente.",
+      "Forrar uma assadeira com papel de forno.",
+      "Colocar uma camada da mistura de sal sobre o papel, do tamanho do robalo.",
+      "Colocar o robalo sobre a camada de sal.",
+      "Cobrir completamente o robalo com o resto da mistura de sal, formando uma crosta uniforme.",
+      "Assar o robalo durante 30-35 minutos a 200°C.",
+      "Entretanto, preparar as batatas panadeiras: descascar e cortar as batatas em rodelas de 1 cm de espessura.",
+      "Cortar as cebolas em rodelas finas.",
+      "Cortar o pimento vermelho em tiras.",
+      "Descascar e picar os alhos finamente.",
+      "Numa frigideira grande, aquecer o azeite de oliva em lume médio.",
+      "Refogar as cebolas durante 5 minutos até ficarem transparentes.",
+      "Adicionar o pimento vermelho e os alhos, cozinhar mais 3 minutos.",
+      "Adicionar as batatas, o vinho branco, o tomilho e o alecrim.",
+      "Temperar com sal e pimenta.",
+      "Cozinhar em lume médio-baixo durante 20-25 minutos, mexendo ocasionalmente, até as batatas ficarem macias.",
+      "Retirar o robalo do forno e deixar repousar 5 minutos.",
+      "Partir a crosta de sal com um martelo ou as costas de uma faca.",
+      "Retirar a crosta de sal e a pele do robalo.",
+      "Filetear o robalo e servir com as batatas panadeiras quentes."
+    ],
+    "gadgets": [
+      "forno",
+      "assadeira",
+      "papel de forno",
+      "tigela grande",
+      "frigideira grande",
+      "faca",
+      "tábua de cortar",
+      "espátula",
+      "papel de cozinha",
+      "martelo ou malho",
+      "pinças"
+    ],
+    "total_time_minutes": 75,
+    "oven_time_minutes": 35,
+    "raw_text": "Robalo à sal com batatas panadeiras para 4 pessoas. Ingredientes: 1 robalo inteiro de 1 kg, 2 kg de sal grosso, 2 claras de ovo, 6 batatas médias, 2 cebolas médias, 1 pimento vermelho grande, 100 ml de azeite de oliva, 100 ml de vinho branco, 4 dentes de alho, 3 ramos de tomilho, 2 ramos de alecrim, sal e pimenta. Passos: Pré-aquecer forno a 200°C. Limpar robalo sem escamar, apenas vísceras. Secar bem. Misturar sal grosso com claras até formar pasta. Forrar assadeira com papel. Colocar camada de sal, pôr robalo em cima e cobrir completamente com sal. Assar 30-35 minutos a 200°C. Para batatas: cortar batatas em rodelas, cebolas em rodelas, pimento em tiras, picar alhos. Refogar cebolas 5 min, adicionar pimento e alhos 3 min, adicionar batatas, vinho, ervas, sal e pimenta. Cozinhar 20-25 min até macias. Retirar robalo, repousar 5 min, partir crosta de sal, retirar pele e filetear. Servir com batatas. Utensílios: forno, assadeira, papel de forno, tigela, frigideira, faca, tábua, espátula, papel de cozinha, martelo, pinças. Tempo total: 75 minutos, tempo de forno: 35 minutos."
+  },
+  {
+    "name": "Llobarro a la Sal amb Patates Panaderes",
+    "language": "ca",
+    "ingredients": [
+      {
+        "name": "llobarro",
+        "quantity": 1,
+        "unit": "unitat",
+        "notes": "sencer, d'aproximadament 1 kg"
+      },
+      {
+        "name": "sal gruixuda",
+        "quantity": 2,
+        "unit": "quilograms"
+      },
+      {
+        "name": "clara d'ou",
+        "quantity": 2,
+        "unit": "unitats"
+      },
+      {
+        "name": "patates",
+        "quantity": 6,
+        "unit": "unitats",
+        "notes": "mitjanes"
+      },
+      {
+        "name": "ceba",
+        "quantity": 2,
+        "unit": "unitats",
+        "notes": "mitjanes"
+      },
+      {
+        "name": "pebrot vermell",
+        "quantity": 1,
+        "unit": "unitat",
+        "notes": "gran"
+      },
+      {
+        "name": "oli d'oliva",
+        "quantity": 100,
+        "unit": "mil·lilitres"
+      },
+      {
+        "name": "vi blanc",
+        "quantity": 100,
+        "unit": "mil·lilitres"
+      },
+      {
+        "name": "all",
+        "quantity": 4,
+        "unit": "dents"
+      },
+      {
+        "name": "farigola",
+        "quantity": 3,
+        "unit": "branques"
+      },
+      {
+        "name": "romaní",
+        "quantity": 2,
+        "unit": "branques"
+      },
+      {
+        "name": "sal",
+        "quantity": 1,
+        "unit": "culleradeta"
+      },
+      {
+        "name": "pebre negre",
+        "quantity": 1,
+        "unit": "pessic"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Preescalfar el forn a 200°C.",
+      "Netejar el llobarro sense escamar-lo, només retirant les vísceres per l'obertura del ventre. Mantenir les escates.",
+      "Assegar bé el llobarro per dins i per fora amb paper de cuina.",
+      "En un bol gran, barrejar la sal gruixuda amb les clares d'ou fins formar una pasta consistent.",
+      "Folrar una safata de forn amb paper de forn.",
+      "Col·locar una capa de la barreja de sal sobre el paper, de la mida del llobarro.",
+      "Col·locar el llobarro sobre la capa de sal.",
+      "Cobrir completament el llobarro amb la resta de la barreja de sal, formant una crosta uniforme.",
+      "Coure el llobarro durant 30-35 minuts a 200°C.",
+      "Mentrestant, preparar les patates panaderes: pelar i tallar les patates en rodanxes d'1 cm de gruix.",
+      "Tallar les cebes en rodanxes fines.",
+      "Tallar el pebrot vermell en tires.",
+      "Pelar i picar els alls finament.",
+      "En una paella gran, escalfar l'oli d'oliva a foc mitjà.",
+      "Sofregir les cebes durant 5 minuts fins que estiguin transparents.",
+      "Afegir el pebrot vermell i els alls, coure 3 minuts més.",
+      "Afegir les patates, el vi blanc, la farigola i el romaní.",
+      "Sazonar amb sal i pebre.",
+      "Coure a foc mitjà-baix durant 20-25 minuts, remenant ocasionalment, fins que les patates estiguin tendres.",
+      "Retirar el llobarro del forn i deixar reposar 5 minuts.",
+      "Trencar la crosta de sal amb un martell o el dors d'un ganivet.",
+      "Retirar la crosta de sal i la pell del llobarro.",
+      "Filetejar el llobarro i servir amb les patates panaderes calentes."
+    ],
+    "gadgets": [
+      "forn",
+      "safata de forn",
+      "paper de forn",
+      "bol gran",
+      "paella gran",
+      "ganivet",
+      "tauler de tallar",
+      "espàtula",
+      "paper de cuina",
+      "martell o maça",
+      "pinces"
+    ],
+    "total_time_minutes": 75,
+    "oven_time_minutes": 35,
+    "raw_text": "Llobarro a la sal amb patates panaderes per a 4 persones. Ingredients: 1 llobarro sencer d'1 kg, 2 kg de sal gruixuda, 2 clares d'ou, 6 patates mitjanes, 2 cebes mitjanes, 1 pebrot vermell gran, 100 ml d'oli d'oliva, 100 ml de vi blanc, 4 dents d'all, 3 branques de farigola, 2 branques de romaní, sal i pebre. Passos: Preescalfar forn a 200°C. Netejar llobarro sense escamar-lo, només vísceres. Assegar bé. Barrejar sal gruixuda amb clares fins formar pasta. Folrar safata amb paper. Col·locar capa de sal, posar llobarro a sobre i cobrir completament amb sal. Coure 30-35 minuts a 200°C. Per patates: tallar patates en rodanxes, cebes en rodanxes, pebrot en tires, picar alls. Sofregir cebes 5 min, afegir pebrot i alls 3 min, afegir patates, vi, herbes, sal i pebre. Coure 20-25 min fins tendres. Retirar llobarro, reposar 5 min, trencar crosta de sal, retirar pell i filetejar. Servir amb patates. Eines: forn, safata, paper de forn, bol, paella, ganivet, tauler, espàtula, paper de cuina, martell, pinces. Temps total: 75 minuts, temps de forn: 35 minuts."
+  },
+  {
+    "name": "Sea Bass in Salt Crust with Pan-Fried Potatoes",
+    "language": "en",
+    "ingredients": [
+      {
+        "name": "sea bass",
+        "quantity": 1,
+        "unit": "unit",
+        "notes": "whole, approximately 1 kg"
+      },
+      {
+        "name": "coarse salt",
+        "quantity": 2,
+        "unit": "kilograms"
+      },
+      {
+        "name": "egg white",
+        "quantity": 2,
+        "unit": "units"
+      },
+      {
+        "name": "potatoes",
+        "quantity": 6,
+        "unit": "units",
+        "notes": "medium"
+      },
+      {
+        "name": "onion",
+        "quantity": 2,
+        "unit": "units",
+        "notes": "medium"
+      },
+      {
+        "name": "red bell pepper",
+        "quantity": 1,
+        "unit": "unit",
+        "notes": "large"
+      },
+      {
+        "name": "olive oil",
+        "quantity": 100,
+        "unit": "milliliters"
+      },
+      {
+        "name": "white wine",
+        "quantity": 100,
+        "unit": "milliliters"
+      },
+      {
+        "name": "garlic",
+        "quantity": 4,
+        "unit": "cloves"
+      },
+      {
+        "name": "thyme",
+        "quantity": 3,
+        "unit": "sprigs"
+      },
+      {
+        "name": "rosemary",
+        "quantity": 2,
+        "unit": "sprigs"
+      },
+      {
+        "name": "salt",
+        "quantity": 1,
+        "unit": "teaspoon"
+      },
+      {
+        "name": "black pepper",
+        "quantity": 1,
+        "unit": "pinch"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Preheat the oven to 200°C.",
+      "Clean the sea bass without scaling it, only removing the viscera through the belly opening. Keep the scales.",
+      "Dry the sea bass well inside and out with paper towels.",
+      "In a large bowl, mix the coarse salt with the egg whites until you get a consistent paste.",
+      "Line a baking tray with parchment paper.",
+      "Place a layer of the salt mixture on the paper, the size of the sea bass.",
+      "Place the sea bass on the salt layer.",
+      "Completely cover the sea bass with the rest of the salt mixture, forming a uniform crust.",
+      "Bake the sea bass for 30-35 minutes at 200°C.",
+      "Meanwhile, prepare the pan-fried potatoes: peel and cut the potatoes into 1 cm thick slices.",
+      "Cut the onions into thin slices.",
+      "Cut the red bell pepper into strips.",
+      "Peel and finely chop the garlic.",
+      "In a large pan, heat the olive oil over medium heat.",
+      "Sauté the onions for 5 minutes until transparent.",
+      "Add the red bell pepper and garlic, cook for 3 more minutes.",
+      "Add the potatoes, white wine, thyme and rosemary.",
+      "Season with salt and pepper.",
+      "Cook over medium-low heat for 20-25 minutes, stirring occasionally, until the potatoes are tender.",
+      "Remove the sea bass from the oven and let rest for 5 minutes.",
+      "Break the salt crust with a hammer or the back of a knife.",
+      "Remove the salt crust and the skin of the sea bass.",
+      "Fillet the sea bass and serve with the hot pan-fried potatoes."
+    ],
+    "gadgets": [
+      "oven",
+      "baking tray",
+      "parchment paper",
+      "large bowl",
+      "large pan",
+      "knife",
+      "cutting board",
+      "spatula",
+      "paper towels",
+      "hammer or mallet",
+      "tongs"
+    ],
+    "total_time_minutes": 75,
+    "oven_time_minutes": 35,
+    "raw_text": "Sea bass in salt crust with pan-fried potatoes for 4 people. Ingredients: 1 whole sea bass of 1 kg, 2 kg of coarse salt, 2 egg whites, 6 medium potatoes, 2 medium onions, 1 large red bell pepper, 100 ml of olive oil, 100 ml of white wine, 4 garlic cloves, 3 sprigs of thyme, 2 sprigs of rosemary, salt and pepper. Steps: Preheat oven to 200°C. Clean sea bass without scaling, only viscera. Dry well. Mix coarse salt with egg whites until paste forms. Line tray with paper. Place salt layer, put sea bass on top and cover completely with salt. Bake 30-35 minutes at 200°C. For potatoes: cut potatoes into slices, onions into slices, pepper into strips, chop garlic. Sauté onions 5 min, add pepper and garlic 3 min, add potatoes, wine, herbs, salt and pepper. Cook 20-25 min until tender. Remove sea bass, rest 5 min, break salt crust, remove skin and fillet. Serve with potatoes. Utensils: oven, baking tray, parchment paper, bowl, pan, knife, board, spatula, paper towels, hammer, tongs. Total time: 75 minutes, oven time: 35 minutes."
+  },
+  {
+    "name": "Bar à la Croûte de Sel avec Pommes de Terre à la Boulangère",
+    "language": "fr",
+    "ingredients": [
+      {
+        "name": "bar",
+        "quantity": 1,
+        "unit": "unité",
+        "notes": "entier, d'environ 1 kg"
+      },
+      {
+        "name": "gros sel",
+        "quantity": 2,
+        "unit": "kilogrammes"
+      },
+      {
+        "name": "blanc d'œuf",
+        "quantity": 2,
+        "unit": "unités"
+      },
+      {
+        "name": "pommes de terre",
+        "quantity": 6,
+        "unit": "unités",
+        "notes": "moyennes"
+      },
+      {
+        "name": "oignon",
+        "quantity": 2,
+        "unit": "unités",
+        "notes": "moyennes"
+      },
+      {
+        "name": "poivron rouge",
+        "quantity": 1,
+        "unit": "unité",
+        "notes": "gros"
+      },
+      {
+        "name": "huile d'olive",
+        "quantity": 100,
+        "unit": "millilitres"
+      },
+      {
+        "name": "vin blanc",
+        "quantity": 100,
+        "unit": "millilitres"
+      },
+      {
+        "name": "ail",
+        "quantity": 4,
+        "unit": "gousses"
+      },
+      {
+        "name": "thym",
+        "quantity": 3,
+        "unit": "brins"
+      },
+      {
+        "name": "romarin",
+        "quantity": 2,
+        "unit": "brins"
+      },
+      {
+        "name": "sel",
+        "quantity": 1,
+        "unit": "cuillère à café"
+      },
+      {
+        "name": "poivre noir",
+        "quantity": 1,
+        "unit": "pincée"
+      }
+    ],
+    "servings": 4,
+    "steps": [
+      "Préchauffer le four à 200°C.",
+      "Nettoyer le bar sans l'écailler, en retirant uniquement les viscères par l'ouverture du ventre. Garder les écailles.",
+      "Sécher bien le bar à l'intérieur et à l'extérieur avec du papier de cuisine.",
+      "Dans un grand bol, mélanger le gros sel avec les blancs d'œuf jusqu'à obtenir une pâte consistante.",
+      "Recouvrir une plaque de cuisson de papier sulfurisé.",
+      "Placer une couche du mélange de sel sur le papier, de la taille du bar.",
+      "Placer le bar sur la couche de sel.",
+      "Recouvrir complètement le bar avec le reste du mélange de sel, formant une croûte uniforme.",
+      "Cuire le bar pendant 30-35 minutes à 200°C.",
+      "Pendant ce temps, préparer les pommes de terre à la boulangère: éplucher et couper les pommes de terre en tranches de 1 cm d'épaisseur.",
+      "Couper les oignons en tranches fines.",
+      "Couper le poivron rouge en lanières.",
+      "Éplucher et hacher finement l'ail.",
+      "Dans une grande poêle, chauffer l'huile d'olive à feu moyen.",
+      "Faire revenir les oignons pendant 5 minutes jusqu'à ce qu'ils soient transparents.",
+      "Ajouter le poivron rouge et l'ail, cuire 3 minutes de plus.",
+      "Ajouter les pommes de terre, le vin blanc, le thym et le romarin.",
+      "Assaisonner avec du sel et du poivre.",
+      "Cuire à feu moyen-doux pendant 20-25 minutes, en remuant occasionnellement, jusqu'à ce que les pommes de terre soient tendres.",
+      "Retirer le bar du four et laisser reposer 5 minutes.",
+      "Casser la croûte de sel avec un marteau ou le dos d'un couteau.",
+      "Retirer la croûte de sel et la peau du bar.",
+      "Fileter le bar et servir avec les pommes de terre à la boulangère chaudes."
+    ],
+    "gadgets": [
+      "four",
+      "plaque de cuisson",
+      "papier sulfurisé",
+      "grand bol",
+      "grande poêle",
+      "couteau",
+      "planche à découper",
+      "spatule",
+      "papier de cuisine",
+      "marteau ou maillet",
+      "pinces"
+    ],
+    "total_time_minutes": 75,
+    "oven_time_minutes": 35,
+    "raw_text": "Bar à la croûte de sel avec pommes de terre à la boulangère pour 4 personnes. Ingrédients: 1 bar entier d'1 kg, 2 kg de gros sel, 2 blancs d'œuf, 6 pommes de terre moyennes, 2 oignons moyens, 1 gros poivron rouge, 100 ml d'huile d'olive, 100 ml de vin blanc, 4 gousses d'ail, 3 brins de thym, 2 brins de romarin, sel et poivre. Étapes: Préchauffer le four à 200°C. Nettoyer le bar sans l'écailler, uniquement les viscères. Bien sécher. Mélanger le gros sel avec les blancs d'œuf jusqu'à obtenir une pâte. Recouvrir la plaque de papier. Placer une couche de sel, mettre le bar dessus et recouvrir complètement de sel. Cuire 30-35 minutes à 200°C. Pour les pommes de terre: couper les pommes de terre en tranches, les oignons en tranches, le poivron en lanières, hacher l'ail. Faire revenir les oignons 5 min, ajouter le poivron et l'ail 3 min, ajouter les pommes de terre, le vin, les herbes, le sel et le poivre. Cuire 20-25 min jusqu'à tendres. Retirer le bar, reposer 5 min, casser la croûte de sel, retirer la peau et fileter. Servir avec les pommes de terre. Ustensiles: four, plaque, papier sulfurisé, bol, poêle, couteau, planche, spatule, papier de cuisine, marteau, pinces. Temps total: 75 minutes, temps de cuisson au four: 35 minutes."
   }
 ]
-

@@ -360,12 +360,37 @@ async function findSimilarRecipes(rawText, mainProtein, limit = 3) {
     const exampleRecipes = JSON.parse(exampleData);
     
     // Filter by main protein if possible
+    // Try to match recipes by protein, and include recipes in different languages
     const filtered = exampleRecipes.filter(r => {
       const text = (r.raw_text || '').toLowerCase();
-      return text.includes(mainProtein.toLowerCase()) || mainProtein === 'vegetables';
+      const name = (r.name || '').toLowerCase();
+      // Match by protein in text or by recipe name similarity
+      return text.includes(mainProtein.toLowerCase()) || 
+             mainProtein === 'vegetables' ||
+             name.includes(mainProtein.toLowerCase());
     });
     
-    examples.push(...filtered.slice(0, limit));
+    // Group by recipe name to get all language versions
+    const recipeGroups = {};
+    filtered.forEach(recipe => {
+      const baseName = recipe.name.toLowerCase().replace(/^(crêpes|crepes|tortilla|tortilha|llobarro|robalo|bar|sea bass|lubina)/i, '').trim() || recipe.name;
+      if (!recipeGroups[baseName]) {
+        recipeGroups[baseName] = [];
+      }
+      recipeGroups[baseName].push(recipe);
+    });
+    
+    // Take up to 3 recipe groups, prioritizing those that match the protein
+    const selectedGroups = Object.values(recipeGroups).slice(0, limit);
+    selectedGroups.forEach(group => {
+      // Add one recipe from each group (prefer Spanish, then others)
+      const sorted = group.sort((a, b) => {
+        if (a.language === 'es') return -1;
+        if (b.language === 'es') return 1;
+        return 0;
+      });
+      examples.push(sorted[0]);
+    });
   } catch (error) {
     console.warn('Could not load example recipes:', error.message);
   }
