@@ -83,11 +83,13 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
   const translateRecipeContent = async (recipeData: Recipe, targetLanguage: string) => {
     try {
+      console.log(`🌐 [TRANSLATE] Starting translation to ${targetLanguage} for recipe: ${recipeData.title}`);
       setTranslating(true);
       const translated = await translateRecipe(recipeData, targetLanguage as any);
+      console.log(`✅ [TRANSLATE] Translation completed. Original title: "${recipeData.title}" → Translated: "${translated.title}"`);
       setTranslatedRecipe(translated);
     } catch (error) {
-      console.error('Error translating recipe:', error);
+      console.error('❌ [TRANSLATE] Error translating recipe:', error);
       // If translation fails, use original recipe
       setTranslatedRecipe(recipeData);
     } finally {
@@ -264,7 +266,6 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
                     <Text style={styles.servingsButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.servingsLabel}>{t('servings')}</Text>
                 {desiredServings !== (displayRecipe.servings || 2) && (
                   <TouchableOpacity
                     style={styles.resetButton}

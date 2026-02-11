@@ -19,6 +19,8 @@ const LANGUAGE_CODES: Record<SupportedLanguage, string> = {
 async function translateText(text: string, targetLanguage: SupportedLanguage): Promise<string> {
   try {
     const langCode = LANGUAGE_CODES[targetLanguage];
+    console.log(`🌐 [TRANSLATE] Translating text to ${targetLanguage} (${langCode}): "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
+    
     const response = await fetch(`${API_BASE_URL}/translate`, {
       method: 'POST',
       headers: {
@@ -31,13 +33,17 @@ async function translateText(text: string, targetLanguage: SupportedLanguage): P
     });
 
     if (!response.ok) {
-      throw new Error(`Translation failed: ${response.statusText}`);
+      const errorText = await response.text().catch(() => '');
+      console.error(`❌ [TRANSLATE] API error ${response.status}: ${errorText}`);
+      throw new Error(`Translation failed: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    return data.translated_text || text;
+    const translated = data.translated_text || text;
+    console.log(`✅ [TRANSLATE] Translation result: "${translated.substring(0, 50)}${translated.length > 50 ? '...' : ''}"`);
+    return translated;
   } catch (error) {
-    console.error('Translation error:', error);
+    console.error('❌ [TRANSLATE] Translation error:', error);
     // Return original text if translation fails
     return text;
   }
