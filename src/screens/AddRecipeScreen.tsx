@@ -72,6 +72,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
   // OCR states
   const [ocrStatus, setOcrStatus] = useState<'idle' | 'processing'>('idle');
   const [ocrLanguage, setOcrLanguage] = useState('spa'); // Default to Spanish
+  const [showImagePickerModal, setShowImagePickerModal] = useState(false);
 
   useEffect(() => {
     loadCustomOptions();
@@ -628,35 +629,35 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const showImagePickerOptions = () => {
     console.log('📷 [OCR] showImagePickerOptions called');
     console.log('📷 [OCR] isWeb:', isWeb);
-    // Same dialog for both web and mobile - exactly like APK
-    Alert.alert(
-      'Escanear Receta',
-      'Elige una opción para escanear la receta',
-      [
-        { text: 'Cancelar', style: 'cancel', onPress: () => console.log('📷 [OCR] User cancelled') },
-        { 
-          text: 'Tomar Foto', 
-          onPress: () => {
-            console.log('📷 [OCR] "Tomar Foto" button pressed');
-            console.log('📷 [OCR] isWeb:', isWeb);
-            if (isWeb) {
-              console.log('📷 [OCR] Calling handleTakePhotoWeb()');
-              handleTakePhotoWeb();
-            } else {
-              console.log('📷 [OCR] Calling handleTakePhoto() (native)');
+    
+    // Use modal for web, Alert for native
+    if (isWeb) {
+      console.log('📷 [OCR] Opening modal for web');
+      setShowImagePickerModal(true);
+    } else {
+      // Same dialog for mobile - exactly like APK
+      Alert.alert(
+        'Escanear Receta',
+        'Elige una opción para escanear la receta',
+        [
+          { text: 'Cancelar', style: 'cancel', onPress: () => console.log('📷 [OCR] User cancelled') },
+          { 
+            text: 'Tomar Foto', 
+            onPress: () => {
+              console.log('📷 [OCR] "Tomar Foto" button pressed');
               handleTakePhoto();
             }
-          }
-        },
-        { 
-          text: 'Seleccionar de Galería', 
-          onPress: () => {
-            console.log('📷 [OCR] "Seleccionar de Galería" button pressed');
-            handlePickImage();
-          }
-        },
-      ]
-    );
+          },
+          { 
+            text: 'Seleccionar de Galería', 
+            onPress: () => {
+              console.log('📷 [OCR] "Seleccionar de Galería" button pressed');
+              handlePickImage();
+            }
+          },
+        ]
+      );
+    }
   };
 
   const handleSave = async () => {
