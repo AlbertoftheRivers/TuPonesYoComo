@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { getRecipeById, deleteRecipe } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
 import { Recipe, Ingredient } from '../types/recipe';
+import { t } from '../lib/i18n';
 
 type RootStackParamList = {
   Home: undefined;
@@ -44,6 +45,19 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     loadRecipe();
     loadCuisines();
   }, [recipeId]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={handleDelete}
+          style={styles.headerDeleteButton}
+        >
+          <Text style={styles.headerDeleteButtonText}>🗑️</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, recipe]);
 
   const loadCuisines = async () => {
     try {
@@ -83,26 +97,30 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
     if (!recipe) return;
 
     Alert.alert(
-      'Eliminar Receta',
+      t('delete'),
       `¿Estás seguro de que quieres eliminar "${recipe.title}"?`,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteRecipe(recipe.id);
-              Alert.alert('Éxito', 'Receta eliminada');
-              navigation.goBack();
+              Alert.alert(t('success'), t('recipeDeleted'));
+              navigation.navigate('Home');
             } catch (error) {
-              Alert.alert('Error', 'Error al eliminar la receta. Por favor intenta de nuevo.');
+              Alert.alert(t('error'), 'Error al eliminar la receta. Por favor intenta de nuevo.');
               console.error(error);
             }
           },
         },
       ]
     );
+  };
+
+  const handleGoToMainMenu = () => {
+    navigation.navigate('Home');
   };
 
   if (loading || !recipe) {
@@ -248,13 +266,13 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
           style={[styles.button, styles.editButton]}
           onPress={handleEdit}
         >
-          <Text style={styles.buttonText}>Editar</Text>
+          <Text style={styles.buttonText}>{t('edit')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={handleDelete}
+          style={[styles.button, styles.mainMenuButton]}
+          onPress={handleGoToMainMenu}
         >
-          <Text style={[styles.buttonText, styles.deleteButtonText]}>Eliminar</Text>
+          <Text style={styles.buttonText}>{t('backToMainMenu')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -452,17 +470,23 @@ const styles = StyleSheet.create({
   editButton: {
     backgroundColor: COLORS.primary,
   },
-  deleteButton: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.error,
+  mainMenuButton: {
+    backgroundColor: COLORS.accent,
   },
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
   },
-  deleteButtonText: {
-    color: COLORS.error,
+  headerDeleteButton: {
+    marginRight: SPACING.md,
+    padding: SPACING.sm,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerDeleteButtonText: {
+    fontSize: 24,
   },
 });

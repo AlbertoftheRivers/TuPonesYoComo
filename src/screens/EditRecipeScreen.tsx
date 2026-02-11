@@ -20,6 +20,7 @@ import { analyzeRecipe } from '../lib/ollama';
 import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
+import { t } from '../lib/i18n';
 import { Recipe, MainProtein, RecipeAIAnalysis, Cuisine } from '../types/recipe';
 
 type RootStackParamList = {
@@ -404,10 +405,10 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         servings: servings,
       });
 
-      Alert.alert('Éxito', '¡Receta actualizada!', [
+      Alert.alert(t('success'), t('recipeSaved'), [
         {
           text: 'OK',
-          onPress: () => navigation.goBack(),
+          onPress: () => navigation.navigate('Home'),
         },
       ]);
     } catch (error) {

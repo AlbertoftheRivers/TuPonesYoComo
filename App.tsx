@@ -145,10 +145,15 @@ export default function App() {
                 <Stack.Screen
                   name="RecipeDetail"
                   component={RecipeDetailScreen}
-                  options={{
+                  options={({ navigation, route }) => ({
                     title: t('recipeDetails'),
                     headerBackVisible: true,
-                  }}
+                    headerRight: () => {
+                      // We'll pass the delete handler through navigation params
+                      // For now, we'll use a simple approach with a ref or state
+                      return null; // Will be set in RecipeDetailScreen using useLayoutEffect
+                    },
+                  })}
                 />
                 <Stack.Screen
                   name="AddRecipe"
