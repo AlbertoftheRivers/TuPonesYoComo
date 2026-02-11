@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -78,10 +78,18 @@ export default function App() {
               },
               headerTintColor: '#fff',
               headerBackTitleVisible: false,
+              headerBackVisible: true,
+              headerShown: true,
               headerTitleStyle: {
                 fontWeight: 'bold',
                 color: '#fff',
               },
+              // Ensure back button is visible on web
+              ...(Platform.OS === 'web' && {
+                headerLeftContainerStyle: {
+                  paddingLeft: 10,
+                },
+              }),
             }}
           >
             <Stack.Screen 
@@ -95,29 +103,42 @@ export default function App() {
               options={({ route }) => {
                 const protein = MAIN_PROTEINS.find(p => p.value === route.params.mainProtein);
                 return {
-                  title: protein ? `${protein.icon} ${protein.label}` : 'Recetas'
+                  title: protein ? `${protein.icon} ${protein.label}` : 'Recetas',
+                  headerBackVisible: true,
                 };
               }}
             />
             <Stack.Screen 
               name="RecipeDetail" 
               component={RecipeDetailScreen}
-              options={{ title: 'Detalles de la Receta' }}
+              options={{ 
+                title: 'Detalles de la Receta',
+                headerBackVisible: true,
+              }}
             />
             <Stack.Screen 
               name="AddRecipe" 
               component={AddRecipeScreen}
-              options={{ title: 'Añadir Receta' }}
+              options={{ 
+                title: 'Añadir Receta',
+                headerBackVisible: true,
+              }}
             />
             <Stack.Screen 
               name="EditRecipe" 
               component={EditRecipeScreen}
-              options={{ title: 'Editar Receta' }}
+              options={{ 
+                title: 'Editar Receta',
+                headerBackVisible: true,
+              }}
             />
             <Stack.Screen 
               name="UserGuide" 
               component={UserGuideScreen}
-              options={{ title: 'Guía de Usuario' }}
+              options={{ 
+                title: 'Guía de Usuario',
+                headerBackVisible: true,
+              }}
             />
           </Stack.Navigator>
         </NavigationContainer>
