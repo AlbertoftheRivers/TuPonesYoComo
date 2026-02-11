@@ -9,6 +9,8 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SPACING, BORDER_RADIUS } from '../lib/constants';
 import { MAIN_PROTEINS } from '../lib/constants';
+import { useLanguage } from '../lib/LanguageContext';
+import { getTranslatedProtein } from '../lib/categoryTranslations';
 
 type RootStackParamList = {
   Home: undefined;
@@ -26,106 +28,85 @@ interface Props {
 }
 
 export default function UserGuideScreen({ navigation }: Props) {
+  const { t, language } = useLanguage();
+  
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.title}>📖 Guía de Usuario</Text>
-        <Text style={styles.subtitle}>Aprende a usar TuPonesYoComo</Text>
+        <Text style={styles.title}>📖 {t('userGuide')}</Text>
+        <Text style={styles.subtitle}>{t('learnToUse')}</Text>
       </View>
 
       {/* Sección: Añadir Recetas */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>➕ Añadir Recetas</Text>
+        <Text style={styles.sectionTitle}>➕ {t('addRecipes')}</Text>
         <Text style={styles.sectionText}>
-          Puedes añadir recetas de tres formas diferentes:
+          {t('addRecipesDescription')}
         </Text>
 
         <View style={styles.methodCard}>
-          <Text style={styles.methodTitle}>1️⃣ Texto Plano</Text>
+          <Text style={styles.methodTitle}>1️⃣ {t('method1Text')}</Text>
           <Text style={styles.methodText}>
-            • Toca el botón "➕ Añadir Receta" en la pantalla principal{'\n'}
-            • Escribe o pega el texto de tu receta en el campo "Texto de la Receta"{'\n'}
-            • Selecciona la categoría principal (Pollo, Pescado, etc.){'\n'}
-            • Selecciona las cocinas (opcional){'\n'}
-            • Indica para cuántas personas es la receta{'\n'}
-            • Toca "Analizar con IA" para extraer ingredientes, pasos y tiempos{'\n'}
-            • Revisa el análisis y toca "Guardar Receta"
+            {t('method1Steps')}
           </Text>
         </View>
 
         <View style={styles.methodCard}>
-          <Text style={styles.methodTitle}>2️⃣ Dictado por Voz 🎤</Text>
+          <Text style={styles.methodTitle}>2️⃣ {t('method2Text')}</Text>
           <Text style={styles.methodText}>
-            • En la pantalla de añadir receta, toca el botón del micrófono 🎤{'\n'}
-            • Habla tu receta claramente{'\n'}
-            • El sistema transcribirá tu voz a texto automáticamente{'\n'}
-            • El texto aparecerá en el campo "Texto de la Receta"{'\n'}
-            • Continúa con el análisis y guardado como en el método de texto plano
+            {t('method2Steps')}
           </Text>
         </View>
 
         <View style={styles.methodCard}>
-          <Text style={styles.methodTitle}>3️⃣ Escaneo OCR 📷</Text>
+          <Text style={styles.methodTitle}>3️⃣ {t('method3Text')}</Text>
           <Text style={styles.methodText}>
-            • En la pantalla de añadir receta, toca el botón de cámara 📷{'\n'}
-            • Toma una foto de tu receta o selecciona una imagen de la galería{'\n'}
-            • Selecciona el idioma de la receta (Español por defecto){'\n'}
-            • El sistema extraerá el texto de la imagen automáticamente{'\n'}
-            • El texto aparecerá en el campo "Texto de la Receta"{'\n'}
-            • Continúa con el análisis y guardado como en el método de texto plano
+            {t('method3Steps')}
           </Text>
         </View>
       </View>
 
       {/* Sección: Editar Recetas */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>✏️ Editar Recetas</Text>
+        <Text style={styles.sectionTitle}>✏️ {t('editRecipes')}</Text>
         <Text style={styles.sectionText}>
-          Para editar una receta existente:
+          {t('editRecipesDescription')}
         </Text>
         <View style={styles.methodCard}>
           <Text style={styles.methodText}>
-            • Abre cualquier receta desde la lista de categorías{'\n'}
-            • Toca el botón "Editar" en la parte superior{'\n'}
-            • Modifica cualquier campo (título, ingredientes, pasos, etc.){'\n'}
-            • Puedes cambiar el número de porciones y los ingredientes se ajustarán automáticamente{'\n'}
-            • Si cambias el texto original, puedes tocar "Re-analizar con IA" para actualizar los datos estructurados{'\n'}
-            • Toca "Guardar Cambios" cuando termines
+            {t('editRecipesSteps')}
           </Text>
         </View>
       </View>
 
       {/* Sección: Categorías */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>📂 Categorías</Text>
+        <Text style={styles.sectionTitle}>📂 {t('categories')}</Text>
         <Text style={styles.sectionText}>
-          Las recetas se organizan por categoría principal:
+          {t('categoriesDescription')}
         </Text>
         <View style={styles.categoriesGrid}>
           {MAIN_PROTEINS.map((protein) => (
             <View key={protein.value} style={styles.categoryItem}>
               <Text style={styles.categoryIcon}>{protein.icon}</Text>
-              <Text style={styles.categoryLabel}>{protein.label}</Text>
+              <Text style={styles.categoryLabel}>{getTranslatedProtein(protein.value, language)}</Text>
             </View>
           ))}
         </View>
         <Text style={styles.sectionText}>
-          • Toca cualquier categoría en la pantalla principal para ver sus recetas{'\n'}
-          • Las recetas se muestran ordenadas alfabéticamente{'\n'}
-          • Puedes buscar recetas por nombre, cocina o ingredientes{'\n'}
-          • Puedes añadir nuevas categorías personalizadas desde la pantalla de añadir receta
+          {t('categoriesInstructions')}
         </Text>
       </View>
 
       {/* Sección: Información Adicional */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>ℹ️ Información Adicional</Text>
+        <Text style={styles.sectionTitle}>ℹ️ {t('additionalInfo')}</Text>
         <View style={styles.infoCard}>
           <Text style={styles.infoText}>
-            • <Text style={styles.bold}>Análisis con IA:</Text> La app usa inteligencia artificial para extraer automáticamente ingredientes, pasos, utensilios y tiempos de tus recetas.{'\n\n'}
-            • <Text style={styles.bold}>Porciones:</Text> Puedes ajustar el número de porciones y las cantidades de ingredientes se calcularán automáticamente.{'\n\n'}
-            • <Text style={styles.bold}>Cocinas:</Text> Puedes asignar múltiples cocinas a cada receta (Española, Italiana, Mexicana, etc.).{'\n\n'}
-            • <Text style={styles.bold}>Notificaciones:</Text> Recibirás una notificación cuando alguien añada una nueva receta.
+            • <Text style={styles.bold}>{t('aiAnalysis')}</Text> {t('aiAnalysisText')}{'\n\n'}
+            • <Text style={styles.bold}>{t('servingsInfo')}</Text> {t('servingsInfoText')}{'\n\n'}
+            • <Text style={styles.bold}>{t('cuisinesInfo')}</Text> {t('cuisinesInfoText')}{'\n\n'}
+            • <Text style={styles.bold}>{t('notificationsInfo')}</Text> {t('notificationsInfoText')}
           </Text>
         </View>
       </View>
@@ -135,7 +116,7 @@ export default function UserGuideScreen({ navigation }: Props) {
         onPress={() => navigation.goBack()}
         activeOpacity={0.8}
       >
-        <Text style={styles.closeButtonText}>Cerrar</Text>
+        <Text style={styles.closeButtonText}>{t('close')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
