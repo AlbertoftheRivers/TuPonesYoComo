@@ -24,6 +24,7 @@ import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
 import { useLanguage } from '../lib/LanguageContext';
+import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 import { isWeb } from '../lib/platform';
 import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable, WebAudioRecorder } from '../lib/webAudioRecorder';
