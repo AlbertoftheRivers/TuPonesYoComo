@@ -480,13 +480,15 @@ const styles = StyleSheet.create({
   },
   headerDeleteButton: {
     marginRight: SPACING.md,
-    padding: SPACING.sm,
-    minWidth: 44,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
     minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerDeleteButtonText: {
-    fontSize: 24,
+    fontSize: 16,
+    color: COLORS.error,
+    fontWeight: '600',
   },
 });
