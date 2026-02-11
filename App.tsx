@@ -12,6 +12,7 @@ import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
 import AddRecipeScreen from './src/screens/AddRecipeScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import UserGuideScreen from './src/screens/UserGuideScreen';
+import AdminScreen from './src/screens/AdminScreen';
 
 // Custom back button component for web
 function CustomBackButton({ navigation }: { navigation: any }) {
@@ -47,6 +48,7 @@ export type RootStackParamList = {
   AddRecipe: undefined;
   EditRecipe: { recipeId: string | number };
   UserGuide: undefined;
+  Admin: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -164,6 +166,14 @@ function AppContent() {
                   component={UserGuideScreen}
                   options={{
                     title: t('userGuide'),
+                    headerBackVisible: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="Admin"
+                  component={AdminScreen}
+                  options={{
+                    title: 'Panel de Administración',
                     headerBackVisible: true,
                   }}
                 />

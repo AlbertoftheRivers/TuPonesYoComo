@@ -27,6 +27,7 @@ type RootStackParamList = {
   AddRecipe: undefined;
   EditRecipe: { recipeId: string | number };
   UserGuide: undefined;
+  Admin: undefined;
 };
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -98,6 +99,10 @@ export default function HomeScreen({ navigation }: Props) {
 
   const handleOpenGuide = () => {
     navigation.navigate('UserGuide');
+  };
+
+  const handleOpenAdmin = () => {
+    navigation.navigate('Admin');
   };
 
   const handleRecipePress = (recipe: Recipe) => {
@@ -183,6 +188,13 @@ export default function HomeScreen({ navigation }: Props) {
                 activeOpacity={0.7}
               >
                 <Text style={styles.helpButtonText}>❓</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.adminButton}
+                onPress={handleOpenAdmin}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.adminButtonText}>⚙️</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -424,6 +436,20 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   helpButtonText: {
+    fontSize: 20,
+  },
+  adminButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  adminButtonText: {
     fontSize: 20,
   },
   grid: {

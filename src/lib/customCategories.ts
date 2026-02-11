@@ -1,8 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MAIN_PROTEINS, CUISINES } from './constants';
-
-const CUSTOM_PROTEINS_KEY = '@tuponesyocomo:custom_proteins';
-const CUSTOM_CUISINES_KEY = '@tuponesyocomo:custom_cuisines';
+import { 
+  getCustomProteins, 
+  getCustomCuisines, 
+  addCustomProtein as addCustomProteinToDB,
+  addCustomCuisine as addCustomCuisineToDB,
+  CustomProtein as DBCustomProtein,
+  CustomCuisine as DBCustomCuisine
+} from '../api/categories';
 
 export interface CustomProtein {
   value: string;
@@ -16,28 +20,38 @@ export interface CustomCuisine {
   flag: string;
 }
 
-// Get all proteins (default + custom)
+// Get all proteins (default + custom from database)
 export async function getAllProteins(): Promise<Array<{ value: string; label: string; icon: string }>> {
   try {
-    const customProteinsJson = await AsyncStorage.getItem(CUSTOM_PROTEINS_KEY);
-    const customProteins: CustomProtein[] = customProteinsJson ? JSON.parse(customProteinsJson) : [];
+    const customProteins = await getCustomProteins();
+    const customProteinsFormatted = customProteins.map(p => ({
+      value: p.value,
+      label: p.label,
+      icon: p.icon,
+    }));
     
-    return [...MAIN_PROTEINS, ...customProteins];
+    return [...MAIN_PROTEINS, ...customProteinsFormatted];
   } catch (error) {
     console.error('Error loading custom proteins:', error);
+    // Fallback to default if database fails
     return MAIN_PROTEINS;
   }
 }
 
-// Get all cuisines (default + custom)
+// Get all cuisines (default + custom from database)
 export async function getAllCuisines(): Promise<Array<{ value: string; label: string; flag: string }>> {
   try {
-    const customCuisinesJson = await AsyncStorage.getItem(CUSTOM_CUISINES_KEY);
-    const customCuisines: CustomCuisine[] = customCuisinesJson ? JSON.parse(customCuisinesJson) : [];
+    const customCuisines = await getCustomCuisines();
+    const customCuisinesFormatted = customCuisines.map(c => ({
+      value: c.value,
+      label: c.label,
+      flag: c.flag,
+    }));
     
-    return [...CUISINES, ...customCuisines];
+    return [...CUISINES, ...customCuisinesFormatted];
   } catch (error) {
     console.error('Error loading custom cuisines:', error);
+    // Fallback to default if database fails
     return CUISINES;
   }
 }
@@ -45,21 +59,12 @@ export async function getAllCuisines(): Promise<Array<{ value: string; label: st
 // Add custom protein
 export async function addCustomProtein(protein: CustomProtein): Promise<void> {
   try {
-    const customProteinsJson = await AsyncStorage.getItem(CUSTOM_PROTEINS_KEY);
-    const customProteins: CustomProtein[] = customProteinsJson ? JSON.parse(customProteinsJson) : [];
-    
-    // Check if already exists
-    if (customProteins.some(p => p.value === protein.value)) {
-      throw new Error('Esta categoría ya existe');
-    }
-    
     // Check if conflicts with default
     if (MAIN_PROTEINS.some(p => p.value === protein.value)) {
       throw new Error('Esta categoría ya existe en las categorías predeterminadas');
     }
     
-    customProteins.push(protein);
-    await AsyncStorage.setItem(CUSTOM_PROTEINS_KEY, JSON.stringify(customProteins));
+    await addCustomProteinToDB(protein);
   } catch (error) {
     console.error('Error adding custom protein:', error);
     throw error;
@@ -69,21 +74,12 @@ export async function addCustomProtein(protein: CustomProtein): Promise<void> {
 // Add custom cuisine
 export async function addCustomCuisine(cuisine: CustomCuisine): Promise<void> {
   try {
-    const customCuisinesJson = await AsyncStorage.getItem(CUSTOM_CUISINES_KEY);
-    const customCuisines: CustomCuisine[] = customCuisinesJson ? JSON.parse(customCuisinesJson) : [];
-    
-    // Check if already exists
-    if (customCuisines.some(c => c.value === cuisine.value)) {
-      throw new Error('Esta cocina ya existe');
-    }
-    
     // Check if conflicts with default
     if (CUISINES.some(c => c.value === cuisine.value)) {
       throw new Error('Esta cocina ya existe en las cocinas predeterminadas');
     }
     
-    customCuisines.push(cuisine);
-    await AsyncStorage.setItem(CUSTOM_CUISINES_KEY, JSON.stringify(customCuisines));
+    await addCustomCuisineToDB(cuisine);
   } catch (error) {
     console.error('Error adding custom cuisine:', error);
     throw error;
