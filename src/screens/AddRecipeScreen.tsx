@@ -185,16 +185,20 @@ export default function AddRecipeScreen({ navigation }: Props) {
         icon: iconToUse,
       };
 
+      console.log('➕ [ADD_RECIPE] Adding custom protein:', newProtein);
       await addCustomProtein(newProtein);
+      console.log('✅ [ADD_RECIPE] Custom protein added successfully');
       await loadCustomOptions();
+      console.log('✅ [ADD_RECIPE] Custom options reloaded');
       setMainProtein(newProtein.value as MainProtein);
       
       Alert.alert(t('success'), `${t('categoryAdded')}: "${newCategoryName}"`);
       setShowAddCategoryModal(false);
       setNewCategoryName('');
       setNewCategoryIcon('');
-    } catch (error) {
-      Alert.alert(t('error'), error instanceof Error ? error.message : t('error'));
+    } catch (error: any) {
+      console.error('❌ [ADD_RECIPE] Error adding custom protein:', error);
+      Alert.alert(t('error'), error?.message || error instanceof Error ? error.message : t('error'));
     }
   };
 
@@ -216,8 +220,11 @@ export default function AddRecipeScreen({ navigation }: Props) {
         flag: newCuisineFlag.trim(),
       };
 
+      console.log('➕ [ADD_RECIPE] Adding custom cuisine:', newCuisine);
       await addCustomCuisine(newCuisine);
+      console.log('✅ [ADD_RECIPE] Custom cuisine added successfully');
       await loadCustomOptions();
+      console.log('✅ [ADD_RECIPE] Custom options reloaded');
       setSelectedCuisines([...selectedCuisines, newCuisine.value as Cuisine]);
       
       Alert.alert(t('success'), `${t('cuisineAdded')}: "${newCuisineName}"`);

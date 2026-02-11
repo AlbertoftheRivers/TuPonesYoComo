@@ -58,10 +58,13 @@ export default function HomeScreen({ navigation }: Props) {
 
   const loadCustomProteins = async () => {
     try {
+      console.log('🔄 [HOME] Loading proteins from Supabase...');
       const proteins = await getAllProteins();
+      console.log('✅ [HOME] Loaded proteins:', proteins.length, 'total');
+      console.log('✅ [HOME] Proteins:', proteins.map(p => ({ value: p.value, label: p.label })));
       setAllProteins(proteins);
     } catch (error) {
-      console.error('Error loading custom proteins:', error);
+      console.error('❌ [HOME] Error loading custom proteins:', error);
     }
   };
 

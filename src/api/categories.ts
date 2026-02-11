@@ -71,6 +71,7 @@ export async function getCustomCuisines(): Promise<CustomCuisine[]> {
 // Add custom protein
 export async function addCustomProtein(protein: Omit<CustomProtein, 'id' | 'created_at' | 'updated_at'>): Promise<CustomProtein> {
   try {
+    console.log('📤 [API] Inserting custom protein into Supabase:', protein);
     const { data, error } = await supabase
       .from('custom_proteins')
       .insert({
@@ -82,12 +83,17 @@ export async function addCustomProtein(protein: Omit<CustomProtein, 'id' | 'crea
       .single();
 
     if (error) {
+      console.error('❌ [API] Supabase error inserting custom protein:', error);
+      console.error('❌ [API] Error code:', error.code);
+      console.error('❌ [API] Error message:', error.message);
+      console.error('❌ [API] Error details:', error.details);
       throw error;
     }
 
+    console.log('✅ [API] Custom protein inserted successfully:', data);
     return data;
-  } catch (error) {
-    console.error('Error adding custom protein:', error);
+  } catch (error: any) {
+    console.error('❌ [API] Error adding custom protein:', error);
     throw error;
   }
 }

@@ -23,16 +23,20 @@ export interface CustomCuisine {
 // Get all proteins (default + custom from database)
 export async function getAllProteins(): Promise<Array<{ value: string; label: string; icon: string }>> {
   try {
+    console.log('📡 [CUSTOM_CATEGORIES] Fetching custom proteins from Supabase...');
     const customProteins = await getCustomProteins();
+    console.log('✅ [CUSTOM_CATEGORIES] Fetched', customProteins.length, 'custom proteins');
     const customProteinsFormatted = customProteins.map(p => ({
       value: p.value,
       label: p.label,
       icon: p.icon,
     }));
     
-    return [...MAIN_PROTEINS, ...customProteinsFormatted];
+    const allProteins = [...MAIN_PROTEINS, ...customProteinsFormatted];
+    console.log('✅ [CUSTOM_CATEGORIES] Total proteins:', allProteins.length, '(default:', MAIN_PROTEINS.length, '+ custom:', customProteinsFormatted.length, ')');
+    return allProteins;
   } catch (error) {
-    console.error('Error loading custom proteins:', error);
+    console.error('❌ [CUSTOM_CATEGORIES] Error loading custom proteins:', error);
     // Fallback to default if database fails
     return MAIN_PROTEINS;
   }
@@ -59,14 +63,17 @@ export async function getAllCuisines(): Promise<Array<{ value: string; label: st
 // Add custom protein
 export async function addCustomProtein(protein: CustomProtein): Promise<void> {
   try {
+    console.log('💾 [CUSTOM_CATEGORIES] Adding custom protein to Supabase:', protein);
     // Check if conflicts with default
     if (MAIN_PROTEINS.some(p => p.value === protein.value)) {
       throw new Error('Esta categoría ya existe en las categorías predeterminadas');
     }
     
-    await addCustomProteinToDB(protein);
-  } catch (error) {
-    console.error('Error adding custom protein:', error);
+    const result = await addCustomProteinToDB(protein);
+    console.log('✅ [CUSTOM_CATEGORIES] Custom protein added to Supabase:', result);
+  } catch (error: any) {
+    console.error('❌ [CUSTOM_CATEGORIES] Error adding custom protein:', error);
+    console.error('❌ [CUSTOM_CATEGORIES] Error details:', error?.message, error?.code);
     throw error;
   }
 }
