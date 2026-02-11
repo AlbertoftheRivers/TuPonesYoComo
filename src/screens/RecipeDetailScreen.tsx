@@ -188,7 +188,7 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
         {translating && (
-          <Text style={styles.errorText}>{t('loading')}...</Text>
+          <Text style={styles.metaText}>{t('loading')}...</Text>
         )}
       </View>
     );
