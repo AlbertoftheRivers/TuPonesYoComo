@@ -15,7 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 // ImagePicker imported dynamically to avoid crash if native module is not available
 import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
-import { getRecipeById, updateRecipe, deleteRecipe } from '../api/recipes';
+import { getRecipeById, updateRecipe } from '../api/recipes';
 import { analyzeRecipe } from '../lib/ollama';
 import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
@@ -55,7 +55,6 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
   const [allCuisines, setAllCuisines] = useState(CUISINES);
@@ -417,35 +416,6 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!recipe) return;
-
-    Alert.alert(
-      'Eliminar Receta',
-      `¿Estás seguro de que quieres eliminar "${recipe.title}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setDeleting(true);
-              await deleteRecipe(recipe.id);
-              // Navigate directly to home screen
-              // Avoid nested Alert.alert which can cause issues on web
-              navigation.navigate('Home');
-            } catch (error) {
-              setDeleting(false);
-              Alert.alert('Error', 'Error al eliminar la receta. Por favor intenta de nuevo.');
-              console.error(error);
-            }
-          },
-        },
-      ]
-    );
-  };
-
   if (loading || !recipe) {
     return (
       <View style={styles.centerContainer}>
@@ -711,24 +681,12 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           <TouchableOpacity
             style={[styles.button, styles.saveButton, saving && styles.buttonDisabled]}
             onPress={handleSave}
-            disabled={saving || deleting}
+            disabled={saving}
           >
             {saving ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
               <Text style={styles.buttonText}>Guardar Cambios</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.deleteButton, deleting && styles.buttonDisabled]}
-            onPress={handleDelete}
-            disabled={saving || deleting}
-          >
-            {deleting ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.buttonText}>Eliminar Receta</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -968,9 +926,6 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: COLORS.primary,
-  },
-  deleteButton: {
-    backgroundColor: COLORS.error,
   },
   buttonDisabled: {
     opacity: 0.6,
