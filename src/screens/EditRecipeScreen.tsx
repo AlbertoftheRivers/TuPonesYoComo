@@ -20,7 +20,8 @@ import { analyzeRecipe } from '../lib/ollama';
 import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
-import { t } from '../lib/i18n';
+import { useLanguage } from '../lib/LanguageContext';
+import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
 import { Recipe, MainProtein, RecipeAIAnalysis, Cuisine } from '../types/recipe';
 
 type RootStackParamList = {
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export default function EditRecipeScreen({ navigation, route }: Props) {
+  const { t, language } = useLanguage();
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [title, setTitle] = useState('');
@@ -107,7 +109,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         navigation.goBack();
       }
     } catch (error) {
-      Alert.alert('Error', 'Error al cargar la receta. Por favor intenta de nuevo.');
+      Alert.alert(t('error'), t('errorLoadingRecipe'));
       console.error(error);
     } finally {
       setLoading(false);
@@ -116,7 +118,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   const handleReAnalyze = async () => {
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Por favor ingresa el texto de la receta para analizar.');
+      Alert.alert(t('error'), t('pleaseEnterText'));
       return;
     }
 
@@ -136,7 +138,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       setAnalyzeStatus('');
       const errorMessage = error instanceof Error 
         ? error.message 
-        : 'Error al analizar la receta. Por favor verifica la conexión con el servidor.';
+        : t('checkConnection');
       
       Alert.alert(
         'Error de Análisis',
@@ -163,7 +165,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un nombre para la categoría');
+      Alert.alert(t('error'), t('pleaseEnterName'));
       return;
     }
 
@@ -186,18 +188,18 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       setNewCategoryName('');
       setNewCategoryIcon('');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir categoría');
+      Alert.alert(t('error'), error instanceof Error ? error.message : t('error'));
     }
   };
 
   const handleAddCuisine = async () => {
     if (!newCuisineName.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un nombre para la cocina');
+      Alert.alert(t('error'), t('pleaseEnterName'));
       return;
     }
 
     if (!newCuisineFlag.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un emoji de bandera');
+      Alert.alert(t('error'), t('pleaseEnterFlag'));
       return;
     }
 
@@ -217,7 +219,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       setNewCuisineName('');
       setNewCuisineFlag('🌍');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Error al añadir cocina');
+      Alert.alert(t('error'), error instanceof Error ? error.message : t('error'));
     }
   };
 
@@ -343,7 +345,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       setOcrStatus('idle');
       const errorMessage = error instanceof Error
         ? error.message
-        : 'Error al extraer texto de la imagen. Por favor verifica la conexión con el servidor.';
+        : t('errorExtractingText');
 
       Alert.alert('Error de OCR', errorMessage);
     }
@@ -381,12 +383,12 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un título para la receta.');
+      Alert.alert(t('error'), t('pleaseEnterTitle'));
       return;
     }
 
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Por favor ingresa el texto de la receta.');
+      Alert.alert(t('error'), t('pleaseEnterText'));
       return;
     }
 
@@ -409,7 +411,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       // On web, Alert.alert can cause issues, so we navigate immediately
       navigation.navigate('Home');
     } catch (error) {
-      Alert.alert('Error', 'Error al actualizar la receta. Por favor intenta de nuevo.');
+      Alert.alert(t('error'), t('errorUpdatingRecipe'));
       console.error(error);
     } finally {
       setSaving(false);
@@ -428,23 +430,23 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Editar Receta</Text>
+          <Text style={styles.title}>{t('editRecipe')}</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.label}>Título</Text>
+            <Text style={styles.label}>{t('recipeTitle')}</Text>
             <TextInput
               style={styles.input}
               value={title}
               onChangeText={setTitle}
-              placeholder="Título de la receta"
+              placeholder={t('recipeTitle')}
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Número de Porciones</Text>
+            <Text style={styles.label}>{t('servings')}</Text>
             <TextInput
               style={styles.input}
               value={servings.toString()}
@@ -460,11 +462,11 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
               keyboardType="numeric"
               placeholderTextColor={COLORS.textSecondary}
             />
-            <Text style={styles.hintText}>Para cuántas personas es esta receta</Text>
+            <Text style={styles.hintText}>{t('servings')}</Text>
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Categoría Principal</Text>
+            <Text style={styles.label}>{t('mainProtein')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={mainProtein}
@@ -480,12 +482,12 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 {allProteins.map((protein) => (
                   <Picker.Item
                     key={protein.value}
-                    label={`${protein.icon} ${protein.label}`}
+                    label={`${protein.icon} ${getTranslatedProtein(protein.value, language)}`}
                     value={protein.value}
                   />
                 ))}
                 <Picker.Item
-                  label="➕ Otra..."
+                  label={`➕ ${t('other')}`}
                   value="__add_new__"
                 />
               </Picker>
@@ -493,7 +495,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Cocinas</Text>
+            <Text style={styles.label}>{t('cuisines')}</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
@@ -509,16 +511,16 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 }}
                 style={styles.picker}
               >
-                <Picker.Item label="Seleccionar cocina..." value="" />
+                <Picker.Item label={`${t('select')} ${t('cuisines').toLowerCase()}...`} value="" />
                 {allCuisines.map((c) => (
                   <Picker.Item
                     key={c.value}
-                    label={`${c.flag} ${c.label}`}
+                    label={`${c.flag} ${getTranslatedCuisine(c.value, language)}`}
                     value={c.value}
                   />
                 ))}
                 <Picker.Item
-                  label="➕ Añadir Nueva Cocina"
+                  label={`➕ ${t('addNewCuisine')}`}
                   value="__add_new__"
                 />
               </Picker>
@@ -548,7 +550,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
 
           <View style={styles.field}>
             <View style={styles.fieldHeader}>
-              <Text style={styles.label}>Texto de la Receta</Text>
+              <Text style={styles.label}>{t('rawText')}</Text>
               <TouchableOpacity
                 style={[
                   styles.actionButton,
@@ -590,7 +592,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                 ) : null}
               </View>
             ) : (
-              <Text style={styles.buttonText}>Re-analizar con IA</Text>
+              <Text style={styles.buttonText}>{t('analyze')}</Text>
             )}
           </TouchableOpacity>
 
@@ -599,10 +601,10 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
           )}
 
           <View style={styles.structuredSection}>
-            <Text style={styles.sectionTitle}>Datos Estructurados</Text>
+            <Text style={styles.sectionTitle}>{t('ingredients')} / {t('steps')}</Text>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Tiempo Total (minutos)</Text>
+              <Text style={styles.label}>{t('totalTime')} ({t('min')})</Text>
               <TextInput
                 style={styles.input}
                 value={totalTimeMinutes?.toString() || ''}
@@ -617,7 +619,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Tiempo en Horno (minutos)</Text>
+              <Text style={styles.label}>{t('ovenTime')} ({t('min')})</Text>
               <TextInput
                 style={styles.input}
                 value={ovenTimeMinutes?.toString() || ''}
@@ -632,7 +634,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Utensilios (separados por comas)</Text>
+              <Text style={styles.label}>{t('gadgets')}</Text>
               <TextInput
                 style={styles.input}
                 value={gadgets.join(', ')}
@@ -645,7 +647,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             </View>
 
             <View style={styles.readonlySection}>
-              <Text style={styles.label}>Ingredientes (del análisis de IA)</Text>
+              <Text style={styles.label}>{t('ingredients')}</Text>
               <View style={styles.readonlyBox}>
                 {ingredients.length > 0 ? (
                   ingredients.map((ing, idx) => (
@@ -657,13 +659,13 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                     </Text>
                   ))
                 ) : (
-                  <Text style={styles.readonlyText}>Sin ingredientes aún. Ejecuta el análisis de IA primero.</Text>
+                  <Text style={styles.readonlyText}>{t('noIngredientsYet')}</Text>
                 )}
               </View>
             </View>
 
             <View style={styles.readonlySection}>
-              <Text style={styles.label}>Pasos (del análisis de IA)</Text>
+              <Text style={styles.label}>{t('steps')}</Text>
               <View style={styles.readonlyBox}>
                 {steps.length > 0 ? (
                   steps.map((step, idx) => (
@@ -672,7 +674,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
                     </Text>
                   ))
                 ) : (
-                  <Text style={styles.readonlyText}>Sin pasos aún. Ejecuta el análisis de IA primero.</Text>
+                  <Text style={styles.readonlyText}>{t('noStepsYet')}</Text>
                 )}
               </View>
             </View>
@@ -686,7 +688,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
             {saving ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>Guardar Cambios</Text>
+              <Text style={styles.buttonText}>{t('save')}</Text>
             )}
           </TouchableOpacity>
         </View>

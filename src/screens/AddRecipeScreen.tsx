@@ -23,7 +23,7 @@ import { transcribeAudio } from '../lib/transcribe';
 import { extractTextFromImage } from '../lib/ocr';
 import { getAllProteins, getAllCuisines, addCustomProtein, addCustomCuisine } from '../lib/customCategories';
 import { detectEmojiForCategory } from '../lib/emojiMapper';
-import { t } from '../lib/i18n';
+import { useLanguage } from '../lib/LanguageContext';
 import { MainProtein, RecipeAIAnalysis, Ingredient, Cuisine } from '../types/recipe';
 import { isWeb } from '../lib/platform';
 import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable, WebAudioRecorder } from '../lib/webAudioRecorder';
@@ -44,6 +44,7 @@ interface Props {
 }
 
 export default function AddRecipeScreen({ navigation }: Props) {
+  const { t, language } = useLanguage();
   const [title, setTitle] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein | ''>('');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
@@ -84,9 +85,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
           const { status } = await Audio.requestPermissionsAsync();
           if (status !== 'granted') {
             Alert.alert(
-              'Permisos de Audio',
-              'Se necesitan permisos de micrófono para usar la función de dictado por voz.',
-              [{ text: 'OK' }]
+              t('audioPermissions'),
+              t('microphonePermission'),
+              [{ text: t('ok') }]
             );
           }
         } catch (error) {
@@ -132,31 +133,31 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
     try {
       setAnalyzing(true);
-      setAnalyzeStatus('Conectando al servidor de IA...');
+      setAnalyzeStatus(t('connectingToAI'));
       const result = await analyzeRecipe(rawText, mainProtein);
-      setAnalyzeStatus('Procesando respuesta...');
+      setAnalyzeStatus(t('processingResponse'));
       setAnalysis(result);
       setAnalyzeStatus('');
-      Alert.alert(t('success'), '¡Receta analizada correctamente!');
+      Alert.alert(t('success'), t('recipeAnalyzed'));
     } catch (error) {
       setAnalyzeStatus('');
       const errorMessage = error instanceof Error 
         ? error.message 
-        : 'Error al analizar la receta. Por favor verifica la conexión con el servidor.';
+        : t('checkConnection');
       
       Alert.alert(
-        'Error de Análisis',
+        t('analysisError'),
         errorMessage,
         [
-          { text: 'OK', style: 'default' },
+          { text: t('ok'), style: 'default' },
           {
-            text: 'Verificar Configuración',
+            text: t('verifyConfig'),
             style: 'default',
             onPress: () => {
-              Alert.alert(
-                'Configuración de API',
-                `URL de API: ${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000'}\n\nAsegúrate de:\n- El servidor API está corriendo\n- La URL de API es correcta\n- Tu dispositivo puede alcanzar el servidor`
-              );
+      Alert.alert(
+        t('apiConfig'),
+        `URL de API: ${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000'}\n\nAsegúrate de:\n- El servidor API está corriendo\n- La URL de API es correcta\n- Tu dispositivo puede alcanzar el servidor`
+      );
             }
           }
         ]
@@ -238,7 +239,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       try {
         const recorder = createWebAudioRecorder();
         if (!recorder) {
-          Alert.alert('Error', 'No se pudo crear el grabador de audio.');
+          Alert.alert(t('error'), t('couldNotCreateRecorder'));
           return;
         }
 
@@ -254,7 +255,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
         (recorder as any)._durationInterval = interval;
       } catch (error) {
         console.error('Error starting web recording:', error);
-        Alert.alert('Error', 'No se pudo iniciar la grabación. Por favor verifica los permisos del micrófono.');
+        Alert.alert(t('error'), t('couldNotStartRecording'));
         setRecordingStatus('idle');
       }
       return;
@@ -288,7 +289,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       (newRecording as any)._durationInterval = interval;
     } catch (error) {
       console.error('Error starting recording:', error);
-      Alert.alert('Error', 'No se pudo iniciar la grabación. Por favor intenta de nuevo.');
+        Alert.alert(t('error'), t('couldNotStartRecording'));
       setRecordingStatus('idle');
     }
   };
@@ -311,7 +312,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
           throw new Error('No se pudo obtener el archivo de audio');
         }
 
-        Alert.alert('Transcribiendo', 'Procesando tu audio con Whisper...');
+        Alert.alert(t('transcribing'), t('processingAudio'));
         const result = await transcribeWebAudio(audioBlob, 'es');
 
         const newText = rawText.trim() 
@@ -320,7 +321,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
         setRawText(newText);
 
         setRecordingStatus('idle');
-        Alert.alert('Éxito', 'Audio transcrito correctamente');
+        Alert.alert(t('success'), t('audioTranscribed'));
       } catch (error) {
         console.error('Error transcribing web audio:', error);
         setRecordingStatus('idle');
@@ -329,9 +330,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
         
         const errorMessage = error instanceof Error 
           ? error.message 
-          : 'Error al transcribir el audio. Por favor verifica la conexión con el servidor.';
+          : t('errorTranscribing');
         
-        Alert.alert('Error de Transcripción', errorMessage);
+        Alert.alert(t('transcriptionError'), errorMessage);
       }
       return;
     }
@@ -522,7 +523,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
     try {
       setOcrStatus('processing');
       console.log('📷 [OCR] Status set to processing');
-      Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
+      Alert.alert(t('processing'), t('extractingText'));
 
       console.log('📷 [OCR] Calling extractTextFromImage...');
       // Use default preprocessing (no adjustments)
@@ -546,7 +547,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       const confidenceMsg = result.confidence 
         ? ` (Confianza: ${result.confidence.toFixed(1)}%)`
         : '';
-      Alert.alert('Éxito', `Texto extraído correctamente de la imagen${confidenceMsg}`);
+      Alert.alert(t('success'), `${t('textExtracted')}${confidenceMsg}`);
       console.log('📷 [OCR] Success alert shown');
     } catch (error) {
       console.error('📷 [OCR] Error processing OCR:', error);
@@ -557,9 +558,9 @@ export default function AddRecipeScreen({ navigation }: Props) {
       setOcrStatus('idle');
       const errorMessage = error instanceof Error
         ? error.message
-        : 'Error al extraer texto de la imagen. Por favor verifica la conexión con el servidor.';
+        : t('errorExtractingText');
 
-      Alert.alert('Error de OCR', errorMessage);
+      Alert.alert(t('ocrError'), errorMessage);
     }
   };
 
@@ -663,22 +664,22 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un título para la receta.');
+      Alert.alert(t('error'), t('pleaseEnterTitle'));
       return;
     }
 
     if (!rawText.trim()) {
-      Alert.alert('Error', 'Por favor ingresa el texto de la receta.');
+      Alert.alert(t('error'), t('pleaseEnterText'));
       return;
     }
 
     if (!analysis) {
-      Alert.alert('Error', 'Por favor analiza la receta primero antes de guardar.');
+      Alert.alert(t('error'), t('pleaseAnalyzeFirst'));
       return;
     }
 
     if (!mainProtein) {
-      Alert.alert('Error', 'Por favor selecciona una categoría principal.');
+      Alert.alert(t('error'), t('pleaseSelectCategory'));
       return;
     }
 
@@ -750,19 +751,19 @@ export default function AddRecipeScreen({ navigation }: Props) {
       console.error('❌ Error saving recipe:', error);
       setSaving(false);
       
-      let errorMessage = 'Error al guardar la receta. Por favor verifica la conexión con Supabase e intenta de nuevo.';
+      let errorMessage = t('errorSaving');
       
       if (error instanceof Error) {
         errorMessage = error.message;
         // Provide more helpful error messages
         if (error.message.includes('Network') || error.message.includes('fetch')) {
-          errorMessage = 'Error de conexión. Por favor verifica tu conexión a internet.';
+          errorMessage = t('connectionError');
         } else if (error.message.includes('JWT') || error.message.includes('auth')) {
-          errorMessage = 'Error de autenticación. Por favor verifica la configuración de Supabase.';
+          errorMessage = t('authError');
         }
       }
       
-      Alert.alert('Error al Guardar', errorMessage);
+      Alert.alert(t('error'), errorMessage);
     }
   };
 
@@ -770,17 +771,17 @@ export default function AddRecipeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Añadir Nueva Receta</Text>
+          <Text style={styles.title}>{t('addRecipeTitle')}</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.label}>Título</Text>
+            <Text style={styles.label}>{t('recipeTitle')}</Text>
             <TextInput
               style={styles.input}
               value={title}
               onChangeText={setTitle}
-              placeholder="Ej: Pollo a la Plancha"
+              placeholder={`${t('example')} Pollo a la Plancha`}
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>
@@ -788,7 +789,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
           {/* Row with Personas, Categorías, and Cocina */}
           <View style={styles.rowContainer}>
             <View style={styles.rowFieldNarrow}>
-              <Text style={styles.boxTitle}>Personas</Text>
+              <Text style={styles.boxTitle}>{t('servings')}</Text>
               <TextInput
                 style={styles.rowInput}
                 value={servings > 0 ? servings.toString() : ''}
@@ -807,7 +808,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.rowFieldWide}>
-              <Text style={styles.boxTitle}>Categorías</Text>
+              <Text style={styles.boxTitle}>{t('mainProtein')}</Text>
               <View style={styles.rowPickerContainer}>
                 <Picker
                   selectedValue={mainProtein || ''}
@@ -822,16 +823,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   }}
                   style={styles.rowPicker}
                 >
-                  <Picker.Item label="añadir" value="" />
+                  <Picker.Item label={t('add')} value="" />
                   {allProteins.map((protein) => (
                     <Picker.Item
                       key={protein.value}
-                      label={`${protein.icon} ${protein.label}`}
+                      label={`${protein.icon} ${getTranslatedProtein(protein.value, language)}`}
                       value={protein.value}
                     />
                   ))}
                   <Picker.Item
-                    label="➕ Otra..."
+                    label={`➕ ${t('other')}`}
                     value="__add_new__"
                   />
                 </Picker>
@@ -839,7 +840,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.rowFieldWide}>
-              <Text style={styles.boxTitle}>Cocina</Text>
+              <Text style={styles.boxTitle}>{t('cuisines')}</Text>
               <View style={styles.rowPickerContainer}>
                 <Picker
                   selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
@@ -855,16 +856,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   }}
                   style={styles.rowPicker}
                 >
-                  <Picker.Item label="añadir" value="" />
+                  <Picker.Item label={t('add')} value="" />
                   {allCuisines.map((c) => (
                     <Picker.Item
                       key={c.value}
-                      label={`${c.flag} ${c.label}`}
+                      label={`${c.flag} ${getTranslatedCuisine(c.value, language)}`}
                       value={c.value}
                     />
                   ))}
                   <Picker.Item
-                    label="➕ Nueva Cocina"
+                    label={`➕ ${t('addNewCuisine')}`}
                     value="__add_new__"
                   />
                 </Picker>
@@ -897,7 +898,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
           <View style={styles.field}>
             <View style={styles.fieldHeader}>
-              <Text style={styles.label}>Texto de la Receta</Text>
+              <Text style={styles.label}>{t('rawText')}</Text>
               <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity
                   style={[
@@ -944,7 +945,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
               style={[styles.input, styles.textArea]}
               value={rawText}
               onChangeText={setRawText}
-              placeholder="Pega o escribe tu receta aquí... O usa 📷 para escanear o 🎤 para dictar"
+              placeholder={t('pasteOrWrite')}
               placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={12}
@@ -965,7 +966,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                 ) : null}
               </View>
             ) : (
-              <Text style={styles.buttonText}>Analizar con IA</Text>
+              <Text style={styles.buttonText}>{t('analyze')}</Text>
             )}
           </TouchableOpacity>
 
@@ -975,11 +976,11 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
           {analysis && (
             <View style={styles.analysisSection}>
-              <Text style={styles.analysisTitle}>Vista Previa del Análisis</Text>
+              <Text style={styles.analysisTitle}>{t('analysisPreview')}</Text>
 
               {analysis.ingredients.length > 0 && (
                 <View style={styles.analysisBlock}>
-                  <Text style={styles.analysisLabel}>Ingredientes:</Text>
+                  <Text style={styles.analysisLabel}>{t('ingredients')}:</Text>
                   {analysis.ingredients.map((ing, idx) => (
                     <Text key={idx} style={styles.analysisText}>
                       • {ing.quantity && `${ing.quantity} `}
@@ -993,7 +994,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
               {analysis.steps.length > 0 && (
                 <View style={styles.analysisBlock}>
-                  <Text style={styles.analysisLabel}>Pasos:</Text>
+                  <Text style={styles.analysisLabel}>{t('steps')}:</Text>
                   {analysis.steps.map((step, idx) => (
                     <Text key={idx} style={styles.analysisText}>
                       {idx + 1}. {step}
@@ -1004,16 +1005,16 @@ export default function AddRecipeScreen({ navigation }: Props) {
 
               {analysis.gadgets.length > 0 && (
                 <View style={styles.analysisBlock}>
-                  <Text style={styles.analysisLabel}>Utensilios:</Text>
+                  <Text style={styles.analysisLabel}>{t('gadgets')}:</Text>
                   <Text style={styles.analysisText}>{analysis.gadgets.join(', ')}</Text>
                 </View>
               )}
 
               <View style={styles.analysisBlock}>
-                <Text style={styles.analysisLabel}>Tiempo:</Text>
+                <Text style={styles.analysisLabel}>{t('totalTime')}:</Text>
                 <Text style={styles.analysisText}>
-                  Total: {analysis.total_time_minutes || 'N/A'} min
-                  {analysis.oven_time_minutes && ` | Horno: ${analysis.oven_time_minutes} min`}
+                  {t('total')}: {analysis.total_time_minutes || t('nA')} {t('min')}
+                  {analysis.oven_time_minutes && ` | ${t('oven')}: ${analysis.oven_time_minutes} ${t('min')}`}
                 </Text>
               </View>
             </View>
@@ -1027,7 +1028,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
             {saving ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>Guardar Receta</Text>
+              <Text style={styles.buttonText}>{t('save')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -1042,7 +1043,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Añadir Nueva Categoría</Text>
+            <Text style={styles.modalTitle}>{t('addNewCategory')}</Text>
             
             <Text style={styles.modalLabel}>Nombre de la categoría:</Text>
             <TextInput
@@ -1055,7 +1056,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
                   setNewCategoryIcon(detected);
                 }
               }}
-              placeholder="Ej: Cordero, Setas, etc."
+              placeholder={`${t('example')} Cordero, Setas, etc.`}
               placeholderTextColor={COLORS.textSecondary}
             />
             
@@ -1074,7 +1075,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
               style={styles.modalInput}
               value={newCategoryIcon}
               onChangeText={setNewCategoryIcon}
-              placeholder="Opcional: personaliza el emoji"
+              placeholder={`${t('optional')} ${t('customizeEmoji')}`}
               placeholderTextColor={COLORS.textSecondary}
             />
             
@@ -1163,14 +1164,14 @@ export default function AddRecipeScreen({ navigation }: Props) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Añadir Nueva Cocina</Text>
+            <Text style={styles.modalTitle}>{t('addNewCuisine')}</Text>
             
             <Text style={styles.modalLabel}>Nombre de la cocina:</Text>
             <TextInput
               style={styles.modalInput}
               value={newCuisineName}
               onChangeText={setNewCuisineName}
-              placeholder="Ej: Peruana, Brasileña, etc."
+              placeholder={`${t('example')} Peruana, Brasileña, etc.`}
               placeholderTextColor={COLORS.textSecondary}
             />
             

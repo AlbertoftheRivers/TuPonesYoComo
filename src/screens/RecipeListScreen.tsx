@@ -16,6 +16,8 @@ import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/
 import { getRecipesByProtein } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { Recipe, MainProtein } from '../types/recipe';
+import { useLanguage } from '../lib/LanguageContext';
+import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
 
 type RootStackParamList = {
   Home: undefined;
@@ -34,6 +36,7 @@ interface Props {
 }
 
 export default function RecipeListScreen({ navigation, route }: Props) {
+  const { t, language } = useLanguage();
   const { mainProtein } = route.params;
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +63,7 @@ export default function RecipeListScreen({ navigation, route }: Props) {
       const data = await getRecipesByProtein(mainProtein as MainProtein);
       setRecipes(data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load recipes. Please try again.');
+      Alert.alert(t('error'), t('error'));
       console.error(error);
     } finally {
       setLoading(false);
@@ -71,7 +74,7 @@ export default function RecipeListScreen({ navigation, route }: Props) {
     navigation.navigate('RecipeDetail', { recipeId: recipe.id });
   };
 
-  const proteinLabel = MAIN_PROTEINS.find(p => p.value === mainProtein)?.label || mainProtein;
+  const proteinLabel = getTranslatedProtein(mainProtein, language);
   const proteinIcon = MAIN_PROTEINS.find(p => p.value === mainProtein)?.icon || '🍽️';
 
   // Filtrar recetas basado en búsqueda
@@ -90,7 +93,7 @@ export default function RecipeListScreen({ navigation, route }: Props) {
       // Buscar en cuisines
       if (recipe.cuisines && recipe.cuisines.length > 0) {
         const cuisineLabels = recipe.cuisines
-          .map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)?.label || '')
+          .map(cuisineValue => getTranslatedCuisine(cuisineValue, language))
           .join(' ');
         if (cuisineLabels.toLowerCase().includes(query)) {
           return true;
@@ -122,13 +125,15 @@ export default function RecipeListScreen({ navigation, route }: Props) {
           <Text style={styles.titleIcon}>{proteinIcon}</Text>
           <Text style={styles.title}>{proteinLabel}</Text>
         </View>
-        <Text style={styles.count}>{filteredRecipes.length} receta{filteredRecipes.length !== 1 ? 's' : ''}</Text>
+        <Text style={styles.count}>
+          {filteredRecipes.length} {filteredRecipes.length !== 1 ? t('recipesCountPlural') : t('recipesCount')}
+        </Text>
       </View>
 
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar por nombre, cocina o ingrediente..."
+          placeholder={t('searchPlaceholder')}
           placeholderTextColor={COLORS.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -138,12 +143,12 @@ export default function RecipeListScreen({ navigation, route }: Props) {
       {filteredRecipes.length === 0 ? (
         <View style={styles.centerContainer}>
           <Text style={styles.emptyText}>
-            {searchQuery ? 'No se encontraron recetas' : 'No hay recetas'}
+            {searchQuery ? t('noRecipesFound') : t('noRecipes')}
           </Text>
           <Text style={styles.emptySubtext}>
             {searchQuery 
-              ? 'Intenta con otros términos de búsqueda'
-              : 'Toca "Añadir Receta" para crear tu primera receta'}
+              ? t('tryOtherSearch')
+              : t('tapAddRecipe')}
           </Text>
         </View>
       ) : (
@@ -167,9 +172,9 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                 </View>
                 <View style={styles.footerRow}>
                   {item.total_time_minutes ? (
-                    <Text style={styles.timeText}>⏱️ {item.total_time_minutes} min</Text>
+                    <Text style={styles.timeText}>⏱️ {item.total_time_minutes} {t('min')}</Text>
                   ) : (
-                    <Text style={styles.timeText}>⏱️ -- min</Text>
+                    <Text style={styles.timeText}>⏱️ -- {t('min')}</Text>
                   )}
                   {cuisineInfos.length > 0 && (
                     <View style={styles.cuisineFlagsContainer}>

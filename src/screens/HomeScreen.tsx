@@ -13,6 +13,7 @@ import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants'
 import { getAllProteins } from '../lib/customCategories';
 import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage, SupportedLanguage } from '../lib/LanguageContext';
+import { getTranslatedProtein } from '../lib/categoryTranslations';
 
 type RootStackParamList = {
   Home: undefined;
@@ -112,7 +113,7 @@ export default function HomeScreen({ navigation }: Props) {
                   {protein.icon}
                 </Text>
               </View>
-              <Text style={styles.cardLabel}>{protein.label}</Text>
+              <Text style={styles.cardLabel}>{getTranslatedProtein(protein.value, language)}</Text>
             </TouchableOpacity>
           ))}
         </View>
