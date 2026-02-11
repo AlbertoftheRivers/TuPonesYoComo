@@ -383,40 +383,85 @@ ${rawText}
 Extract the ingredients, steps, gadgets, and time estimates. Return the result as JSON matching the schema above.`;
 
   try {
-    // Create timeout controller
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for LLM
-
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        stream: false,
-        format: 'json',
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      // Try to get error details from Ollama
-      let errorDetails = '';
+    // Retry logic for Ollama (max 2 retries)
+    let lastError = null;
+    let response = null;
+    const maxRetries = 2;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const errorData = await response.text();
-        errorDetails = errorData ? ` - ${errorData.substring(0, 200)}` : '';
-      } catch (e) {
-        // Ignore if we can't read the error
+        // Create timeout controller
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for LLM
+
+        if (attempt > 0) {
+          console.log(`Retrying Ollama request (attempt ${attempt + 1}/${maxRetries + 1})...`);
+          // Wait a bit before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+
+        response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: OLLAMA_MODEL,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            stream: false,
+            format: 'json',
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          // Try to get error details from Ollama
+          let errorDetails = '';
+          try {
+            const errorData = await response.text();
+            errorDetails = errorData ? ` - ${errorData.substring(0, 200)}` : '';
+          } catch (e) {
+            // Ignore if we can't read the error
+          }
+          
+          // If it's a 500 error and we have retries left, retry
+          if (response.status === 500 && attempt < maxRetries) {
+            lastError = new Error(`Ollama API error: ${response.status} ${response.statusText}${errorDetails}`);
+            console.warn(`Ollama returned 500 error, will retry. Attempt ${attempt + 1}/${maxRetries + 1}`);
+            continue; // Retry
+          }
+          
+          // Otherwise, throw the error
+          console.error(`Ollama API error ${response.status} ${response.statusText}${errorDetails}`);
+          throw new Error(`Ollama API error: ${response.status} ${response.statusText}${errorDetails}`);
+        }
+        
+        // Success - break out of retry loop
+        break;
+      } catch (error) {
+        lastError = error;
+        
+        // If it's an abort error or network error and we have retries left, retry
+        if ((error.name === 'AbortError' || error.message.includes('fetch')) && attempt < maxRetries) {
+          console.warn(`Request failed, will retry. Attempt ${attempt + 1}/${maxRetries + 1}`);
+          continue; // Retry
+        }
+        
+        // If we're on the last attempt or it's not a retryable error, throw
+        if (attempt === maxRetries || !error.message.includes('500')) {
+          throw error;
+        }
       }
-      console.error(`Ollama API error ${response.status} ${response.statusText}${errorDetails}`);
-      throw new Error(`Ollama API error: ${response.status} ${response.statusText}${errorDetails}`);
+    }
+    
+    // If we exhausted retries, throw the last error
+    if (!response || !response.ok) {
+      throw lastError || new Error('Failed to get response from Ollama after retries');
     }
 
     const data = await response.json();

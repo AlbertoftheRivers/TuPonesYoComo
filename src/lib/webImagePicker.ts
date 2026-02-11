@@ -57,11 +57,22 @@ export function capturePhotoFromCamera(): Promise<string | null> {
     cancelButton.style.cursor = 'pointer';
 
     const cleanup = () => {
-      document.body.removeChild(video);
-      document.body.removeChild(captureButton);
-      document.body.removeChild(cancelButton);
+      try {
+        if (video.parentNode) {
+          document.body.removeChild(video);
+        }
+        if (captureButton.parentNode) {
+          document.body.removeChild(captureButton);
+        }
+        if (cancelButton.parentNode) {
+          document.body.removeChild(cancelButton);
+        }
+      } catch (e) {
+        console.warn('Error during cleanup:', e);
+      }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+        stream = null;
       }
     };
 
@@ -91,7 +102,20 @@ export function capturePhotoFromCamera(): Promise<string | null> {
       })
       .catch((error) => {
         console.error('Error accessing camera:', error);
+        let errorMessage = 'No se pudo acceder a la cámara.';
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorMessage = 'Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración del navegador.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorMessage = 'No se encontró ninguna cámara disponible.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorMessage = 'La cámara está siendo usada por otra aplicación.';
+        }
+        console.error('Camera error details:', error);
         cleanup();
+        // Show alert to user
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert(errorMessage);
+        }
         resolve(null);
       });
   });
@@ -120,22 +144,47 @@ export function pickImageFromFile(): Promise<string | null> {
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
-          document.body.removeChild(input);
+          try {
+            if (input.parentNode) {
+              document.body.removeChild(input);
+            }
+          } catch (e) {
+            console.warn('Error removing input:', e);
+          }
           resolve(result);
         };
-        reader.onerror = () => {
-          document.body.removeChild(input);
+        reader.onerror = (error) => {
+          console.error('Error reading file:', error);
+          try {
+            if (input.parentNode) {
+              document.body.removeChild(input);
+            }
+          } catch (e) {
+            console.warn('Error removing input:', e);
+          }
           resolve(null);
         };
         reader.readAsDataURL(file);
       } else {
-        document.body.removeChild(input);
+        try {
+          if (input.parentNode) {
+            document.body.removeChild(input);
+          }
+        } catch (e) {
+          console.warn('Error removing input:', e);
+        }
         resolve(null);
       }
     };
 
     input.oncancel = () => {
-      document.body.removeChild(input);
+      try {
+        if (input.parentNode) {
+          document.body.removeChild(input);
+        }
+      } catch (e) {
+        console.warn('Error removing input:', e);
+      }
       resolve(null);
     };
 

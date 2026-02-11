@@ -589,10 +589,14 @@ export default function AddRecipeScreen({ navigation }: Props) {
       const imageDataUrl = await capturePhotoFromCamera();
       if (imageDataUrl) {
         await processImageOCR(imageDataUrl);
+      } else {
+        // User cancelled or error occurred (error message already shown by capturePhotoFromCamera)
+        console.log('Photo capture cancelled or failed');
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'No se pudo tomar la foto. Por favor intenta de nuevo.');
+      const errorMessage = error instanceof Error ? error.message : 'No se pudo tomar la foto. Por favor intenta de nuevo.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
