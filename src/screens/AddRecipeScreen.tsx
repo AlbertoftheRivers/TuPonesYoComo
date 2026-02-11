@@ -511,26 +511,47 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const processImageOCR = async (imageUri: string) => {
+    console.log('📷 [OCR] processImageOCR called');
+    console.log('📷 [OCR] imageUri type:', typeof imageUri);
+    console.log('📷 [OCR] imageUri length:', imageUri?.length);
+    console.log('📷 [OCR] imageUri preview:', imageUri?.substring(0, 100));
+    console.log('📷 [OCR] ocrLanguage:', ocrLanguage);
+    
     try {
       setOcrStatus('processing');
+      console.log('📷 [OCR] Status set to processing');
       Alert.alert('Procesando', 'Extrayendo texto de la imagen...');
 
+      console.log('📷 [OCR] Calling extractTextFromImage...');
       // Use default preprocessing (no adjustments)
       const result = await extractTextFromImage(imageUri, ocrLanguage);
+      console.log('📷 [OCR] extractTextFromImage result:', {
+        textLength: result.text?.length,
+        textPreview: result.text?.substring(0, 100),
+        confidence: result.confidence,
+        language: result.language,
+      });
 
       const newText = rawText.trim()
         ? `${rawText.trim()}\n\n${result.text}`
         : result.text;
       setRawText(newText);
+      console.log('📷 [OCR] Text added to rawText, new length:', newText.length);
 
       setOcrStatus('idle');
+      console.log('📷 [OCR] Status set to idle');
       
       const confidenceMsg = result.confidence 
         ? ` (Confianza: ${result.confidence.toFixed(1)}%)`
         : '';
       Alert.alert('Éxito', `Texto extraído correctamente de la imagen${confidenceMsg}`);
+      console.log('📷 [OCR] Success alert shown');
     } catch (error) {
-      console.error('Error processing OCR:', error);
+      console.error('📷 [OCR] Error processing OCR:', error);
+      console.error('📷 [OCR] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       setOcrStatus('idle');
       const errorMessage = error instanceof Error
         ? error.message
@@ -585,39 +606,55 @@ export default function AddRecipeScreen({ navigation }: Props) {
   };
 
   const handleTakePhotoWeb = async () => {
+    console.log('📷 [OCR] handleTakePhotoWeb called');
     try {
+      console.log('📷 [OCR] Calling capturePhotoFromCamera()...');
       const imageDataUrl = await capturePhotoFromCamera();
+      console.log('📷 [OCR] capturePhotoFromCamera returned:', imageDataUrl ? `Data URL (${imageDataUrl.substring(0, 50)}...)` : 'null');
       if (imageDataUrl) {
+        console.log('📷 [OCR] Image captured, calling processImageOCR...');
         await processImageOCR(imageDataUrl);
       } else {
         // User cancelled or error occurred (error message already shown by capturePhotoFromCamera)
-        console.log('Photo capture cancelled or failed');
+        console.log('📷 [OCR] Photo capture cancelled or failed - no image data');
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
+      console.error('📷 [OCR] Error taking photo:', error);
       const errorMessage = error instanceof Error ? error.message : 'No se pudo tomar la foto. Por favor intenta de nuevo.';
       Alert.alert('Error', errorMessage);
     }
   };
 
   const showImagePickerOptions = () => {
+    console.log('📷 [OCR] showImagePickerOptions called');
+    console.log('📷 [OCR] isWeb:', isWeb);
     // Same dialog for both web and mobile - exactly like APK
     Alert.alert(
       'Escanear Receta',
       'Elige una opción para escanear la receta',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cancelar', style: 'cancel', onPress: () => console.log('📷 [OCR] User cancelled') },
         { 
           text: 'Tomar Foto', 
           onPress: () => {
+            console.log('📷 [OCR] "Tomar Foto" button pressed');
+            console.log('📷 [OCR] isWeb:', isWeb);
             if (isWeb) {
+              console.log('📷 [OCR] Calling handleTakePhotoWeb()');
               handleTakePhotoWeb();
             } else {
+              console.log('📷 [OCR] Calling handleTakePhoto() (native)');
               handleTakePhoto();
             }
           }
         },
-        { text: 'Seleccionar de Galería', onPress: handlePickImage },
+        { 
+          text: 'Seleccionar de Galería', 
+          onPress: () => {
+            console.log('📷 [OCR] "Seleccionar de Galería" button pressed');
+            handlePickImage();
+          }
+        },
       ]
     );
   };

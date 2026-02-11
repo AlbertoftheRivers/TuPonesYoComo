@@ -6,11 +6,17 @@
  * Capture photo from camera using getUserMedia (web only)
  */
 export function capturePhotoFromCamera(): Promise<string | null> {
+  console.log('📷 [Camera] capturePhotoFromCamera called');
   return new Promise((resolve) => {
     // Check if we're in a secure context (HTTPS or localhost)
+    console.log('📷 [Camera] Checking secure context...');
+    console.log('📷 [Camera] window exists:', typeof window !== 'undefined');
+    console.log('📷 [Camera] isSecureContext:', typeof window !== 'undefined' ? window.isSecureContext : 'N/A');
+    console.log('📷 [Camera] location.protocol:', typeof window !== 'undefined' ? window.location?.protocol : 'N/A');
+    
     if (typeof window === 'undefined' || !window.isSecureContext) {
       const errorMsg = 'La cámara requiere una conexión segura (HTTPS). Por favor, accede a la aplicación a través de HTTPS.';
-      console.error(errorMsg);
+      console.error('📷 [Camera]', errorMsg);
       if (typeof window !== 'undefined' && window.alert) {
         window.alert(errorMsg);
       }
@@ -18,15 +24,22 @@ export function capturePhotoFromCamera(): Promise<string | null> {
       return;
     }
 
+    console.log('📷 [Camera] Checking mediaDevices...');
+    console.log('📷 [Camera] navigator exists:', typeof navigator !== 'undefined');
+    console.log('📷 [Camera] mediaDevices exists:', typeof navigator !== 'undefined' && !!navigator.mediaDevices);
+    console.log('📷 [Camera] getUserMedia exists:', typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia);
+    
     if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       const errorMsg = 'La API de cámara no está disponible en este navegador. Por favor, usa Chrome, Edge o Safari.';
-      console.error(errorMsg);
+      console.error('📷 [Camera]', errorMsg);
       if (typeof window !== 'undefined' && window.alert) {
         window.alert(errorMsg);
       }
       resolve(null);
       return;
     }
+
+    console.log('📷 [Camera] Creating video element and UI...');
 
     const video = document.createElement('video');
     video.style.position = 'fixed';
@@ -94,30 +107,40 @@ export function capturePhotoFromCamera(): Promise<string | null> {
 
     let stream: MediaStream | null = null;
 
+    console.log('📷 [Camera] Requesting camera access...');
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       .then((mediaStream) => {
+        console.log('📷 [Camera] Camera access granted, stream received');
         stream = mediaStream;
         video.srcObject = mediaStream;
+        console.log('📷 [Camera] Adding video and buttons to DOM...');
         document.body.appendChild(video);
         document.body.appendChild(captureButton);
         document.body.appendChild(cancelButton);
+        console.log('📷 [Camera] Camera UI ready, waiting for user action...');
 
         captureButton.onclick = () => {
+          console.log('📷 [Camera] Capture button clicked');
+          console.log('📷 [Camera] Video dimensions:', video.videoWidth, 'x', video.videoHeight);
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           ctx?.drawImage(video, 0, 0);
           const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          console.log('📷 [Camera] Image captured, data URL length:', dataUrl.length);
           cleanup();
           resolve(dataUrl);
         };
 
         cancelButton.onclick = () => {
+          console.log('📷 [Camera] Cancel button clicked');
           cleanup();
           resolve(null);
         };
       })
       .catch((error) => {
-        console.error('Error accessing camera:', error);
+        console.error('📷 [Camera] Error accessing camera:', error);
+        console.error('📷 [Camera] Error name:', error.name);
+        console.error('📷 [Camera] Error message:', error.message);
         let errorMessage = 'No se pudo acceder a la cámara.';
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
           errorMessage = 'Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración del navegador.';

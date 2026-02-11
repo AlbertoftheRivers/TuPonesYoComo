@@ -28,23 +28,33 @@ export async function extractTextFromImage(
   language: string = 'spa',
   preprocessing?: OCRPreprocessingOptions
 ): Promise<OCRResult> {
+  console.log('📷 [OCR API] extractTextFromImage called');
+  console.log('📷 [OCR API] imageUri type:', typeof imageUri);
+  console.log('📷 [OCR API] imageUri starts with data:', imageUri?.startsWith('data:image/'));
+  console.log('📷 [OCR API] language:', language);
+  console.log('📷 [OCR API] API_BASE_URL:', API_BASE_URL);
+  
   try {
     // Create FormData to send image file
     const formData = new FormData();
     
     // Check if it's a data URI (base64) from web picker
     if (imageUri.startsWith('data:image/')) {
+      console.log('📷 [OCR API] Processing data URI (web image)');
       // Convert data URI to blob
       const response = await fetch(imageUri);
       const blob = await response.blob();
+      console.log('📷 [OCR API] Blob created, size:', blob.size, 'bytes');
       
       // Determine MIME type from data URI
       const mimeMatch = imageUri.match(/data:image\/(\w+);/);
       const mimeType = mimeMatch ? `image/${mimeMatch[1]}` : 'image/jpeg';
       const extension = mimeType.split('/')[1] || 'jpg';
+      console.log('📷 [OCR API] MIME type:', mimeType, 'Extension:', extension);
       
       formData.append('image', blob, `image.${extension}`);
     } else {
+      console.log('📷 [OCR API] Processing native file URI');
       // Native file URI
       // Get file name from URI
       const fileName = imageUri.split('/').pop() || 'image.jpg';
@@ -69,14 +79,20 @@ export async function extractTextFromImage(
     
     // Add language parameter
     formData.append('language', language);
+    console.log('📷 [OCR API] Language added to formData:', language);
     
     // Add preprocessing options if provided
     if (preprocessing) {
       formData.append('preprocessing', JSON.stringify(preprocessing));
+      console.log('📷 [OCR API] Preprocessing options added');
     }
 
+    const ocrUrl = `${API_BASE_URL}/api/ocr`;
+    console.log('📷 [OCR API] Sending request to:', ocrUrl);
+    console.log('📷 [OCR API] Request method: POST');
+    
     // Send request to backend
-    const response = await fetch(`${API_BASE_URL}/api/ocr`, {
+    const response = await fetch(ocrUrl, {
       method: 'POST',
       body: formData,
       headers: {
@@ -85,15 +101,24 @@ export async function extractTextFromImage(
       },
     });
 
+    console.log('📷 [OCR API] Response received, status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('📷 [OCR API] Error response:', errorData);
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
     const data: OCRResult = await response.json();
+    console.log('📷 [OCR API] Success! Text extracted, length:', data.text?.length);
+    console.log('📷 [OCR API] Confidence:', data.confidence);
     return data;
   } catch (error) {
-    console.error('Error extracting text from image:', error);
+    console.error('📷 [OCR API] Error extracting text from image:', error);
+    console.error('📷 [OCR API] Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     throw error;
   }
 }
