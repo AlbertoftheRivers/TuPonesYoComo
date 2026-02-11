@@ -1,0 +1,22 @@
+# Backend API Server Configuration
+# Copy this content to a file named .env in the backend/ folder
+
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# Ollama Configuration (REQUERIDO)
+OLLAMA_BASE_URL=http://192.168.200.45:11434
+OLLAMA_MODEL=llama3.2:3b
+
+# Whisper Configuration (OPCIONAL - tiene defaults)
+WHISPER_MODEL=base
+WHISPER_VENV_PATH=/opt/apps/TuPonesYoComo/backend/whisper_venv
+
+# Supabase Configuration (OPCIONAL - solo para RAG mejorado)
+# Si no configuras estas, el sistema funcionará con las 3 recetas de ejemplo
+# Para obtener las credenciales: Supabase Dashboard → Settings → API
+# IMPORTANTE: Usa la SERVICE_ROLE_KEY (no la anon key) para el backend
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key-here
+
