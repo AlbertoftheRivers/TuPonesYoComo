@@ -25,6 +25,7 @@ export function createWebAudioRecorder(): WebAudioRecorder | null {
   let audioStream: MediaStream | null = null;
   let audioChunks: Blob[] = [];
   let isRecording = false;
+  let savedMimeType: string = 'audio/webm'; // Default mimeType
 
   return {
     async start() {
@@ -54,6 +55,7 @@ export function createWebAudioRecorder(): WebAudioRecorder | null {
           options.mimeType = 'audio/m4a';
         }
 
+        savedMimeType = options.mimeType || 'audio/webm';
         mediaRecorder = new MediaRecorder(stream, options);
 
         mediaRecorder.ondataavailable = (event) => {
@@ -94,18 +96,21 @@ export function createWebAudioRecorder(): WebAudioRecorder | null {
           return;
         }
 
+        // Save mimeType before stopping (since mediaRecorder will be null in onstop)
+        const mimeType = savedMimeType;
+        const currentStream = audioStream;
+
         mediaRecorder.onstop = () => {
           isRecording = false;
           
           // Stop all tracks
-          if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-            audioStream = null;
+          if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
           }
 
-          // Create blob from chunks
+          // Create blob from chunks using saved mimeType
           if (audioChunks.length > 0) {
-            const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+            const blob = new Blob(audioChunks, { type: mimeType });
             audioChunks = [];
             resolve(blob);
           } else {
@@ -114,7 +119,15 @@ export function createWebAudioRecorder(): WebAudioRecorder | null {
         };
 
         mediaRecorder.stop();
-        mediaRecorder = null;
+        // Don't set to null immediately - let onstop handler finish first
+        // But we'll clean it up after a short delay
+        setTimeout(() => {
+          mediaRecorder = null;
+          if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+            audioStream = null;
+          }
+        }, 100);
       });
     },
 
