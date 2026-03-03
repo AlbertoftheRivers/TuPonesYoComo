@@ -33,6 +33,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://192.168.200.45:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:3b';
+/** Max context tokens to request from Ollama; lower = less RAM and fewer "model runner stopped" errors */
+const OLLAMA_NUM_CTX = parseInt(process.env.OLLAMA_NUM_CTX || '2048', 10);
+/** Max characters for recipe raw text sent to Ollama to avoid OOM */
+const MAX_RECIPE_RAW_TEXT_LENGTH = parseInt(process.env.MAX_RECIPE_RAW_TEXT_LENGTH || '8000', 10);
+/** Max RAG examples to include (fewer = smaller prompt, less memory). Default 0 to avoid Ollama OOM. */
+const MAX_RAG_EXAMPLES = parseInt(process.env.MAX_RAG_EXAMPLES || '0', 10);
 const WHISPER_MODEL = process.env.WHISPER_MODEL || 'base'; // base is better for systems with < 4GB RAM
 const WHISPER_VENV_PATH = process.env.WHISPER_VENV_PATH || path.join(__dirname, 'whisper_venv');
 
@@ -350,7 +356,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
  * Find similar recipes from database or examples
  * Uses RAG (Retrieval Augmented Generation) to improve prompts
  */
-async function findSimilarRecipes(rawText, mainProtein, limit = 3) {
+async function findSimilarRecipes(rawText, mainProtein, limit = 0) {
   const examples = [];
   
   // Load example recipes
@@ -438,8 +444,9 @@ function buildEnhancedPrompt(rawText, mainProtein, examples) {
     examplesText = '\n\nEXAMPLES OF SIMILAR RECIPES (use these as reference for format and structure):\n\n';
     
     examples.forEach((example, idx) => {
+      const rawSnippet = (example.raw_text || '').substring(0, 180);
       examplesText += `Example ${idx + 1}:\n`;
-      examplesText += `Raw text: ${(example.raw_text || '').substring(0, 200)}...\n`;
+      examplesText += `Raw text: ${rawSnippet}${rawSnippet.length >= 180 ? '...' : ''}\n`;
       examplesText += `Extracted JSON:\n${JSON.stringify({
         ingredients: example.ingredients || [],
         steps: example.steps || [],
@@ -468,7 +475,7 @@ app.post('/api/analyze-recipe', async (req, res) => {
   }
 
   // Find similar recipes for RAG
-  const similarRecipes = await findSimilarRecipes(rawText, mainProtein, 3);
+  const similarRecipes = await findSimilarRecipes(rawText, mainProtein, MAX_RAG_EXAMPLES);
   console.log(`📚 Using ${similarRecipes.length} similar recipes for RAG enhancement`);
 
   const systemPrompt = `You are an expert recipe analysis assistant specialized in multilingual recipes (Spanish, Portuguese, Catalan, French). Your task is to extract structured information from raw recipe text and return it as valid JSON.
@@ -512,7 +519,10 @@ Rules:
 - Pay attention to cooking techniques and translate them correctly
 - Recognize common ingredient names in multiple languages`;
 
-  const userPrompt = buildEnhancedPrompt(rawText, mainProtein, similarRecipes);
+  const truncatedRaw = rawText.length > MAX_RECIPE_RAW_TEXT_LENGTH
+    ? rawText.substring(0, MAX_RECIPE_RAW_TEXT_LENGTH) + '\n[... recipe text truncated for length ...]'
+    : rawText;
+  const userPrompt = buildEnhancedPrompt(truncatedRaw, mainProtein, similarRecipes);
 
   try {
     // Retry logic for Ollama (max 2 retries)
@@ -545,6 +555,7 @@ Rules:
             ],
             stream: false,
             format: 'json',
+            options: { num_ctx: OLLAMA_NUM_CTX },
           }),
           signal: controller.signal,
         });
@@ -676,8 +687,14 @@ Rules:
       });
     }
 
+    const msg = error.message || '';
+    const isOllamaResourceError = msg.includes('model runner') || msg.includes('resource limitations') || msg.includes('unexpectedly stopped');
+    const userMessage = isOllamaResourceError
+      ? 'The language model ran out of memory. Try again in a moment, or use a shorter recipe. You can set OLLAMA_NUM_CTX=2048 or MAX_RAG_EXAMPLES=0 on the server to reduce load.'
+      : (msg || 'Failed to analyze recipe');
+
     res.status(500).json({ 
-      error: error.message || 'Failed to analyze recipe',
+      error: userMessage,
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
