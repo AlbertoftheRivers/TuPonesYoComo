@@ -700,6 +700,77 @@ Rules:
   }
 });
 
+/**
+ * Suggest a recipe from a list of ingredients (Ollama)
+ * Body: { ingredients: string[] }
+ * Returns: { suggestion: string } (recipe text)
+ */
+app.post('/api/suggest-recipe-from-ingredients', async (req, res) => {
+  const { ingredients } = req.body;
+
+  if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+    return res.status(400).json({
+      error: 'Missing or invalid field: ingredients must be a non-empty array of strings',
+    });
+  }
+
+  const list = ingredients.map((i) => String(i).trim()).filter(Boolean);
+  if (list.length === 0) {
+    return res.status(400).json({
+      error: 'At least one ingredient is required',
+    });
+  }
+
+  const ingredientsText = list.join(', ');
+  const systemPrompt = `You are a creative cook. Given a list of ingredients, suggest ONE simple recipe that uses as many of them as possible. You may assume basic pantry items (salt, pepper, oil, water). Reply in the same language as the ingredients. Format clearly with: a short title, then "Ingredientes:" list, then "Pasos:" numbered steps. Keep it concise (under 400 words). Do not use markdown code blocks.`;
+  const userPrompt = `These are the ingredients I have: ${ingredientsText}. Suggest a recipe.`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        stream: false,
+        options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 2048) },
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      throw new Error(`Ollama error: ${response.status} ${errText.substring(0, 150)}`);
+    }
+
+    const data = await response.json();
+    const suggestion = (data.message && data.message.content) ? String(data.message.content).trim() : '';
+
+    if (!suggestion) {
+      throw new Error('Ollama returned an empty suggestion');
+    }
+
+    res.json({ suggestion });
+  } catch (error) {
+    console.error('Error suggesting recipe from ingredients:', error);
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ error: 'Request timed out. Try fewer ingredients or try again.' });
+    }
+    res.status(500).json({
+      error: error.message || 'Failed to suggest recipe',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
+});
+
 // Translation endpoint
 app.post('/translate', async (req, res) => {
   const { text, target_language } = req.body;

@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderLeftWidth: 4,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.border,
     ...SHADOWS.md,
   },
   recipeHeader: {

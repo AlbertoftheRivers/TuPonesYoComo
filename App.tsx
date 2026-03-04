@@ -14,6 +14,7 @@ import AddRecipeScreen from './src/screens/AddRecipeScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import UserGuideScreen from './src/screens/UserGuideScreen';
 import AdminScreen from './src/screens/AdminScreen';
+import FridgeResultsScreen from './src/screens/FridgeResultsScreen';
 
 // Custom back button component for web
 function CustomBackButton({ navigation }: { navigation: any }) {
@@ -37,7 +38,7 @@ function CustomBackButton({ navigation }: { navigation: any }) {
         minHeight: 44,
       }}
     >
-      <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '700' }}>←</Text>
+      <Text style={{ color: COLORS.primary, fontSize: 22, fontWeight: '700' }}>←</Text>
     </TouchableOpacity>
   );
 }
@@ -47,7 +48,8 @@ export type RootStackParamList = {
   Categories: undefined;
   RecipeList: { mainProtein: string };
   RecipeDetail: { recipeId: string | number };
-  AddRecipe: undefined;
+  FridgeResults: { ingredients: string[] };
+  AddRecipe: { initialRawText?: string } | undefined;
   EditRecipe: { recipeId: string | number };
   UserGuide: undefined;
   Admin: undefined;
@@ -94,20 +96,22 @@ function AppContent() {
   try {
     return (
       <NavigationContainer>
-          <StatusBar style="auto" />
+          <StatusBar style="light" />
           <Stack.Navigator
             initialRouteName="Home"
             screenOptions={({ navigation, route }) => ({
               headerStyle: {
-                backgroundColor: COLORS.primary,
+                backgroundColor: COLORS.surface,
+                borderBottomWidth: 1,
+                borderBottomColor: COLORS.border,
               },
-              headerTintColor: '#FFF',
+              headerTintColor: COLORS.primary,
               headerBackTitleVisible: false,
               headerBackVisible: true,
               headerShown: true,
               headerTitleStyle: {
                 fontWeight: '700',
-                color: '#FFF',
+                color: COLORS.text,
                 fontSize: 18,
               },
               // Custom back button for web if default doesn't work
@@ -146,20 +150,18 @@ function AppContent() {
                   options={({ navigation, route }) => ({
                     title: t('recipeDetails'),
                     headerBackVisible: true,
-                    headerRight: () => {
-                      // We'll pass the delete handler through navigation params
-                      // For now, we'll use a simple approach with a ref or state
-                      return null; // Will be set in RecipeDetailScreen using useLayoutEffect
-                    },
+                    headerRight: () => null,
                   })}
+                />
+                <Stack.Screen
+                  name="FridgeResults"
+                  component={FridgeResultsScreen}
+                  options={{ title: t('matchingRecipes'), headerBackVisible: true }}
                 />
                 <Stack.Screen
                   name="AddRecipe"
                   component={AddRecipeScreen}
-                  options={{
-                    title: t('addRecipeTitle'),
-                    headerBackVisible: true,
-                  }}
+                  options={{ title: t('addRecipeTitle'), headerBackVisible: true }}
                 />
                 <Stack.Screen
                   name="EditRecipe"

@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderLeftWidth: 4,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.border,
     ...SHADOWS.md,
   },
   cardIcon: {

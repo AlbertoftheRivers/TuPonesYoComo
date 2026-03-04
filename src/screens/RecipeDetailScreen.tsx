@@ -492,9 +492,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.fun,
+    backgroundColor: COLORS.neonOrangeDim,
     borderWidth: 1,
-    borderColor: COLORS.funDark,
+    borderColor: COLORS.neonOrange,
   },
   cookModeButtonActive: {
     backgroundColor: COLORS.primary,
@@ -514,12 +514,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   cookModeStepCard: {
-    backgroundColor: COLORS.fun,
+    backgroundColor: COLORS.neonOrangeDim,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.funDark,
+    borderColor: COLORS.neonOrange,
   },
   cookModeStepText: {
     fontSize: 18,
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   proTipBlock: {
-    backgroundColor: COLORS.accentLight + '40',
+    backgroundColor: COLORS.neonCyanDim,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.lg,

@@ -84,3 +84,34 @@ export async function analyzeRecipe(
   }
 }
 
+/**
+ * Suggest a recipe from a list of ingredients using Ollama (backend).
+ * Returns raw text suggestion (title, ingredients, steps).
+ */
+export async function suggestRecipeFromIngredients(ingredients: string[]): Promise<string> {
+  const list = ingredients.map((i) => String(i).trim()).filter(Boolean);
+  if (list.length === 0) {
+    throw new Error('At least one ingredient is required');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  const response = await fetch(`${API_BASE_URL}/api/suggest-recipe-from-ingredients`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ingredients: list }),
+    signal: controller.signal,
+  });
+
+  clearTimeout(timeoutId);
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as any).error || `API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return typeof data.suggestion === 'string' ? data.suggestion : '';
+}
+

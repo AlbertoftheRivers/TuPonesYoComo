@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 // ImagePicker imported dynamically to avoid crash if native module is not available
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS } from '../lib/constants';
@@ -34,17 +35,19 @@ type RootStackParamList = {
   Home: undefined;
   RecipeList: { mainProtein: string };
   RecipeDetail: { recipeId: string | number };
-  AddRecipe: undefined;
+  AddRecipe: { initialRawText?: string } | undefined;
   EditRecipe: { recipeId: string | number };
 };
 
 type AddRecipeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddRecipe'>;
+type AddRecipeScreenRouteProp = RouteProp<RootStackParamList, 'AddRecipe'>;
 
 interface Props {
   navigation: AddRecipeScreenNavigationProp;
+  route: AddRecipeScreenRouteProp;
 }
 
-export default function AddRecipeScreen({ navigation }: Props) {
+export default function AddRecipeScreen({ navigation, route }: Props) {
   const { t, language } = useLanguage();
   const [title, setTitle] = useState('');
   const [addedBy, setAddedBy] = useState('');
@@ -59,7 +62,6 @@ export default function AddRecipeScreen({ navigation }: Props) {
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
   const [allCuisines, setAllCuisines] = useState<Array<{ value: string; label: string; flag: string }>>([]);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryIcon, setNewCategoryIcon] = useState('');
@@ -116,6 +118,14 @@ export default function AddRecipeScreen({ navigation }: Props) {
       }
     };
   }, [recording, webAudioRecorder]);
+
+  // Pre-fill raw text when opened from "Use this recipe" (fridge AI suggestion)
+  useEffect(() => {
+    const initial = route.params?.initialRawText;
+    if (initial && typeof initial === 'string') {
+      setRawText(initial);
+    }
+  }, [route.params?.initialRawText]);
 
   const loadCustomOptions = async () => {
     try {
@@ -783,57 +793,134 @@ export default function AddRecipeScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('addRecipeTitle')}</Text>
-          <View style={styles.stepIndicator}>
-            <View style={[styles.stepDot, currentStep >= 1 && styles.stepDotActive]} />
-            <View style={[styles.stepDot, currentStep >= 2 && styles.stepDotActive]} />
-            <View style={[styles.stepDot, currentStep >= 3 && styles.stepDotActive]} />
-          </View>
         </View>
 
-        {/* Step 1: Get recipe */}
-        {currentStep === 1 && (
-          <View style={styles.stepBlock}>
-            <Text style={styles.stepTitle}>{t('getRecipeStep')}</Text>
-            <Text style={styles.stepHint}>Pega texto, escanea o dicta tu receta</Text>
-            <View style={styles.getRecipeActions}>
-              <TouchableOpacity
-                style={[styles.bigCta, styles.bigCtaScan, ocrStatus === 'processing' && styles.bigCtaDisabled]}
-                onPress={showImagePickerOptions}
-                disabled={ocrStatus === 'processing' || recordingStatus !== 'idle'}
+        <View style={styles.form}>
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('recipeTitle')}</Text>
+            <TextInput
+              style={styles.input}
+              value={title}
+              onChangeText={setTitle}
+              placeholder={`${t('example')} Pollo a la Plancha`}
+              placeholderTextColor={COLORS.textSecondary}
+            />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('addedBy')}</Text>
+            <TextInput
+              style={styles.input}
+              value={addedBy}
+              onChangeText={setAddedBy}
+              placeholder={t('addedByPlaceholder')}
+              placeholderTextColor={COLORS.textSecondary}
+            />
+          </View>
+          <View style={styles.rowContainer}>
+            <View style={styles.rowFieldNarrow}>
+              <Text style={styles.boxTitle}>{t('servings')}</Text>
+              <TextInput
+                style={styles.rowInput}
+                value={servings > 0 ? servings.toString() : ''}
+                onChangeText={(text) => {
+                  const num = parseInt(text, 10);
+                  if (!isNaN(num) && num > 0) setServings(num);
+                  else if (text === '') setServings(0);
+                }}
+                placeholder="2"
+                keyboardType="numeric"
+                placeholderTextColor={COLORS.textSecondary}
+              />
+            </View>
+            <View style={styles.rowFieldWide}>
+              <Text style={styles.boxTitle}>{t('mainProtein')}</Text>
+              <View style={styles.rowPickerContainer}>
+                <Picker
+                  selectedValue={mainProtein || ''}
+                  onValueChange={(value) => {
+                    if (value === '__add_new__') setShowAddCategoryModal(true);
+                    else if (value === '') setMainProtein('');
+                    else setMainProtein(value as MainProtein);
+                  }}
+                  style={styles.rowPicker}
+                >
+                  <Picker.Item label={t('add')} value="" />
+                  {allProteins.map((p) => (
+                    <Picker.Item key={p.value} label={`${p.icon} ${getTranslatedProtein(p.value, language)}`} value={p.value} />
+                  ))}
+                  <Picker.Item label={`➕ ${t('other')}`} value="__add_new__" />
+                </Picker>
+              </View>
+            </View>
+          </View>
+          <View style={styles.rowFieldWide}>
+            <Text style={styles.boxTitle}>{t('cuisines')}</Text>
+            <View style={styles.rowPickerContainer}>
+              <Picker
+                selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
+                onValueChange={(value) => {
+                  if (value === '__add_new__') setShowAddCuisineModal(true);
+                  else if (value && value !== '') {
+                    const v = value as Cuisine;
+                    if (!selectedCuisines.includes(v)) setSelectedCuisines([...selectedCuisines, v]);
+                  }
+                }}
+                style={styles.rowPicker}
               >
-                {ocrStatus === 'processing' ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <Text style={styles.bigCtaEmoji}>📷</Text>
-                    <Text style={styles.bigCtaLabel}>{t('scanRecipe')}</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.bigCta,
-                  styles.bigCtaMic,
-                  (recordingStatus === 'recording' || webAudioRecorder) && styles.bigCtaMicActive,
-                  recordingStatus === 'transcribing' && styles.bigCtaDisabled,
-                ]}
-                onPress={(recording || webAudioRecorder) ? stopRecording : startRecording}
-                disabled={recordingStatus === 'transcribing' || ocrStatus === 'processing'}
-              >
-                {recordingStatus === 'transcribing' ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (recordingStatus === 'recording' || webAudioRecorder) ? (
-                  <>
-                    <Text style={styles.bigCtaEmoji}>⏹️</Text>
-                    <Text style={styles.bigCtaLabel}>{formatDuration(recordingDuration)}</Text>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.bigCtaEmoji}>🎤</Text>
-                    <Text style={styles.bigCtaLabel}>{t('record')}</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+                <Picker.Item label={t('add')} value="" />
+                {allCuisines.map((c) => (
+                  <Picker.Item key={c.value} label={`${c.flag} ${getTranslatedCuisine(c.value, language)}`} value={c.value} />
+                ))}
+                <Picker.Item label={`➕ ${t('addNewCuisine')}`} value="__add_new__" />
+              </Picker>
+            </View>
+          </View>
+          {selectedCuisines.length > 0 && (
+            <View style={styles.selectedCuisinesContainer}>
+              {selectedCuisines.map((cv, idx) => {
+                const info = allCuisines.find((c) => c.value === cv);
+                return (
+                  <View key={idx} style={styles.selectedCuisineBadge}>
+                    <Text style={styles.selectedCuisineFlag}>{info?.flag}</Text>
+                    <Text style={styles.selectedCuisineLabel}>{info?.label}</Text>
+                    <TouchableOpacity onPress={() => setSelectedCuisines(selectedCuisines.filter((c) => c !== cv))} style={styles.removeCuisineButton}>
+                      <Text style={styles.removeCuisineText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+          <View style={styles.field}>
+            <View style={styles.fieldHeader}>
+              <Text style={styles.label}>{t('rawText')}</Text>
+              <View style={styles.actionButtonsContainer}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.cameraButton, ocrStatus === 'processing' && styles.actionButtonDisabled]}
+                  onPress={showImagePickerOptions}
+                  disabled={ocrStatus === 'processing' || recordingStatus !== 'idle'}
+                >
+                  {ocrStatus === 'processing' ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.actionButtonText}>📷</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    styles.micButton,
+                    (recordingStatus === 'recording' || webAudioRecorder) && styles.micButtonRecording,
+                    recordingStatus === 'transcribing' && styles.actionButtonDisabled,
+                  ]}
+                  onPress={(recording || webAudioRecorder) ? stopRecording : startRecording}
+                  disabled={recordingStatus === 'transcribing' || ocrStatus === 'processing'}
+                >
+                  {recordingStatus === 'transcribing' ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (recordingStatus === 'recording' || webAudioRecorder) ? (
+                    <Text style={styles.actionButtonText}>⏹️ {formatDuration(recordingDuration)}</Text>
+                  ) : (
+                    <Text style={styles.actionButtonText}>🎤</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
             {(recordingStatus === 'recording' || webAudioRecorder) && (
               <Text style={styles.recordingHint}>Grabando... Mantén presionado para cancelar</Text>
@@ -845,217 +932,62 @@ export default function AddRecipeScreen({ navigation }: Props) {
               placeholder={t('pasteOrWrite')}
               placeholderTextColor={COLORS.textMuted}
               multiline
-              numberOfLines={8}
+              numberOfLines={10}
               textAlignVertical="top"
             />
-            <TouchableOpacity
-              style={[styles.button, styles.nextButton, !rawText.trim() && styles.buttonDisabled]}
-              onPress={() => setCurrentStep(2)}
-              disabled={!rawText.trim()}
-            >
-              <Text style={styles.buttonText}>{t('next')}</Text>
-            </TouchableOpacity>
           </View>
-        )}
-
-        {/* Step 2: Analyze */}
-        {currentStep === 2 && (
-          <View style={styles.stepBlock}>
-            <Text style={styles.stepTitle}>{t('analyzeStep')}</Text>
-            <TouchableOpacity
-              style={[styles.button, styles.analyzeButton, analyzing && styles.buttonDisabled]}
-              onPress={handleAnalyze}
-              disabled={analyzing}
-            >
-              {analyzing ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator color="#ffffff" />
-                  {analyzeStatus ? (
-                    <Text style={[styles.buttonText, { marginLeft: 10 }]}>{analyzeStatus}</Text>
-                  ) : null}
-                </View>
-              ) : (
-                <Text style={styles.buttonText}>{t('analyze')}</Text>
-              )}
-            </TouchableOpacity>
-            {analysis && (
-              <View style={styles.analysisSection}>
-                <Text style={styles.analysisTitle}>{t('analysisPreview')}</Text>
-                {analysis.ingredients.length > 0 && (
-                  <View style={styles.analysisBlock}>
-                    <Text style={styles.analysisLabel}>{t('ingredients')}:</Text>
-                    {analysis.ingredients.map((ing, idx) => (
-                      <Text key={idx} style={styles.analysisText}>
-                        • {ing.quantity && `${ing.quantity} `}
-                        {ing.unit && `${ing.unit} `}
-                        {ing.name}
-                        {ing.notes && ` (${ing.notes})`}
-                      </Text>
-                    ))}
-                  </View>
-                )}
-                {analysis.steps.length > 0 && (
-                  <View style={styles.analysisBlock}>
-                    <Text style={styles.analysisLabel}>{t('steps')}:</Text>
-                    {analysis.steps.slice(0, 3).map((step, idx) => (
-                      <Text key={idx} style={styles.analysisText}>
-                        {idx + 1}. {step}
-                      </Text>
-                    ))}
-                    {analysis.steps.length > 3 && (
-                      <Text style={styles.analysisText}>... +{analysis.steps.length - 3} más</Text>
-                    )}
-                  </View>
-                )}
-                {analysis.gadgets.length > 0 && (
-                  <View style={styles.analysisBlock}>
-                    <Text style={styles.analysisLabel}>{t('gadgets')}:</Text>
-                    <Text style={styles.analysisText}>{analysis.gadgets.join(', ')}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-            <View style={styles.stepNavRow}>
-              <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => setCurrentStep(1)}>
-                <Text style={[styles.buttonText, styles.backButtonText]}>{t('back')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.nextButton, !analysis && styles.buttonDisabled]}
-                onPress={() => setCurrentStep(3)}
-                disabled={!analysis}
-              >
-                <Text style={styles.buttonText}>{t('next')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Step 3: Complete */}
-        {currentStep === 3 && (
-          <View style={styles.stepBlock}>
-            <Text style={styles.stepTitle}>{t('completeStep')}</Text>
-            <View style={styles.field}>
-              <Text style={styles.label}>{t('recipeTitle')}</Text>
-              <TextInput
-                style={styles.input}
-                value={title}
-                onChangeText={setTitle}
-                placeholder={`${t('example')} Pollo a la Plancha`}
-                placeholderTextColor={COLORS.textSecondary}
-              />
-            </View>
-            <View style={styles.field}>
-              <Text style={styles.label}>{t('addedBy')}</Text>
-              <TextInput
-                style={styles.input}
-                value={addedBy}
-                onChangeText={setAddedBy}
-                placeholder={t('addedByPlaceholder')}
-                placeholderTextColor={COLORS.textSecondary}
-              />
-            </View>
-            <View style={styles.rowContainer}>
-              <View style={styles.rowFieldNarrow}>
-                <Text style={styles.boxTitle}>{t('servings')}</Text>
-                <TextInput
-                  style={styles.rowInput}
-                  value={servings > 0 ? servings.toString() : ''}
-                  onChangeText={(text) => {
-                    const num = parseInt(text, 10);
-                    if (!isNaN(num) && num > 0) setServings(num);
-                    else if (text === '') setServings(0);
-                  }}
-                  placeholder="2"
-                  keyboardType="numeric"
-                  placeholderTextColor={COLORS.textSecondary}
-                />
-              </View>
-              <View style={styles.rowFieldWide}>
-                <Text style={styles.boxTitle}>{t('mainProtein')}</Text>
-                <View style={styles.rowPickerContainer}>
-                  <Picker
-                    selectedValue={mainProtein || ''}
-                    onValueChange={(value) => {
-                      if (value === '__add_new__') setShowAddCategoryModal(true);
-                      else if (value === '') setMainProtein('');
-                      else setMainProtein(value as MainProtein);
-                    }}
-                    style={styles.rowPicker}
-                  >
-                    <Picker.Item label={t('add')} value="" />
-                    {allProteins.map((p) => (
-                      <Picker.Item
-                        key={p.value}
-                        label={`${p.icon} ${getTranslatedProtein(p.value, language)}`}
-                        value={p.value}
-                      />
-                    ))}
-                    <Picker.Item label={`➕ ${t('other')}`} value="__add_new__" />
-                  </Picker>
-                </View>
-              </View>
-            </View>
-            <View style={styles.rowFieldWide}>
-              <Text style={styles.boxTitle}>{t('cuisines')}</Text>
-              <View style={styles.rowPickerContainer}>
-                <Picker
-                  selectedValue={selectedCuisines.length > 0 ? selectedCuisines[0] : ''}
-                  onValueChange={(value) => {
-                    if (value === '__add_new__') setShowAddCuisineModal(true);
-                    else if (value && value !== '') {
-                      const v = value as Cuisine;
-                      if (!selectedCuisines.includes(v)) setSelectedCuisines([...selectedCuisines, v]);
-                    }
-                  }}
-                  style={styles.rowPicker}
-                >
-                  <Picker.Item label={t('add')} value="" />
-                  {allCuisines.map((c) => (
-                    <Picker.Item
-                      key={c.value}
-                      label={`${c.flag} ${getTranslatedCuisine(c.value, language)}`}
-                      value={c.value}
-                    />
-                  ))}
-                  <Picker.Item label={`➕ ${t('addNewCuisine')}`} value="__add_new__" />
-                </Picker>
-              </View>
-            </View>
-            {selectedCuisines.length > 0 && (
-              <View style={styles.selectedCuisinesContainer}>
-                {selectedCuisines.map((cv, idx) => {
-                  const info = allCuisines.find(c => c.value === cv);
-                  return (
-                    <View key={idx} style={styles.selectedCuisineBadge}>
-                      <Text style={styles.selectedCuisineFlag}>{info?.flag}</Text>
-                      <Text style={styles.selectedCuisineLabel}>{info?.label}</Text>
-                      <TouchableOpacity
-                        onPress={() => setSelectedCuisines(selectedCuisines.filter(c => c !== cv))}
-                        style={styles.removeCuisineButton}
-                      >
-                        <Text style={styles.removeCuisineText}>×</Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton, (saving || !analysis) && styles.buttonDisabled]}
-              onPress={handleSave}
-              disabled={saving || !analysis}
-            >
-              {saving ? (
+          <TouchableOpacity
+            style={[styles.button, styles.analyzeButton, analyzing && styles.buttonDisabled]}
+            onPress={handleAnalyze}
+            disabled={analyzing}
+          >
+            {analyzing ? (
+              <View style={styles.loadingContainer}>
                 <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.buttonText}>{t('save')}</Text>
+                {analyzeStatus ? <Text style={[styles.buttonText, { marginLeft: 10 }]}>{analyzeStatus}</Text> : null}
+              </View>
+            ) : (
+              <Text style={styles.buttonText}>{t('analyze')}</Text>
+            )}
+          </TouchableOpacity>
+          {analysis && (
+            <View style={styles.analysisSection}>
+              <Text style={styles.analysisTitle}>{t('analysisPreview')}</Text>
+              {analysis.ingredients.length > 0 && (
+                <View style={styles.analysisBlock}>
+                  <Text style={styles.analysisLabel}>{t('ingredients')}:</Text>
+                  {analysis.ingredients.map((ing, idx) => (
+                    <Text key={idx} style={styles.analysisText}>
+                      • {ing.quantity && `${ing.quantity} `}{ing.unit && `${ing.unit} `}{ing.name}
+                      {ing.notes ? ` (${ing.notes})` : ''}
+                    </Text>
+                  ))}
+                </View>
               )}
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => setCurrentStep(2)}>
-              <Text style={[styles.buttonText, styles.backButtonText]}>{t('back')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              {analysis.steps.length > 0 && (
+                <View style={styles.analysisBlock}>
+                  <Text style={styles.analysisLabel}>{t('steps')}:</Text>
+                  {analysis.steps.map((step, idx) => (
+                    <Text key={idx} style={styles.analysisText}>{idx + 1}. {step}</Text>
+                  ))}
+                </View>
+              )}
+              {analysis.gadgets.length > 0 && (
+                <View style={styles.analysisBlock}>
+                  <Text style={styles.analysisLabel}>{t('gadgets')}:</Text>
+                  <Text style={styles.analysisText}>{analysis.gadgets.join(', ')}</Text>
+                </View>
+              )}
+            </View>
+          )}
+          <TouchableOpacity
+            style={[styles.button, styles.saveButton, (saving || !analysis) && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={saving || !analysis}
+          >
+            {saving ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.buttonText}>{t('save')}</Text>}
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Modal para añadir categoría */}

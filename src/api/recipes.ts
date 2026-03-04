@@ -155,7 +155,27 @@ export async function getRandomRecipe(): Promise<Recipe | null> {
   }
 }
 
-// Helper to normalize recipe data from Supabase
+/**
+ * Find stored recipes that match a list of ingredients (e.g. "what's in my fridge").
+ * Scores by how many of the given ingredients appear in each recipe; returns sorted by match count.
+ */
+export async function getRecipesByIngredients(userIngredients: string[]): Promise<Recipe[]> {
+  const all = await getAllRecipes();
+  const terms = userIngredients.map((i) => i.trim().toLowerCase()).filter(Boolean);
+  if (terms.length === 0) return all;
+
+  const scored = all.map((recipe) => {
+    const names = recipe.ingredients.map((ing) => (ing.name || '').toLowerCase());
+    let matches = 0;
+    for (const term of terms) {
+      if (names.some((n) => n.includes(term) || term.includes(n))) matches++;
+    }
+    return { recipe, score: matches };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map((s) => s.recipe);
+}
 function normalizeRecipe(data: any): Recipe {
   // Handle both old format (cuisine as string) and new format (cuisines as array)
   let cuisines: Cuisine[] | undefined = undefined;

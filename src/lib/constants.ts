@@ -1,91 +1,111 @@
 /**
- * Recipe Zine – Bold, playful, editorial design system
- * Add recipes, check recipes, learn to cook. OCR, dictation, Ollama + Supabase unchanged.
+ * TuPonesYoComo – DARK NEON BRUTALIST
+ * Bold, unforgettable: dark bg, electric accents, sharp shapes, asymmetric energy.
+ * No soft corners. No timid palettes.
  */
 
 export const COLORS = {
-  // Zine palette: warm cream + bold coral + teal + mustard
-  background: '#FFF8F0',
-  surface: '#FFFFFF',
-  surfaceWarm: '#FFFBF5',
-  text: '#1C1917',
-  textSecondary: '#57534E',
-  textMuted: '#A8A29E',
-  // Primary actions & header
-  primary: '#E07A5F',
-  primaryDark: '#C45C3E',
-  // Accent: teal (browse, links)
-  accent: '#3D405B',
-  accentLight: '#81B29A',
-  // Fun accent: mustard (highlights, Surprise me)
-  fun: '#F2CC8F',
-  funDark: '#E4A853',
-  error: '#C53030',
-  success: '#2F855A',
-  border: '#E7E5E4',
-  borderLight: '#F5F5F4',
-  card: '#FFFFFF',
+  // Dark base
+  background: '#0A0A0B',
+  surface: '#141416',
+  surfaceRaised: '#1C1C1F',
+  // Text
+  text: '#FAFAFA',
+  textSecondary: '#A1A1AA',
+  textMuted: '#71717A',
+  // Neon accents – use sparingly for maximum punch
+  neonLime: '#B8FF3C',
+  neonLimeDim: 'rgba(184, 255, 60, 0.25)',
+  neonPink: '#FF2E97',
+  neonPinkDim: 'rgba(255, 46, 151, 0.25)',
+  neonCyan: '#00E5FF',
+  neonCyanDim: 'rgba(0, 229, 255, 0.25)',
+  neonOrange: '#FF6B00',
+  neonOrangeDim: 'rgba(255, 107, 0, 0.25)',
+  neonViolet: '#8B5CF6',
+  neonVioletDim: 'rgba(139, 92, 246, 0.25)',
+  // Semantic
+  primary: '#B8FF3C',
+  primaryDim: 'rgba(184, 255, 60, 0.2)',
+  accent: '#00E5FF',
+  error: '#FF3B5C',
+  success: '#00E676',
+  border: '#27272A',
+  borderBright: '#3F3F46',
+  card: '#18181B',
+};
+
+// Brutalist: sharp corners only (0 or tiny)
+export const RADIUS = {
+  none: 0,
+  sharp: 2,
+  sm: 4,
+  md: 6,
+  lg: 10,
+  full: 9999,
 };
 
 export const SPACING = {
   xs: 6,
   sm: 12,
-  md: 18,
-  lg: 26,
-  xl: 36,
-};
-
-export const BORDER_RADIUS = {
-  sm: 8,
-  md: 14,
-  lg: 20,
-  xl: 28,
-  full: 9999,
+  md: 16,
+  lg: 24,
+  xl: 32,
 };
 
 export const SHADOWS = {
   sm: {
-    shadowColor: '#1C1917',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.4,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   md: {
-    shadowColor: '#1C1917',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.5,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 6,
   },
-  lg: {
-    shadowColor: '#1C1917',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
+  glowLime: {
+    shadowColor: COLORS.neonLime,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
     elevation: 8,
+  },
+  glowCyan: {
+    shadowColor: COLORS.neonCyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
   },
 };
 
 export const FONT = {
-  headingBold: '700' as const,
+  headingBold: '800' as const,
   headingSemibold: '600' as const,
   bodyRegular: '400' as const,
   bodyMedium: '500' as const,
 };
 
-// Category accent colors for recipe card stripes (by index)
+// Category stripe colors (neon set)
 export const CATEGORY_STRIPES = [
-  '#E07A5F',
-  '#81B29A',
-  '#F2CC8F',
-  '#3D405B',
-  '#E07A5F',
-  '#81B29A',
-  '#F2CC8F',
-  '#3D405B',
-  '#E07A5F',
+  COLORS.neonLime,
+  COLORS.neonCyan,
+  COLORS.neonPink,
+  COLORS.neonOrange,
+  COLORS.neonViolet,
+  COLORS.neonLime,
+  COLORS.neonCyan,
+  COLORS.neonPink,
+  COLORS.neonOrange,
 ];
+
+// Alias for compatibility
+export const BORDER_RADIUS = RADIUS;
 
 export const MAIN_PROTEINS: Array<{ value: string; label: string; icon: string }> = [
   { value: 'chicken', label: 'Pollo', icon: '🐔' },
