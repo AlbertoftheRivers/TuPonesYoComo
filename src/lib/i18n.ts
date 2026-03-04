@@ -97,6 +97,10 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     cuisinesCount: 'cocina',
     cuisinesCountPlural: 'cocinas',
     searchResults: 'Resultados de búsqueda',
+    recipeBook: 'Recetario',
+    addRecipeShort: 'Añadir receta',
+    addedBy: 'Añadida por',
+    addedByPlaceholder: 'Nombre de quien añade la receta (opcional)',
     pullToRefresh: 'Tira para actualizar',
     
     // Common UI
@@ -267,6 +271,10 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     cuisinesCount: 'cuina',
     cuisinesCountPlural: 'cuines',
     searchResults: 'Resultats de cerca',
+    recipeBook: 'Receptari',
+    addRecipeShort: 'Afegir recepta',
+    addedBy: 'Afegida per',
+    addedByPlaceholder: 'Nom de qui afegeix la recepta (opcional)',
     pullToRefresh: 'Tira per actualitzar',
     
     // Common UI
@@ -436,6 +444,10 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     cuisinesCount: 'cuisine',
     cuisinesCountPlural: 'cuisines',
     searchResults: 'Résultats de recherche',
+    recipeBook: 'Livre de recettes',
+    addRecipeShort: 'Ajouter une recette',
+    addedBy: 'Ajoutée par',
+    addedByPlaceholder: 'Nom de la personne qui ajoute (optionnel)',
     pullToRefresh: 'Tirez pour actualiser',
     
     // Common UI
@@ -605,6 +617,10 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     cuisinesCount: 'cuisine',
     cuisinesCountPlural: 'cuisines',
     searchResults: 'Search Results',
+    recipeBook: 'Recipe Book',
+    addRecipeShort: 'Add recipe',
+    addedBy: 'Added by',
+    addedByPlaceholder: 'Name of person adding the recipe (optional)',
     pullToRefresh: 'Pull to refresh',
     
     // Common UI
@@ -774,6 +790,10 @@ export const translations: Record<SupportedLanguage, Record<string, string>> = {
     cuisinesCount: 'culinária',
     cuisinesCountPlural: 'culinárias',
     searchResults: 'Resultados da Busca',
+    recipeBook: 'Livro de Receitas',
+    addRecipeShort: 'Adicionar receita',
+    addedBy: 'Adicionada por',
+    addedByPlaceholder: 'Nome de quem adiciona a receita (opcional)',
     pullToRefresh: 'Puxe para atualizar',
     
     // Common UI

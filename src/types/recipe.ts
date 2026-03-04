@@ -45,6 +45,7 @@ export interface Recipe {
   servings: number; // Number of people this recipe is for
   created_at: string;
   updated_at: string;
+  added_by?: string | null; // Name of person who added the recipe
 }
 
 export interface RecipeInsertPayload {
@@ -58,6 +59,7 @@ export interface RecipeInsertPayload {
   total_time_minutes: number | null;
   oven_time_minutes: number | null;
   servings: number; // Number of people this recipe is for
+  added_by?: string | null;
 }
 
 export interface RecipeAIAnalysis {

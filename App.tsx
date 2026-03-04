@@ -7,6 +7,7 @@ import { COLORS, MAIN_PROTEINS } from './src/lib/constants';
 import { initializeNotifications } from './src/lib/notifications';
 import { LanguageProvider, useLanguage } from './src/lib/LanguageContext';
 import HomeScreen from './src/screens/HomeScreen';
+import CategoriesScreen from './src/screens/CategoriesScreen';
 import RecipeListScreen from './src/screens/RecipeListScreen';
 import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
 import AddRecipeScreen from './src/screens/AddRecipeScreen';
@@ -43,6 +44,7 @@ function CustomBackButton({ navigation }: { navigation: any }) {
 
 export type RootStackParamList = {
   Home: undefined;
+  Categories: undefined;
   RecipeList: { mainProtein: string };
   RecipeDetail: { recipeId: string | number };
   AddRecipe: undefined;
@@ -120,6 +122,11 @@ function AppContent() {
               name="Home" 
               component={HomeScreen}
               options={{ title: 'TuPonesYoComo' }}
+            />
+            <Stack.Screen
+              name="Categories"
+              component={CategoriesScreen}
+              options={{ title: t('recipeBook') }}
             />
             <Stack.Screen 
               name="RecipeList" 

@@ -76,6 +76,7 @@ export async function createRecipe(payload: RecipeInsertPayload): Promise<Recipe
         total_time_minutes: payload.total_time_minutes,
         oven_time_minutes: payload.oven_time_minutes,
         servings: payload.servings || 2,
+        added_by: payload.added_by ?? null,
       })
       .select()
       .single();
@@ -170,5 +171,6 @@ function normalizeRecipe(data: any): Recipe {
     servings: data.servings ?? 2,
     created_at: data.created_at || new Date().toISOString(),
     updated_at: data.updated_at || new Date().toISOString(),
+    added_by: data.added_by ?? null,
   };
 }

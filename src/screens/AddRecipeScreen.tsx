@@ -47,6 +47,7 @@ interface Props {
 export default function AddRecipeScreen({ navigation }: Props) {
   const { t, language } = useLanguage();
   const [title, setTitle] = useState('');
+  const [addedBy, setAddedBy] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein | ''>('');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
   const [showCuisinePicker, setShowCuisinePicker] = useState(false);
@@ -736,6 +737,7 @@ export default function AddRecipeScreen({ navigation }: Props) {
         total_time_minutes: finalTime,
         oven_time_minutes: analysis.oven_time_minutes,
         servings: servings,
+        added_by: addedBy.trim() || null,
       });
 
       console.log('✅ Recipe created successfully:', recipe.id);
@@ -790,6 +792,17 @@ export default function AddRecipeScreen({ navigation }: Props) {
               value={title}
               onChangeText={setTitle}
               placeholder={`${t('example')} Pollo a la Plancha`}
+              placeholderTextColor={COLORS.textSecondary}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('addedBy')}</Text>
+            <TextInput
+              style={styles.input}
+              value={addedBy}
+              onChangeText={setAddedBy}
+              placeholder={t('addedByPlaceholder')}
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>

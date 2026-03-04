@@ -45,6 +45,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const { recipeId } = route.params;
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [title, setTitle] = useState('');
+  const [addedBy, setAddedBy] = useState('');
   const [mainProtein, setMainProtein] = useState<MainProtein>('chicken');
   const [selectedCuisines, setSelectedCuisines] = useState<Cuisine[]>([]);
   const [servings, setServings] = useState<number>(2);
@@ -95,6 +96,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
       if (data) {
         setRecipe(data);
         setTitle(data.title);
+        setAddedBy(data.added_by ?? '');
         setMainProtein(data.main_protein);
         setSelectedCuisines(data.cuisines || []);
         setServings(data.servings || 2);
@@ -405,6 +407,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
         total_time_minutes: totalTimeMinutes,
         oven_time_minutes: ovenTimeMinutes,
         servings: servings,
+        added_by: addedBy.trim() || null,
       });
 
       // Navigate directly to home screen
@@ -441,6 +444,17 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
               value={title}
               onChangeText={setTitle}
               placeholder={t('recipeTitle')}
+              placeholderTextColor={COLORS.textSecondary}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('addedBy')}</Text>
+            <TextInput
+              style={styles.input}
+              value={addedBy}
+              onChangeText={setAddedBy}
+              placeholder={t('addedByPlaceholder')}
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>

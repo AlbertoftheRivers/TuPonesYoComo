@@ -218,6 +218,9 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
             )}
           </View>
           <View style={styles.meta}>
+            {displayRecipe.added_by && (
+              <Text style={styles.metaText}>👤 {t('addedBy')}: {displayRecipe.added_by}</Text>
+            )}
             <Text style={styles.metaText}>{proteinIcon} {proteinLabel}</Text>
             {displayRecipe.total_time_minutes && (
               <Text style={styles.metaText}>• ⏱️ {displayRecipe.total_time_minutes} {t('min')}</Text>

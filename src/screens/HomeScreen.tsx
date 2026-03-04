@@ -12,8 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS } from '../lib/constants';
-import { getAllProteins } from '../lib/customCategories';
+import { COLORS, SPACING, BORDER_RADIUS } from '../lib/constants';
 import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage } from '../lib/LanguageContext';
 import { SupportedLanguage } from '../lib/i18n';
@@ -24,6 +23,7 @@ import { Recipe } from '../types/recipe';
 
 type RootStackParamList = {
   Home: undefined;
+  Categories: undefined;
   RecipeList: { mainProtein: string };
   RecipeDetail: { recipeId: string | number };
   AddRecipe: undefined;
@@ -40,33 +40,18 @@ interface Props {
 
 export default function HomeScreen({ navigation }: Props) {
   const { language, setLanguage, t } = useLanguage();
-  const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [allCuisines, setAllCuisines] = useState<any[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
 
-  // Reload categories when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      loadCustomProteins();
       loadAllRecipes();
       loadCuisines();
     }, [])
   );
-
-  const loadCustomProteins = async () => {
-    try {
-      console.log('🔄 [HOME] Loading proteins from Supabase...');
-      const proteins = await getAllProteins();
-      console.log('✅ [HOME] Loaded proteins:', proteins.length, 'total');
-      console.log('✅ [HOME] Proteins:', proteins.map(p => ({ value: p.value, label: p.label })));
-      setAllProteins(proteins);
-    } catch (error) {
-      console.error('❌ [HOME] Error loading custom proteins:', error);
-    }
-  };
 
   const loadAllRecipes = async () => {
     try {
@@ -94,12 +79,12 @@ export default function HomeScreen({ navigation }: Props) {
     setShowLanguageModal(false);
   };
 
-  const handleProteinPress = (protein: string) => {
-    navigation.navigate('RecipeList', { mainProtein: protein });
-  };
-
   const handleAddRecipe = () => {
     navigation.navigate('AddRecipe');
+  };
+
+  const handleOpenRecipeBook = () => {
+    navigation.navigate('Categories');
   };
 
   const handleOpenGuide = () => {
@@ -177,13 +162,15 @@ export default function HomeScreen({ navigation }: Props) {
           <View style={styles.headerRow}>
             <View style={styles.headerTextContainer}>
               <Text style={styles.title}>{t('appName')}</Text>
-              <Text style={styles.subtitle}>{t('selectCategory')}</Text>
+              <Text style={styles.subtitle}>{t('searchPlaceholder')}</Text>
             </View>
             <View style={styles.headerButtons}>
               <TouchableOpacity
                 style={styles.languageButton}
                 onPress={() => setShowLanguageModal(true)}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('selectLanguage')}
               >
                 <Text style={styles.languageButtonText}>🌐</Text>
               </TouchableOpacity>
@@ -191,6 +178,8 @@ export default function HomeScreen({ navigation }: Props) {
                 style={styles.helpButton}
                 onPress={handleOpenGuide}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('userGuide')}
               >
                 <Text style={styles.helpButtonText}>❓</Text>
               </TouchableOpacity>
@@ -198,42 +187,48 @@ export default function HomeScreen({ navigation }: Props) {
                 style={styles.adminButton}
                 onPress={handleOpenAdmin}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Admin"
               >
                 <Text style={styles.adminButtonText}>⚙️</Text>
               </TouchableOpacity>
             </View>
           </View>
-          
-          {/* Search Bar and Statistics in same row */}
-          <View style={styles.searchRow}>
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder={t('searchPlaceholder')}
-                placeholderTextColor={COLORS.textSecondary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  style={styles.clearButton}
-                  onPress={() => setSearchQuery('')}
-                >
-                  <Text style={styles.clearButtonText}>✕</Text>
-                </TouchableOpacity>
-              )}
+
+          {/* Search bar - full width */}
+          <View style={styles.searchContainerFull}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t('searchPlaceholder')}
+              placeholderTextColor={COLORS.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSearchQuery('')}
+                accessibilityRole="button"
+                accessibilityLabel={t('cancel')}
+              >
+                <Text style={styles.clearButtonText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Recipe and cuisines counters */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{uniqueRecipesCount}</Text>
+              <Text style={styles.statLabel}>
+                {uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}
+              </Text>
             </View>
-            
-            {/* Statistics */}
-            <View style={styles.statsContainer}>
-              <View style={styles.statBadge}>
-                <Text style={styles.statNumber}>{uniqueRecipesCount}</Text>
-                <Text style={styles.statLabel}>{uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}</Text>
-              </View>
-              <View style={styles.statBadge}>
-                <Text style={styles.statNumber}>{uniqueCuisinesCount}</Text>
-                <Text style={styles.statLabel}>{uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}</Text>
-              </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{uniqueCuisinesCount}</Text>
+              <Text style={styles.statLabel}>
+                {uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}
+              </Text>
             </View>
           </View>
         </View>
@@ -292,35 +287,39 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         )}
 
-        {/* Categories Grid - Only show when not searching */}
+        {/* When not searching: Recipe book + Add recipe cards */}
         {!searchQuery.trim() && (
-          <View style={styles.grid}>
-            {allProteins.map((protein) => (
-              <TouchableOpacity
-                key={protein.value}
-                style={styles.proteinCard}
-                onPress={() => handleProteinPress(protein.value)}
-                activeOpacity={0.7}
-              >
-              <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
-                <Text style={styles.cardIconText}>
-                  {protein.icon || '🍽️'}
-                </Text>
+          <View style={styles.actionCards}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={handleOpenRecipeBook}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('recipeBook')}
+            >
+              <View style={[styles.actionCardIcon, { backgroundColor: COLORS.accent + '35' }]}>
+                <Text style={styles.actionCardIconText}>📖</Text>
               </View>
-                <Text style={styles.cardLabel}>{protein.label || getTranslatedProtein(protein.value, language)}</Text>
-              </TouchableOpacity>
-            ))}
+              <Text style={styles.actionCardLabel}>{t('recipeBook')}</Text>
+              <Text style={styles.actionCardHint}>{t('selectCategory')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={handleAddRecipe}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('addRecipe')}
+            >
+              <View style={[styles.actionCardIcon, { backgroundColor: COLORS.primary + '35' }]}>
+                <Text style={styles.actionCardIconText}>➕</Text>
+              </View>
+              <Text style={styles.actionCardLabel}>{t('addRecipeShort')}</Text>
+              <Text style={styles.actionCardHint}>{t('addRecipe')}</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddRecipe}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.addButtonText}>➕ {t('addRecipe')}</Text>
-      </TouchableOpacity>
 
       {/* Language Selection Modal */}
       <Modal
@@ -388,7 +387,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.md,
-    paddingBottom: 100, // Space for floating button
+    paddingBottom: SPACING.xl,
   },
   header: {
     marginBottom: SPACING.lg,
@@ -492,25 +491,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
   },
-  addButton: {
-    position: 'absolute',
-    bottom: 24,
-    alignSelf: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.xl,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  addButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -566,6 +546,10 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     gap: SPACING.sm,
   },
+  searchContainerFull: {
+    marginTop: SPACING.md,
+    position: 'relative',
+  },
   searchContainer: {
     flex: 1,
     position: 'relative',
@@ -573,8 +557,9 @@ const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm,
-    paddingRight: 40,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingRight: 44,
     fontSize: 16,
     color: COLORS.text,
     borderWidth: 1,
@@ -583,16 +568,31 @@ const styles = StyleSheet.create({
   clearButton: {
     position: 'absolute',
     right: SPACING.sm,
-    top: SPACING.sm,
-    width: 24,
-    height: 24,
+    top: 0,
+    bottom: 0,
+    minWidth: 44,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   clearButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: COLORS.textSecondary,
     fontWeight: 'bold',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    marginTop: SPACING.md,
+    gap: SPACING.md,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 72,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -608,16 +608,91 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   statNumber: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#ffffff',
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#ffffff',
-    textTransform: 'uppercase',
+    marginTop: SPACING.xs,
+    textAlign: 'center',
   },
-  searchResultsContainer: {
+  actionCards: {
+    marginTop: SPACING.xl,
+    gap: SPACING.lg,
+  },
+  actionCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    alignItems: 'center',
+    minHeight: 120,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionCardIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  actionCardIconText: {
+    fontSize: 28,
+  },
+  actionCardLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  actionCardHint: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  proteinCard: {
+    width: '48%',
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  cardIconText: {
+    fontSize: 32,
+  },
+  cardLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
     marginBottom: SPACING.lg,
   },
   searchResultsTitle: {
