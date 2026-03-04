@@ -356,7 +356,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
  * Find similar recipes from database or examples
  * Uses RAG (Retrieval Augmented Generation) to improve prompts
  */
-async function findSimilarRecipes(rawText, mainProtein, limit = 0) {
+async function findSimilarRecipes(rawText, mainProtein, limit = 1) {
   const examples = [];
   
   // Load example recipes
