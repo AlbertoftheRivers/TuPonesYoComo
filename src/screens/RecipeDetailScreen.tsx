@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipeById, deleteRecipe } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
@@ -383,8 +383,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: FONT.headingBold,
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: SPACING.sm,
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: FONT.headingBold,
     color: COLORS.text,
     flex: 1,
   },

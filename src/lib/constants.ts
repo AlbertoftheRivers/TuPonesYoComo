@@ -1,30 +1,76 @@
+/**
+ * Design system: warm editorial / cookbook
+ * Distinctive, high-contrast, responsive. OCR, dictation, Ollama + Supabase unchanged.
+ */
+
 export const COLORS = {
-  background: '#ffffff',
-  surface: '#f5f5f5',
-  text: '#212121',
-  textSecondary: '#757575',
-  primary: '#D2691E', // Bourbon color
-  primaryDark: '#A0522D', // Darker bourbon
-  accent: '#FFD700', // Yellow egg yolk
-  accentDark: '#FFA500', // Darker yellow
-  error: '#F44336',
-  border: '#E0E0E0',
-  card: '#ffffff',
+  // Warm paper & surfaces
+  background: '#FAF6F1',
+  surface: '#FFFFFF',
+  surfaceElevated: '#FFFFFF',
+  // Text – dark chocolate (4.5:1+ on background)
+  text: '#1A1510',
+  textSecondary: '#6B5B4F',
+  textMuted: '#9C8B7D',
+  // Brand – terracotta & honey
+  primary: '#B84A14',
+  primaryDark: '#8F3A10',
+  accent: '#C9921C',
+  accentLight: '#E8C45C',
+  // Semantic
+  error: '#C62828',
+  success: '#2E7D32',
+  border: '#E8E0D8',
+  borderLight: '#F0EBE6',
+  card: '#FFFFFF',
 };
 
 export const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  xs: 6,
+  sm: 12,
+  md: 20,
+  lg: 28,
+  xl: 40,
 };
 
 export const BORDER_RADIUS = {
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 6,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  full: 9999,
+};
+
+export const SHADOWS = {
+  sm: {
+    shadowColor: '#1A1510',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  md: {
+    shadowColor: '#1A1510',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  lg: {
+    shadowColor: '#1A1510',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+};
+
+export const FONT = {
+  headingBold: '700' as const,
+  headingSemibold: '600' as const,
+  bodyRegular: '400' as const,
+  bodyMedium: '500' as const,
+  caption: '400' as const,
 };
 
 export const MAIN_PROTEINS: Array<{ value: string; label: string; icon: string }> = [
@@ -54,5 +100,3 @@ export const CUISINES: Array<{ value: string; label: string; flag: string }> = [
   { value: 'turca', label: 'Turca', flag: '🇹🇷' },
   { value: 'marroquí', label: 'Marroquí', flag: '🇲🇦' },
 ];
-
-

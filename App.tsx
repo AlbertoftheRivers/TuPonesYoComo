@@ -30,14 +30,14 @@ function CustomBackButton({ navigation }: { navigation: any }) {
       onPress={() => navigation.goBack()}
       style={{
         marginLeft: 10,
-        padding: 8,
+        padding: 10,
         justifyContent: 'center',
         alignItems: 'center',
         minWidth: 44,
         minHeight: 44,
       }}
     >
-      <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>←</Text>
+      <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '700' }}>←</Text>
     </TouchableOpacity>
   );
 }
@@ -101,13 +101,14 @@ function AppContent() {
               headerStyle: {
                 backgroundColor: COLORS.primary,
               },
-              headerTintColor: '#fff',
+              headerTintColor: '#FFF',
               headerBackTitleVisible: false,
               headerBackVisible: true,
               headerShown: true,
               headerTitleStyle: {
-                fontWeight: 'bold',
-                color: '#fff',
+                fontWeight: '700',
+                color: '#FFF',
+                fontSize: 18,
               },
               // Custom back button for web if default doesn't work
               ...(Platform.OS === 'web' && navigation.canGoBack() && {
@@ -221,24 +222,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
+    padding: 24,
+    backgroundColor: COLORS.background,
   },
   errorTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#F44336',
+    fontWeight: '700',
+    marginBottom: 12,
+    color: COLORS.error,
   },
   errorText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   errorHint: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: 14,
+    color: COLORS.textMuted,
     fontStyle: 'italic',
   },
 });

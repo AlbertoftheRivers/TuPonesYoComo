@@ -12,7 +12,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, MAIN_PROTEINS, CUISINES } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CUISINES } from '../lib/constants';
 import { getRecipesByProtein } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { Recipe, MainProtein } from '../types/recipe';
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: FONT.headingBold,
     color: COLORS.text,
   },
   searchContainer: {
@@ -232,11 +232,12 @@ const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm,
+    padding: SPACING.md,
     fontSize: 16,
     color: COLORS.text,
     borderWidth: 1,
     borderColor: COLORS.border,
+    ...SHADOWS.sm,
   },
   count: {
     fontSize: 14,
@@ -246,15 +247,13 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   recipeCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    ...SHADOWS.md,
   },
   recipeHeader: {
     marginBottom: SPACING.sm,
@@ -264,7 +263,7 @@ const styles = StyleSheet.create({
   },
   recipeTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: FONT.headingSemibold,
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
@@ -288,7 +287,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: FONT.headingSemibold,
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
