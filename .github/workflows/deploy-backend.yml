@@ -1,0 +1,33 @@
+# Deploy backend to Proxmox server when you push to main.
+# Requires GitHub repo secrets: DEPLOY_SSH_KEY, DEPLOY_HOST, DEPLOY_USER, REPO_PATH_ON_SERVER
+# See docs/SSH-AND-DEPLOY.md for setup.
+
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'scripts/deploy-on-server.sh'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH and deploy
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          REPO_PATH: ${{ secrets.REPO_PATH_ON_SERVER }}
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd '$REPO_PATH' && bash scripts/deploy-on-server.sh"
+          rm -f ~/.ssh/deploy_key
