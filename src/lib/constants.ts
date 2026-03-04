@@ -1,66 +1,68 @@
 /**
- * Design system: warm editorial / cookbook
- * Distinctive, high-contrast, responsive. OCR, dictation, Ollama + Supabase unchanged.
+ * Recipe Zine – Bold, playful, editorial design system
+ * Add recipes, check recipes, learn to cook. OCR, dictation, Ollama + Supabase unchanged.
  */
 
 export const COLORS = {
-  // Warm paper & surfaces
-  background: '#FAF6F1',
+  // Zine palette: warm cream + bold coral + teal + mustard
+  background: '#FFF8F0',
   surface: '#FFFFFF',
-  surfaceElevated: '#FFFFFF',
-  // Text – dark chocolate (4.5:1+ on background)
-  text: '#1A1510',
-  textSecondary: '#6B5B4F',
-  textMuted: '#9C8B7D',
-  // Brand – terracotta & honey
-  primary: '#B84A14',
-  primaryDark: '#8F3A10',
-  accent: '#C9921C',
-  accentLight: '#E8C45C',
-  // Semantic
-  error: '#C62828',
-  success: '#2E7D32',
-  border: '#E8E0D8',
-  borderLight: '#F0EBE6',
+  surfaceWarm: '#FFFBF5',
+  text: '#1C1917',
+  textSecondary: '#57534E',
+  textMuted: '#A8A29E',
+  // Primary actions & header
+  primary: '#E07A5F',
+  primaryDark: '#C45C3E',
+  // Accent: teal (browse, links)
+  accent: '#3D405B',
+  accentLight: '#81B29A',
+  // Fun accent: mustard (highlights, Surprise me)
+  fun: '#F2CC8F',
+  funDark: '#E4A853',
+  error: '#C53030',
+  success: '#2F855A',
+  border: '#E7E5E4',
+  borderLight: '#F5F5F4',
   card: '#FFFFFF',
 };
 
 export const SPACING = {
   xs: 6,
   sm: 12,
-  md: 20,
-  lg: 28,
-  xl: 40,
+  md: 18,
+  lg: 26,
+  xl: 36,
 };
 
 export const BORDER_RADIUS = {
-  sm: 6,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  sm: 8,
+  md: 14,
+  lg: 20,
+  xl: 28,
   full: 9999,
 };
 
 export const SHADOWS = {
   sm: {
-    shadowColor: '#1A1510',
-    shadowOffset: { width: 0, height: 1 },
+    shadowColor: '#1C1917',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowRadius: 4,
     elevation: 2,
   },
   md: {
-    shadowColor: '#1A1510',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#1C1917',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#1A1510',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#1C1917',
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
-    shadowRadius: 16,
+    shadowRadius: 20,
     elevation: 8,
   },
 };
@@ -70,8 +72,20 @@ export const FONT = {
   headingSemibold: '600' as const,
   bodyRegular: '400' as const,
   bodyMedium: '500' as const,
-  caption: '400' as const,
 };
+
+// Category accent colors for recipe card stripes (by index)
+export const CATEGORY_STRIPES = [
+  '#E07A5F',
+  '#81B29A',
+  '#F2CC8F',
+  '#3D405B',
+  '#E07A5F',
+  '#81B29A',
+  '#F2CC8F',
+  '#3D405B',
+  '#E07A5F',
+];
 
 export const MAIN_PROTEINS: Array<{ value: string; label: string; icon: string }> = [
   { value: 'chicken', label: 'Pollo', icon: '🐔' },

@@ -12,7 +12,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CUISINES } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CATEGORY_STRIPES } from '../lib/constants';
 import { getRecipesByProtein } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { Recipe, MainProtein } from '../types/recipe';
@@ -41,7 +41,7 @@ export default function RecipeListScreen({ navigation, route }: Props) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [allCuisines, setAllCuisines] = useState(CUISINES);
+  const [allCuisines, setAllCuisines] = useState<Array<{ value: string; label?: string; flag?: string }>>([]);
 
   useEffect(() => {
     loadRecipes();
@@ -76,6 +76,8 @@ export default function RecipeListScreen({ navigation, route }: Props) {
 
   const proteinLabel = getTranslatedProtein(mainProtein, language);
   const proteinIcon = MAIN_PROTEINS.find(p => p.value === mainProtein)?.icon || '🍽️';
+  const categoryStripeIndex = MAIN_PROTEINS.findIndex(p => p.value === mainProtein);
+  const stripeColor = CATEGORY_STRIPES[categoryStripeIndex >= 0 ? categoryStripeIndex % CATEGORY_STRIPES.length : 0];
 
   // Filtrar recetas basado en búsqueda
   const filteredRecipes = useMemo(() => {
@@ -156,12 +158,12 @@ export default function RecipeListScreen({ navigation, route }: Props) {
           data={filteredRecipes}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => {
-            const cuisineInfos = item.cuisines 
+            const cuisineInfos = item.cuisines
               ? item.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
               : [];
             return (
               <TouchableOpacity
-                style={styles.recipeCard}
+                style={[styles.recipeCard, { borderLeftColor: stripeColor, borderLeftWidth: 4 }]}
                 onPress={() => handleRecipePress(item)}
                 activeOpacity={0.7}
               >
@@ -178,7 +180,7 @@ export default function RecipeListScreen({ navigation, route }: Props) {
                   )}
                   {cuisineInfos.length > 0 && (
                     <View style={styles.cuisineFlagsContainer}>
-                      {cuisineInfos.map((cuisineInfo, idx) => (
+                      {cuisineInfos.map((cuisineInfo: any, idx) => (
                         <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
                       ))}
                     </View>
@@ -252,6 +254,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     marginBottom: SPACING.md,
     borderWidth: 1,
+    borderLeftWidth: 4,
     borderColor: COLORS.borderLight,
     ...SHADOWS.md,
   },

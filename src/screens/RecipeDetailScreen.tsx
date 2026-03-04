@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CUISINES } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS } from '../lib/constants';
 import { getRecipeById, deleteRecipe } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { calculateAdjustedIngredients } from '../lib/ingredientCalculator';
@@ -44,8 +44,10 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [translating, setTranslating] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [allCuisines, setAllCuisines] = useState(CUISINES);
+  const [allCuisines, setAllCuisines] = useState<Array<{ value: string; label?: string; flag?: string }>>([]);
   const [desiredServings, setDesiredServings] = useState<number>(2);
+  const [cookModeActive, setCookModeActive] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const loadCuisines = async () => {
     try {
@@ -199,9 +201,16 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
   const proteinLabel = MAIN_PROTEINS.find(p => p.value === displayRecipe.main_protein)?.label || displayRecipe.main_protein;
   const proteinIcon = MAIN_PROTEINS.find(p => p.value === displayRecipe.main_protein)?.icon || '🍽️';
-  const cuisineInfos = displayRecipe.cuisines 
+  const cuisineInfos = displayRecipe.cuisines
     ? displayRecipe.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
     : [];
+  const steps = displayRecipe.steps || [];
+  const hasSteps = steps.length > 0;
+  const canNext = hasSteps && currentStepIndex < steps.length - 1;
+  const canPrev = hasSteps && currentStepIndex > 0;
+  const proTipContent = displayRecipe.gadgets && displayRecipe.gadgets.length > 0
+    ? displayRecipe.gadgets.join(' • ')
+    : null;
 
   return (
     <View style={styles.container}>
@@ -305,13 +314,55 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
 
         {displayRecipe.steps.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('steps')}</Text>
-            {displayRecipe.steps.map((step, index) => (
-              <View key={index} style={styles.stepItem}>
-                <Text style={styles.stepNumber}>{index + 1}.</Text>
-                <Text style={styles.stepText}>{step}</Text>
+            <View style={styles.stepsHeader}>
+              <Text style={styles.sectionTitle}>{t('steps')}</Text>
+              <TouchableOpacity
+                style={[styles.cookModeButton, cookModeActive && styles.cookModeButtonActive]}
+                onPress={() => {
+                  setCookModeActive(!cookModeActive);
+                  setCurrentStepIndex(0);
+                }}
+              >
+                <Text style={styles.cookModeButtonText}>
+                  {cookModeActive ? t('cookModeOff') : t('cookMode')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {cookModeActive ? (
+              <View style={styles.cookModeView}>
+                <Text style={styles.cookModeStepLabel}>
+                  {t('steps')} {currentStepIndex + 1} / {steps.length}
+                </Text>
+                <View style={styles.cookModeStepCard}>
+                  <Text style={styles.cookModeStepText}>{steps[currentStepIndex]}</Text>
+                </View>
+                <View style={styles.cookModeNav}>
+                  <TouchableOpacity
+                    style={[styles.cookModeNavButton, !canPrev && styles.cookModeNavButtonDisabled]}
+                    onPress={() => setCurrentStepIndex(i => Math.max(0, i - 1))}
+                    disabled={!canPrev}
+                  >
+                    <Text style={styles.cookModeNavButtonText}>← {t('prevStep')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.cookModeNavButton, !canNext && styles.cookModeNavButtonDisabled]}
+                    onPress={() => setCurrentStepIndex(i => Math.min(steps.length - 1, i + 1))}
+                    disabled={!canNext}
+                  >
+                    <Text style={styles.cookModeNavButtonText}>{t('nextStep')} →</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            ))}
+            ) : (
+              <>
+                {displayRecipe.steps.map((step, index) => (
+                  <View key={index} style={styles.stepItem}>
+                    <Text style={styles.stepNumber}>{index + 1}.</Text>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </View>
+                ))}
+              </>
+            )}
           </View>
         )}
 
@@ -325,6 +376,13 @@ export default function RecipeDetailScreen({ navigation, route }: Props) {
                 </View>
               ))}
             </View>
+          </View>
+        )}
+
+        {proTipContent && (
+          <View style={styles.proTipBlock}>
+            <Text style={styles.proTipTitle}>💡 {t('proTip')}</Text>
+            <Text style={styles.proTipText}>{proTipContent}</Text>
           </View>
         )}
       </ScrollView>
@@ -422,6 +480,89 @@ const styles = StyleSheet.create({
     fontWeight: FONT.headingBold,
     color: COLORS.text,
     flex: 1,
+  },
+  stepsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    marginBottom: SPACING.md,
+  },
+  cookModeButton: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.fun,
+    borderWidth: 1,
+    borderColor: COLORS.funDark,
+  },
+  cookModeButtonActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primaryDark,
+  },
+  cookModeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  cookModeView: {
+    marginTop: SPACING.sm,
+  },
+  cookModeStepLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
+  },
+  cookModeStepCard: {
+    backgroundColor: COLORS.fun,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.funDark,
+  },
+  cookModeStepText: {
+    fontSize: 18,
+    color: COLORS.text,
+    lineHeight: 26,
+  },
+  cookModeNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+  },
+  cookModeNavButton: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  cookModeNavButtonDisabled: {
+    opacity: 0.5,
+  },
+  cookModeNavButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  proTipBlock: {
+    backgroundColor: COLORS.accentLight + '40',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.accent,
+  },
+  proTipTitle: {
+    fontSize: 16,
+    fontWeight: FONT.headingSemibold,
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
+  },
+  proTipText: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
   },
   servingsSelector: {
     flexDirection: 'row',

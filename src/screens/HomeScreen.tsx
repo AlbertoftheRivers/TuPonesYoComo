@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Alert,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
@@ -17,7 +16,7 @@ import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage } from '../lib/LanguageContext';
 import { SupportedLanguage } from '../lib/i18n';
 import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
-import { getAllRecipes } from '../api/recipes';
+import { getAllRecipes, getRandomRecipe } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { Recipe } from '../types/recipe';
 
@@ -45,6 +44,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [allCuisines, setAllCuisines] = useState<any[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
+  const [surpriseLoading, setSurpriseLoading] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -79,203 +79,132 @@ export default function HomeScreen({ navigation }: Props) {
     setShowLanguageModal(false);
   };
 
-  const handleAddRecipe = () => {
-    navigation.navigate('AddRecipe');
+  const handleSurpriseMe = async () => {
+    if (allRecipes.length === 0) return;
+    setSurpriseLoading(true);
+    try {
+      const recipe = await getRandomRecipe();
+      if (recipe) navigation.navigate('RecipeDetail', { recipeId: recipe.id });
+    } finally {
+      setSurpriseLoading(false);
+    }
   };
 
-  const handleOpenRecipeBook = () => {
-    navigation.navigate('Categories');
-  };
-
-  const handleOpenGuide = () => {
-    navigation.navigate('UserGuide');
-  };
-
-  const handleOpenAdmin = () => {
-    navigation.navigate('Admin');
-  };
-
+  const handleBrowseByCategory = () => navigation.navigate('Categories');
+  const handleAddRecipe = () => navigation.navigate('AddRecipe');
+  const handleOpenGuide = () => navigation.navigate('UserGuide');
+  const handleOpenAdmin = () => navigation.navigate('Admin');
   const handleRecipePress = (recipe: Recipe) => {
     navigation.navigate('RecipeDetail', { recipeId: recipe.id });
   };
 
-  // Search functionality
   const filteredRecipes = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return [];
-    }
-
+    if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase().trim();
     return allRecipes.filter((recipe) => {
-      // Search in title
-      if (recipe.title.toLowerCase().includes(query)) {
-        return true;
-      }
-
-      // Search in ingredients
-      const ingredientNames = recipe.ingredients
-        .map(ing => ing.name.toLowerCase())
-        .join(' ');
-      if (ingredientNames.includes(query)) {
-        return true;
-      }
-
-      // Search in cuisines
-      if (recipe.cuisines && recipe.cuisines.length > 0) {
+      if (recipe.title.toLowerCase().includes(query)) return true;
+      const ingredientNames = recipe.ingredients.map(ing => ing.name.toLowerCase()).join(' ');
+      if (ingredientNames.includes(query)) return true;
+      if (recipe.cuisines?.length) {
         const cuisineLabels = recipe.cuisines
-          .map(cuisineValue => getTranslatedCuisine(cuisineValue, language))
+          .map(c => getTranslatedCuisine(c, language))
           .join(' ')
           .toLowerCase();
-        if (cuisineLabels.includes(query)) {
-          return true;
-        }
+        if (cuisineLabels.includes(query)) return true;
       }
-
       return false;
     });
   }, [searchQuery, allRecipes, language]);
 
-  // Get unique recipes count
-  const uniqueRecipesCount = useMemo(() => {
-    return allRecipes.length;
-  }, [allRecipes]);
-
-  // Get unique cuisines count
+  const uniqueRecipesCount = allRecipes.length;
   const uniqueCuisinesCount = useMemo(() => {
-    const cuisineSet = new Set<string>();
-    allRecipes.forEach(recipe => {
-      if (recipe.cuisines && recipe.cuisines.length > 0) {
-        recipe.cuisines.forEach(cuisine => cuisineSet.add(cuisine));
-      }
-    });
-    return cuisineSet.size;
+    const set = new Set<string>();
+    allRecipes.forEach(r => r.cuisines?.forEach(c => set.add(c)));
+    return set.size;
   }, [allRecipes]);
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <DesktopWarning />
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.title}>{t('appName')}</Text>
-              <Text style={styles.subtitle}>{t('searchPlaceholder')}</Text>
-            </View>
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                style={styles.languageButton}
-                onPress={() => setShowLanguageModal(true)}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('selectLanguage')}
-              >
-                <Text style={styles.languageButtonText}>🌐</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.helpButton}
-                onPress={handleOpenGuide}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('userGuide')}
-              >
-                <Text style={styles.helpButtonText}>❓</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.adminButton}
-                onPress={handleOpenAdmin}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel="Admin"
-              >
-                <Text style={styles.adminButtonText}>⚙️</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
 
-          {/* Search bar - full width */}
-          <View style={styles.searchContainerFull}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t('searchPlaceholder')}
-              placeholderTextColor={COLORS.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={() => setSearchQuery('')}
-                accessibilityRole="button"
-                accessibilityLabel={t('cancel')}
-              >
-                <Text style={styles.clearButtonText}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Recipe and cuisines counters */}
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{uniqueRecipesCount}</Text>
-              <Text style={styles.statLabel}>
-                {uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{uniqueCuisinesCount}</Text>
-              <Text style={styles.statLabel}>
-                {uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}
-              </Text>
-            </View>
+        {/* Top bar: language, help, admin */}
+        <View style={styles.topBar}>
+          <View style={styles.topBarSpacer} />
+          <View style={styles.topBarButtons}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => setShowLanguageModal(true)} accessibilityRole="button" accessibilityLabel={t('selectLanguage')}>
+              <Text style={styles.iconButtonText}>🌐</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton} onPress={handleOpenGuide} accessibilityRole="button" accessibilityLabel={t('userGuide')}>
+              <Text style={styles.iconButtonText}>❓</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton} onPress={handleOpenAdmin} accessibilityRole="button" accessibilityLabel="Admin">
+              <Text style={styles.iconButtonText}>⚙️</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Search Results */}
-        {searchQuery.trim() && (
-          <View style={styles.searchResultsContainer}>
-            <Text style={styles.searchResultsTitle}>
+        {/* Hero */}
+        <View style={styles.hero}>
+          <Text style={styles.heroTitle}>{t('appName')}</Text>
+          <Text style={styles.heroTagline}>{t('tagline')}</Text>
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchWrap}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('searchPlaceholder')}
+            placeholderTextColor={COLORS.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity style={styles.clearBtn} onPress={() => setSearchQuery('')} accessibilityRole="button">
+              <Text style={styles.clearBtnText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* When searching: results */}
+        {searchQuery.trim().length > 0 && (
+          <View style={styles.searchSection}>
+            <Text style={styles.searchSectionTitle}>
               {t('searchResults')}: {filteredRecipes.length} {filteredRecipes.length !== 1 ? t('recipesCountPlural') : t('recipesCount')}
             </Text>
             {loadingRecipes ? (
-              <ActivityIndicator size="small" color={COLORS.primary} style={styles.loadingIndicator} />
+              <ActivityIndicator size="small" color={COLORS.primary} style={styles.loader} />
             ) : filteredRecipes.length === 0 ? (
-              <Text style={styles.noResultsText}>{t('noRecipesFound')}</Text>
+              <Text style={styles.noResults}>{t('noRecipesFound')}</Text>
             ) : (
-              <View style={styles.searchResultsList}>
+              <View style={styles.resultList}>
                 {filteredRecipes.map((recipe) => {
-                  const cuisineInfos = recipe.cuisines 
-                    ? recipe.cuisines.map(cuisineValue => allCuisines.find(c => c.value === cuisineValue)).filter(Boolean)
+                  const cuisineInfos = recipe.cuisines
+                    ? recipe.cuisines.map(c => allCuisines.find(x => x.value === c)).filter(Boolean)
                     : [];
                   return (
                     <TouchableOpacity
                       key={recipe.id}
-                      style={styles.searchResultCard}
+                      style={styles.resultCard}
                       onPress={() => handleRecipePress(recipe)}
                       activeOpacity={0.7}
                     >
-                      <View style={styles.searchResultHeader}>
-                        <Text style={styles.searchResultTitle}>{recipe.title}</Text>
+                      <View style={styles.resultHeader}>
+                        <Text style={styles.resultTitle}>{recipe.title}</Text>
                         {cuisineInfos.length > 0 && (
-                          <View style={styles.cuisineFlagsContainer}>
-                            {cuisineInfos.map((cuisineInfo, idx) => (
-                              <Text key={idx} style={styles.cuisineFlag}>{cuisineInfo?.flag}</Text>
+                          <View style={styles.flags}>
+                            {cuisineInfos.map((info: any, i) => (
+                              <Text key={i} style={styles.flag}>{info?.flag}</Text>
                             ))}
                           </View>
                         )}
                       </View>
-                      <View style={styles.searchResultMeta}>
-                        <Text style={styles.searchResultMetaText}>
-                          {getTranslatedProtein(recipe.main_protein, language)}
-                        </Text>
+                      <View style={styles.resultMeta}>
+                        <Text style={styles.resultMetaText}>{getTranslatedProtein(recipe.main_protein, language)}</Text>
                         {recipe.total_time_minutes && (
                           <>
-                            <Text style={styles.searchResultMetaText}>•</Text>
-                            <Text style={styles.searchResultMetaText}>
-                              ⏱️ {recipe.total_time_minutes} {t('min')}
-                            </Text>
+                            <Text style={styles.resultMetaText}> • </Text>
+                            <Text style={styles.resultMetaText}>⏱️ {recipe.total_time_minutes} {t('min')}</Text>
                           </>
                         )}
                       </View>
@@ -287,91 +216,89 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         )}
 
-        {/* When not searching: Recipe book + Add recipe cards */}
+        {/* When not searching: three main actions */}
         {!searchQuery.trim() && (
-          <View style={styles.actionCards}>
+          <View style={styles.actions}>
             <TouchableOpacity
-              style={styles.actionCard}
-              onPress={handleOpenRecipeBook}
-              activeOpacity={0.7}
+              style={[styles.actionCard, styles.actionSurprise]}
+              onPress={handleSurpriseMe}
+              disabled={allRecipes.length === 0 || surpriseLoading}
+              activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel={t('recipeBook')}
+              accessibilityLabel={t('surpriseMe')}
             >
-              <View style={[styles.actionCardIcon, { backgroundColor: COLORS.accent + '35' }]}>
-                <Text style={styles.actionCardIconText}>📖</Text>
-              </View>
-              <Text style={styles.actionCardLabel}>{t('recipeBook')}</Text>
-              <Text style={styles.actionCardHint}>{t('selectCategory')}</Text>
+              {surpriseLoading ? (
+                <ActivityIndicator size="small" color={COLORS.text} />
+              ) : (
+                <>
+                  <Text style={styles.actionEmoji}>🎲</Text>
+                  <Text style={styles.actionLabel}>{t('surpriseMe')}</Text>
+                  <Text style={styles.actionHint}>
+                    {allRecipes.length === 0 ? t('noRecipesFound') : t('surpriseMeHint')}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.actionCard}
-              onPress={handleAddRecipe}
-              activeOpacity={0.7}
+              style={[styles.actionCard, styles.actionBrowse]}
+              onPress={handleBrowseByCategory}
+              activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel={t('addRecipe')}
+              accessibilityLabel={t('browseByCategory')}
             >
-              <View style={[styles.actionCardIcon, { backgroundColor: COLORS.primary + '35' }]}>
-                <Text style={styles.actionCardIconText}>➕</Text>
-              </View>
-              <Text style={styles.actionCardLabel}>{t('addRecipeShort')}</Text>
-              <Text style={styles.actionCardHint}>{t('addRecipe')}</Text>
+              <Text style={styles.actionEmoji}>📖</Text>
+              <Text style={styles.actionLabel}>{t('browseByCategory')}</Text>
+              <Text style={styles.actionHint}>{t('selectCategory')}</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionCard, styles.actionAdd]}
+              onPress={handleAddRecipe}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('addRecipeShort')}
+            >
+              <Text style={styles.actionEmoji}>➕</Text>
+              <Text style={styles.actionLabel}>{t('addRecipeShort')}</Text>
+              <Text style={styles.actionHint}>{t('addRecipe')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Stats at bottom */}
+        {!searchQuery.trim() && (
+          <View style={styles.stats}>
+            <View style={styles.stat}>
+              <Text style={styles.statNum}>{uniqueRecipesCount}</Text>
+              <Text style={styles.statText}>{uniqueRecipesCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statNum}>{uniqueCuisinesCount}</Text>
+              <Text style={styles.statText}>{uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}</Text>
+            </View>
           </View>
         )}
       </ScrollView>
 
-      {/* Language Selection Modal */}
-      <Modal
-        visible={showLanguageModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowLanguageModal(false)}
-      >
+      <Modal visible={showLanguageModal} transparent animationType="slide" onRequestClose={() => setShowLanguageModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
-            
-            <TouchableOpacity
-              style={[styles.languageOption, language === 'es' && styles.languageOptionActive]}
-              onPress={() => handleLanguageChange('es')}
-            >
-              <Text style={styles.languageOptionText}>🇪🇸 {t('spanish')}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.languageOption, language === 'ca' && styles.languageOptionActive]}
-              onPress={() => handleLanguageChange('ca')}
-            >
-              <Text style={styles.languageOptionText}>🇪🇸 {t('catalan')}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.languageOption, language === 'fr' && styles.languageOptionActive]}
-              onPress={() => handleLanguageChange('fr')}
-            >
-              <Text style={styles.languageOptionText}>🇫🇷 {t('french')}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.languageOption, language === 'en' && styles.languageOptionActive]}
-              onPress={() => handleLanguageChange('en')}
-            >
-              <Text style={styles.languageOptionText}>🇬🇧 {t('english')}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.languageOption, language === 'pt' && styles.languageOptionActive]}
-              onPress={() => handleLanguageChange('pt')}
-            >
-              <Text style={styles.languageOptionText}>🇵🇹 {t('portuguese')}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowLanguageModal(false)}
-            >
-              <Text style={styles.modalCancelButtonText}>{t('cancel')}</Text>
+            {(['es', 'ca', 'fr', 'en', 'pt'] as SupportedLanguage[]).map((lang) => (
+              <TouchableOpacity
+                key={lang}
+                style={[styles.langOption, language === lang && styles.langOptionActive]}
+                onPress={() => handleLanguageChange(lang)}
+              >
+                <Text style={styles.langOptionText}>
+                  {lang === 'es' && '🇪🇸 '}{lang === 'ca' && '🇪🇸 '}{lang === 'fr' && '🇫🇷 '}{lang === 'en' && '🇬🇧 '}{lang === 'pt' && '🇵🇹 '}
+                  {t(lang === 'es' ? 'spanish' : lang === 'ca' ? 'catalan' : lang === 'fr' ? 'french' : lang === 'en' ? 'english' : 'portuguese')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={styles.modalCancel} onPress={() => setShowLanguageModal(false)}>
+              <Text style={styles.modalCancelText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -381,56 +308,12 @@ export default function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    padding: SPACING.md,
-    paddingBottom: SPACING.xl,
-  },
-  header: {
-    marginBottom: SPACING.lg,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: FONT.headingBold,
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: SPACING.md,
-  },
-  languageButton: {
-    width: 44,
-    height: 44,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    ...SHADOWS.sm,
-  },
-  languageButtonText: {
-    fontSize: 20,
-  },
-  helpButton: {
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { padding: SPACING.md, paddingBottom: SPACING.xl },
+  topBar: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginBottom: SPACING.sm },
+  topBarSpacer: { flex: 1 },
+  topBarButtons: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  iconButton: {
     width: 44,
     height: 44,
     borderRadius: BORDER_RADIUS.md,
@@ -441,126 +324,14 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderLight,
     ...SHADOWS.sm,
   },
-  helpButtonText: {
-    fontSize: 20,
-  },
-  adminButton: {
-    width: 44,
-    height: 44,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    ...SHADOWS.sm,
-  },
-  adminButtonText: {
-    fontSize: 20,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  proteinCard: {
-    width: '48%',
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  cardIconText: {
-    fontSize: 32,
-  },
-  cardLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING.lg,
-    width: '88%',
-    maxWidth: 400,
-    ...SHADOWS.lg,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: FONT.headingBold,
-    color: COLORS.text,
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-  },
-  languageOption: {
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.background,
-    marginBottom: SPACING.sm,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  languageOptionActive: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '18',
-  },
-  languageOptionText: {
-    fontSize: 17,
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  modalCancelButton: {
-    marginTop: SPACING.md,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.borderLight,
-  },
-  modalCancelButtonText: {
-    fontSize: 16,
-    color: COLORS.text,
-    textAlign: 'center',
-    fontWeight: FONT.headingSemibold,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: SPACING.md,
-    gap: SPACING.sm,
-  },
-  searchContainerFull: {
-    marginTop: SPACING.md,
-    position: 'relative',
-  },
-  searchContainer: {
-    flex: 1,
-    position: 'relative',
-  },
+  iconButtonText: { fontSize: 20 },
+  hero: { marginBottom: SPACING.lg },
+  heroTitle: { fontSize: 32, fontWeight: FONT.headingBold, color: COLORS.text, letterSpacing: -0.5 },
+  heroTagline: { fontSize: 16, color: COLORS.textSecondary, marginTop: SPACING.xs },
+  searchWrap: { marginBottom: SPACING.lg, position: 'relative' },
   searchInput: {
     backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.lg,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.md,
     paddingRight: 48,
@@ -570,153 +341,14 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
-  clearButton: {
-    position: 'absolute',
-    right: SPACING.sm,
-    top: 0,
-    bottom: 0,
-    minWidth: 44,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  clearButtonText: {
-    fontSize: 18,
-    color: COLORS.textSecondary,
-    fontWeight: 'bold',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    marginTop: SPACING.md,
-    gap: SPACING.md,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 76,
-    ...SHADOWS.md,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  statBadge: {
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: FONT.headingBold,
-    color: '#FFF',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.95)',
-    marginTop: SPACING.xs,
-    textAlign: 'center',
-  },
-  actionCards: {
-    marginTop: SPACING.xl,
-    gap: SPACING.lg,
-  },
-  actionCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    minHeight: 124,
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    ...SHADOWS.md,
-  },
-  actionCardIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: BORDER_RADIUS.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  actionCardIconText: {
-    fontSize: 28,
-  },
-  actionCardLabel: {
-    fontSize: 18,
-    fontWeight: FONT.headingBold,
-    color: COLORS.text,
-  },
-  actionCardHint: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  proteinCard: {
-    width: '48%',
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  cardIconText: {
-    fontSize: 32,
-  },
-  cardLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  searchResultsContainer: {
-    marginBottom: SPACING.lg,
-  },
-  searchResultsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
-  },
-  loadingIndicator: {
-    marginVertical: SPACING.md,
-  },
-  noResultsText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    padding: SPACING.lg,
-  },
-  searchResultsList: {
-    gap: SPACING.sm,
-  },
-  searchResultCard: {
+  clearBtn: { position: 'absolute', right: SPACING.sm, top: 0, bottom: 0, minWidth: 44, justifyContent: 'center', alignItems: 'center' },
+  clearBtnText: { fontSize: 18, color: COLORS.textSecondary, fontWeight: '700' },
+  searchSection: { marginBottom: SPACING.lg },
+  searchSectionTitle: { fontSize: 18, fontWeight: FONT.headingSemibold, color: COLORS.text, marginBottom: SPACING.md },
+  loader: { marginVertical: SPACING.md },
+  noResults: { fontSize: 16, color: COLORS.textSecondary, textAlign: 'center', padding: SPACING.lg },
+  resultList: { gap: SPACING.sm },
+  resultCard: {
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
@@ -725,33 +357,59 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderLight,
     ...SHADOWS.sm,
   },
-  searchResultHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.xs,
-  },
-  searchResultTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    flex: 1,
-  },
-  cuisineFlagsContainer: {
-    flexDirection: 'row',
-    marginLeft: SPACING.sm,
-  },
-  cuisineFlag: {
-    fontSize: 18,
-  },
-  searchResultMeta: {
-    flexDirection: 'row',
+  resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING.xs },
+  resultTitle: { fontSize: 18, fontWeight: '600', color: COLORS.text, flex: 1 },
+  flags: { flexDirection: 'row', marginLeft: SPACING.sm },
+  flag: { fontSize: 18 },
+  resultMeta: { flexDirection: 'row', alignItems: 'center' },
+  resultMetaText: { fontSize: 14, color: COLORS.textSecondary },
+  actions: { gap: SPACING.md, marginBottom: SPACING.xl },
+  actionCard: {
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
     alignItems: 'center',
-    gap: SPACING.xs,
+    minHeight: 100,
+    justifyContent: 'center',
+    ...SHADOWS.md,
   },
-  searchResultMetaText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+  actionSurprise: { backgroundColor: COLORS.fun },
+  actionBrowse: { backgroundColor: COLORS.accentLight },
+  actionAdd: { backgroundColor: COLORS.primary },
+  actionEmoji: { fontSize: 32, marginBottom: SPACING.sm },
+  actionLabel: { fontSize: 20, fontWeight: FONT.headingBold, color: COLORS.text },
+  actionHint: { fontSize: 13, color: COLORS.textSecondary, marginTop: SPACING.xs, textAlign: 'center' },
+  stats: { flexDirection: 'row', gap: SPACING.md, marginTop: 'auto' },
+  stat: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
+  statNum: { fontSize: 22, fontWeight: FONT.headingBold, color: COLORS.primary },
+  statText: { fontSize: 12, color: COLORS.textSecondary, marginTop: SPACING.xs },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
+    width: '88%',
+    maxWidth: 400,
+    ...SHADOWS.lg,
+  },
+  modalTitle: { fontSize: 22, fontWeight: FONT.headingBold, color: COLORS.text, marginBottom: SPACING.lg, textAlign: 'center' },
+  langOption: {
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
+    marginBottom: SPACING.sm,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  langOptionActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primary + '18' },
+  langOptionText: { fontSize: 17, color: COLORS.text, textAlign: 'center' },
+  modalCancel: { marginTop: SPACING.md, padding: SPACING.md, borderRadius: BORDER_RADIUS.md, backgroundColor: COLORS.borderLight },
+  modalCancelText: { fontSize: 16, color: COLORS.text, textAlign: 'center', fontWeight: FONT.headingSemibold },
 });
-

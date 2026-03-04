@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CATEGORY_STRIPES } from '../lib/constants';
 import { getAllProteins } from '../lib/customCategories';
 import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage } from '../lib/LanguageContext';
@@ -62,28 +62,31 @@ export default function CategoriesScreen({ navigation }: Props) {
       >
         <DesktopWarning />
         <View style={styles.header}>
-          <Text style={styles.title}>{t('recipeBook')}</Text>
-          <Text style={styles.subtitle}>{t('selectCategory')}</Text>
+          <Text style={styles.heroTitle}>{t('recipeBook')}</Text>
+          <Text style={styles.heroTagline}>{t('selectCategory')}</Text>
         </View>
 
         <View style={styles.grid}>
-          {allProteins.map((protein) => (
-            <TouchableOpacity
-              key={protein.value}
-              style={styles.proteinCard}
-              onPress={() => handleProteinPress(protein.value)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={`${protein.label || getTranslatedProtein(protein.value, language)}`}
-            >
-              <View style={[styles.cardIcon, { backgroundColor: COLORS.accent + '30' }]}>
-                <Text style={styles.cardIconText}>{protein.icon || '🍽️'}</Text>
-              </View>
-              <Text style={styles.cardLabel}>
-                {protein.label || getTranslatedProtein(protein.value, language)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {allProteins.map((protein, index) => {
+            const stripeColor = CATEGORY_STRIPES[index % CATEGORY_STRIPES.length];
+            return (
+              <TouchableOpacity
+                key={protein.value}
+                style={[styles.proteinCard, { borderLeftColor: stripeColor, borderLeftWidth: 4 }]}
+                onPress={() => handleProteinPress(protein.value)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={`${protein.label || getTranslatedProtein(protein.value, language)}`}
+              >
+                <View style={[styles.cardIcon, { backgroundColor: stripeColor + '35' }]}>
+                  <Text style={styles.cardIconText}>{protein.icon || '🍽️'}</Text>
+                </View>
+                <Text style={styles.cardLabel}>
+                  {protein.label || getTranslatedProtein(protein.value, language)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
     </View>
@@ -102,13 +105,13 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: SPACING.lg,
   },
-  title: {
-    fontSize: 26,
+  heroTitle: {
+    fontSize: 28,
     fontWeight: FONT.headingBold,
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
-  subtitle: {
+  heroTagline: {
     fontSize: 15,
     color: COLORS.textSecondary,
   },
@@ -125,6 +128,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     alignItems: 'center',
     borderWidth: 1,
+    borderLeftWidth: 4,
     borderColor: COLORS.borderLight,
     ...SHADOWS.md,
   },

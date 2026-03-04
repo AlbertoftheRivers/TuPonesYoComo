@@ -142,6 +142,19 @@ export async function deleteRecipe(id: string | number): Promise<void> {
   }
 }
 
+/** Get one random recipe from the database (for "Surprise me" feature) */
+export async function getRandomRecipe(): Promise<Recipe | null> {
+  try {
+    const all = await getAllRecipes();
+    if (all.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * all.length);
+    return all[randomIndex];
+  } catch (error) {
+    console.error('Error fetching random recipe:', error);
+    return null;
+  }
+}
+
 // Helper to normalize recipe data from Supabase
 function normalizeRecipe(data: any): Recipe {
   // Handle both old format (cuisine as string) and new format (cuisines as array)

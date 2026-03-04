@@ -14,7 +14,7 @@ import { Picker } from '@react-native-picker/picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 // ImagePicker imported dynamically to avoid crash if native module is not available
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS, CUISINES } from '../lib/constants';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT, MAIN_PROTEINS } from '../lib/constants';
 import { getRecipeById, updateRecipe } from '../api/recipes';
 import { analyzeRecipe } from '../lib/ollama';
 import { extractTextFromImage } from '../lib/ocr';
@@ -60,7 +60,7 @@ export default function EditRecipeScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [allProteins, setAllProteins] = useState(MAIN_PROTEINS);
-  const [allCuisines, setAllCuisines] = useState(CUISINES);
+  const [allCuisines, setAllCuisines] = useState<Array<{ value: string; label: string; flag: string }>>([]);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryIcon, setNewCategoryIcon] = useState('');
