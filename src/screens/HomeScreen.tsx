@@ -693,6 +693,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
   },
+  searchResultsContainer: {
     marginBottom: SPACING.lg,
   },
   searchResultsTitle: {
