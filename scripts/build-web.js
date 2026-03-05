@@ -1,6 +1,6 @@
 /**
- * Build script for Cloudflare Pages — builds the **Expo web** app (React Native for web).
- * To deploy the **new** Lovable-style web app (in web/), use the settings in docs/CLOUDFLARE-PAGES-WEB-APP.md instead.
+ * Build script for Cloudflare Pages.
+ * Builds the Expo web app (single codebase in src/).
  */
 
 const { execSync } = require('child_process');

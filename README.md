@@ -43,9 +43,9 @@ Mobile App (Phone) → Cloudflare Tunnel → Backend API (Proxmox Container) →
   - **Tesseract.js**: OCR for image text extraction
 - **Infrastructure**: Cloudflare Tunnel for public API access
 
-## Web App (Lovable UI)
+## Web (Lovable-style UI)
 
-A standalone web app in `web/` replicates the [Lovable Fridge-to-Fork](https://fridge-to-fork-26.lovable.app/) design and uses the same backend and Supabase. See `web/README.md` for setup and `npm run dev` in `web/`.
+The [Lovable Fridge-to-Fork](https://fridge-to-fork-26.lovable.app/) design is implemented in the **main app** (`src/`): same layout (search, counters, My Fridge, Recommend Me, Recipe Book, Add Recipe, Recent Recipes), Supabase, OCR, dictation, and Ollama. The **web** build is Expo: `npm run build:web` then deploy the `dist/` output (e.g. Cloudflare Pages). See `docs/CLOUDFLARE-PAGES-WEB-APP.md`.
 
 ## Prerequisites
 
@@ -467,9 +467,9 @@ Mobile App (Phone) → Cloudflare Tunnel → Backend API (Proxmox Container) →
   - **Tesseract.js**: OCR for image text extraction
 - **Infrastructure**: Cloudflare Tunnel for public API access
 
-## Web App (Lovable UI)
+## Web (Lovable-style UI)
 
-A standalone web app in `web/` replicates the [Lovable Fridge-to-Fork](https://fridge-to-fork-26.lovable.app/) design and uses the same backend and Supabase. See `web/README.md` for setup and `npm run dev` in `web/`.
+The [Lovable Fridge-to-Fork](https://fridge-to-fork-26.lovable.app/) design is implemented in the **main app** (`src/`): same layout (search, counters, My Fridge, Recommend Me, Recipe Book, Add Recipe, Recent Recipes), Supabase, OCR, dictation, and Ollama. The **web** build is Expo: `npm run build:web` then deploy the `dist/` output (e.g. Cloudflare Pages). See `docs/CLOUDFLARE-PAGES-WEB-APP.md`.
 
 ## Prerequisites
 

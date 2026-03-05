@@ -9,7 +9,6 @@
     "web": "expo start --web",
     "build:web": "node scripts/build-web.js",
     "pages:build": "npm run build:web",
-    "pages:build:webapp": "cd web && npm ci && npm run build",
     "build:android:preview": "eas build --platform android --profile preview",
     "build:android:production": "eas build --platform android --profile production",
     "build:android:local": "eas build --platform android --profile preview --local"
