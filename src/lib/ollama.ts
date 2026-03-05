@@ -115,3 +115,34 @@ export async function suggestRecipeFromIngredients(ingredients: string[]): Promi
   return typeof data.suggestion === 'string' ? data.suggestion : '';
 }
 
+/**
+ * Suggest a recipe from a free-form description (e.g. "something quick with chicken")
+ * using Ollama (backend). Returns raw recipe text. Use for "not in my book" suggestions.
+ */
+export async function suggestRecipeFromDescription(description: string): Promise<string> {
+  const text = String(description).trim();
+  if (!text) {
+    throw new Error('Description is required');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  const response = await fetch(`${API_BASE_URL}/api/suggest-recipe-from-description`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description: text }),
+    signal: controller.signal,
+  });
+
+  clearTimeout(timeoutId);
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as any).error || `API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return typeof data.suggestion === 'string' ? data.suggestion : '';
+}
+

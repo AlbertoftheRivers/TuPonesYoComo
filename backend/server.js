@@ -771,6 +771,76 @@ app.post('/api/suggest-recipe-from-ingredients', async (req, res) => {
   }
 });
 
+/**
+ * Suggest a recipe from a free-form description (e.g. "something quick with chicken")
+ * Body: { description: string }
+ * Returns: { suggestion: string } (recipe text)
+ */
+app.post('/api/suggest-recipe-from-description', async (req, res) => {
+  const { description } = req.body;
+
+  if (!description || typeof description !== 'string') {
+    return res.status(400).json({
+      error: 'Missing or invalid field: description must be a non-empty string',
+    });
+  }
+
+  const desc = String(description).trim();
+  if (!desc) {
+    return res.status(400).json({
+      error: 'Description cannot be empty',
+    });
+  }
+
+  const systemPrompt = `You are a creative cook. The user will describe what kind of dish they feel like (e.g. "something quick with chicken", "a comforting soup", "a dessert without chocolate"). Suggest ONE concrete recipe that fits their description. It can be a recipe that is NOT in their recipe book—you are inventing a new suggestion. Reply in the same language as the description. Format clearly with: a short title, then "Ingredientes:" list, then "Pasos:" or "Instructions:" numbered steps. Keep it concise (under 400 words). Do not use markdown code blocks.`;
+  const userPrompt = `I'd like: ${desc}. Suggest a recipe for me.`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        stream: false,
+        options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 2048) },
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      throw new Error(`Ollama error: ${response.status} ${errText.substring(0, 150)}`);
+    }
+
+    const data = await response.json();
+    const suggestion = (data.message && data.message.content) ? String(data.message.content).trim() : '';
+
+    if (!suggestion) {
+      throw new Error('Ollama returned an empty suggestion');
+    }
+
+    res.json({ suggestion });
+  } catch (error) {
+    console.error('Error suggesting recipe from description:', error);
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ error: 'Request timed out. Try again.' });
+    }
+    res.status(500).json({
+      error: error.message || 'Failed to suggest recipe',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
+});
+
 // Translation endpoint
 app.post('/translate', async (req, res) => {
   const { text, target_language } = req.body;

@@ -17,11 +17,13 @@ import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage } from '../lib/LanguageContext';
 import { SupportedLanguage } from '../lib/i18n';
 import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
-import { getAllRecipes, getRecentRecipes } from '../api/recipes';
+import { getAllRecipes, getRecentRecipes, getRecipesByProtein } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
-import { suggestRecipeFromIngredients } from '../lib/ollama';
+import { suggestRecipeFromIngredients, suggestRecipeFromDescription } from '../lib/ollama';
 import { Recipe } from '../types/recipe';
 import { MAIN_PROTEINS } from '../lib/constants';
+import { getRecipesByIngredients } from '../api/recipes';
+import RecipeDetailModal from '../components/RecipeDetailModal';
 
 type RootStackParamList = {
   Home: undefined;
@@ -54,6 +56,17 @@ export default function HomeScreen({ navigation }: Props) {
   const [fridgeIngredients, setFridgeIngredients] = useState<string[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+
+  const [fridgePanelOpen, setFridgePanelOpen] = useState(false);
+  const [fridgeMatchingRecipes, setFridgeMatchingRecipes] = useState<Recipe[]>([]);
+  const [fridgeSearchLoading, setFridgeSearchLoading] = useState(false);
+  const [descriptionInput, setDescriptionInput] = useState('');
+  const [recommendMeRecipeId, setRecommendMeRecipeId] = useState<string | number | null>(null);
+  const [showRecipeBookModal, setShowRecipeBookModal] = useState(false);
+  const [recipeBookCategory, setRecipeBookCategory] = useState<string | null>(null);
+  const [recipeBookRecipes, setRecipeBookRecipes] = useState<Recipe[]>([]);
+  const [recipeBookRecipesLoading, setRecipeBookRecipesLoading] = useState(false);
+  const [recipeDetailModalId, setRecipeDetailModalId] = useState<string | number | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -101,16 +114,26 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
-  const removeFridgeIngredient = (i: number) => {
-    setFridgeIngredients(fridgeIngredients.filter((_, idx) => idx !== i));
-  };
-
-  const handleFindMatching = () => {
-    if (fridgeIngredients.length === 0) {
-      Alert.alert(t('error'), t('noRecipesFound'));
+  // Auto-search matching recipes when fridge ingredients change (in panel)
+  React.useEffect(() => {
+    if (!fridgePanelOpen || fridgeIngredients.length === 0) {
+      setFridgeMatchingRecipes([]);
       return;
     }
-    navigation.navigate('FridgeResults', { ingredients: fridgeIngredients });
+    let cancelled = false;
+    setFridgeSearchLoading(true);
+    getRecipesByIngredients(fridgeIngredients)
+      .then((list) => {
+        if (!cancelled) setFridgeMatchingRecipes(list);
+      })
+      .finally(() => {
+        if (!cancelled) setFridgeSearchLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [fridgePanelOpen, fridgeIngredients.join(',')]);
+
+  const removeFridgeIngredient = (i: number) => {
+    setFridgeIngredients(fridgeIngredients.filter((_, idx) => idx !== i));
   };
 
   const handleSuggestWithAI = async () => {
@@ -122,6 +145,24 @@ export default function HomeScreen({ navigation }: Props) {
     setAiSuggestion('');
     try {
       const suggestion = await suggestRecipeFromIngredients(fridgeIngredients);
+      setAiSuggestion(suggestion);
+    } catch (e) {
+      Alert.alert(t('error'), e instanceof Error ? e.message : t('error'));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleSuggestFromDescription = async () => {
+    const desc = descriptionInput.trim();
+    if (!desc) {
+      Alert.alert(t('error'), t('describeWhatYouLike'));
+      return;
+    }
+    setAiLoading(true);
+    setAiSuggestion('');
+    try {
+      const suggestion = await suggestRecipeFromDescription(desc);
       setAiSuggestion(suggestion);
     } catch (e) {
       Alert.alert(t('error'), e instanceof Error ? e.message : t('error'));
@@ -144,8 +185,29 @@ export default function HomeScreen({ navigation }: Props) {
     if (allRecipes.length === 0) return;
     const randomIndex = Math.floor(Math.random() * allRecipes.length);
     const recipe = allRecipes[randomIndex];
-    navigation.navigate('RecipeDetail', { recipeId: recipe.id });
+    setRecommendMeRecipeId(recipe.id);
   };
+
+  const openRecipeInModal = (recipeId: string | number) => {
+    setRecipeDetailModalId(recipeId);
+  };
+
+  React.useEffect(() => {
+    if (!showRecipeBookModal || !recipeBookCategory) {
+      setRecipeBookRecipes([]);
+      return;
+    }
+    let cancelled = false;
+    setRecipeBookRecipesLoading(true);
+    getRecipesByProtein(recipeBookCategory as any)
+      .then((list) => {
+        if (!cancelled) setRecipeBookRecipes(list);
+      })
+      .finally(() => {
+        if (!cancelled) setRecipeBookRecipesLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [showRecipeBookModal, recipeBookCategory]);
 
   const handleRecipePress = (recipe: Recipe) => {
     navigation.navigate('RecipeDetail', { recipeId: recipe.id });
@@ -271,46 +333,18 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Main content when not searching */}
         {!searchQuery.trim() && (
           <>
-            {/* Fridge: what you have → find similar or get AI suggestion */}
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('whatsInFridge')}</Text>
-              <View style={styles.fridgeRow}>
-                <TextInput
-                  style={styles.fridgeInput}
-                  placeholder={t('fridgePlaceholder')}
-                  placeholderTextColor={COLORS.textMuted}
-                  value={fridgeInput}
-                  onChangeText={setFridgeInput}
-                  onSubmitEditing={addFridgeIngredient}
-                />
-                <TouchableOpacity style={styles.fridgeAddBtn} onPress={addFridgeIngredient}>
-                  <Text style={styles.fridgeAddBtnLabel}>{t('addIngredient')}</Text>
-                </TouchableOpacity>
-              </View>
-              {fridgeIngredients.length > 0 && (
-                <>
-                  <View style={styles.chipRow}>
-                    {fridgeIngredients.map((ing, i) => (
-                      <TouchableOpacity key={i} style={styles.chip} onPress={() => removeFridgeIngredient(i)}>
-                        <Text style={styles.chipLabel}>{ing}</Text>
-                        <Text style={styles.chipRemove}>×</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <View style={styles.fridgeCtas}>
-                    <TouchableOpacity style={styles.fridgeCtaPrimary} onPress={handleFindMatching}>
-                      <Text style={styles.fridgeCtaPrimaryText}>{t('findMatchingRecipes')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.fridgeCtaSecondary} onPress={handleSuggestWithAI} disabled={aiLoading}>
-                      {aiLoading ? <ActivityIndicator size="small" color={COLORS.text} /> : <Text style={styles.fridgeCtaSecondaryText}>{t('suggestWithAI')}</Text>}
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
-
-            {/* Three main actions */}
+            {/* Four main action cards: My Fridge (opens left panel), Recommend Me (popup), Recipe Book (popup), Add Recipe */}
             <View style={styles.actions}>
+              <TouchableOpacity
+                style={[styles.actionCard, styles.actionFridge]}
+                onPress={() => setFridgePanelOpen(true)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.actionIcon}>🧊</Text>
+                <Text style={styles.actionTitle}>{t('myFridge')}</Text>
+                <Text style={styles.actionSubtitle}>{t('fridgePanelDescription')}</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.actionCard, styles.actionRecommend]}
                 onPress={handleRecommendMe}
@@ -322,7 +356,7 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text style={styles.actionSubtitle}>{recipeCount === 0 ? t('noRecipesFound') : t('surpriseMeHint')}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.actionCard, styles.actionBook]} onPress={() => navigation.navigate('Categories')} activeOpacity={0.85}>
+              <TouchableOpacity style={[styles.actionCard, styles.actionBook]} onPress={() => { setShowRecipeBookModal(true); setRecipeBookCategory(null); }} activeOpacity={0.85}>
                 <Text style={styles.actionIcon}>📖</Text>
                 <Text style={styles.actionTitle}>{t('recipeBook')}</Text>
                 <Text style={styles.actionSubtitle}>{t('selectCategory')}</Text>
@@ -372,6 +406,161 @@ export default function HomeScreen({ navigation }: Props) {
           </>
         )}
       </ScrollView>
+
+      {/* Fridge left sidebar */}
+      {fridgePanelOpen && (
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setFridgePanelOpen(false)} activeOpacity={1} />
+          <View style={styles.fridgePanel}>
+            <View style={styles.fridgePanelHeader}>
+              <Text style={styles.fridgePanelTitle}>{t('whatsInFridge')}</Text>
+              <TouchableOpacity onPress={() => setFridgePanelOpen(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Text style={styles.fridgePanelClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.fridgePanelDesc}>{t('fridgePanelDescription')}</Text>
+            <View style={styles.fridgeRow}>
+              <TextInput
+                style={styles.fridgeInput}
+                placeholder={t('fridgePlaceholder')}
+                placeholderTextColor={COLORS.textMuted}
+                value={fridgeInput}
+                onChangeText={setFridgeInput}
+                onSubmitEditing={addFridgeIngredient}
+              />
+              <TouchableOpacity style={styles.fridgeAddBtn} onPress={addFridgeIngredient}>
+                <Text style={styles.fridgeAddBtnLabel}>+</Text>
+              </TouchableOpacity>
+            </View>
+            {fridgeIngredients.length > 0 && (
+              <View style={styles.chipRow}>
+                {fridgeIngredients.map((ing, i) => (
+                  <TouchableOpacity key={i} style={styles.chip} onPress={() => removeFridgeIngredient(i)}>
+                    <Text style={styles.chipLabel}>{ing}</Text>
+                    <Text style={styles.chipRemove}>×</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            {fridgeIngredients.length > 0 && (
+              <>
+                <Text style={styles.fridgeSectionLabel}>{t('matchingRecipes')}</Text>
+                {fridgeSearchLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.primary} style={styles.fridgeLoader} />
+                ) : fridgeMatchingRecipes.length === 0 ? (
+                  <Text style={styles.fridgeEmpty}>{t('noRecipesFound')}</Text>
+                ) : (
+                  <ScrollView style={styles.fridgeResultsScroll} showsVerticalScrollIndicator={false}>
+                    {fridgeMatchingRecipes.slice(0, 20).map((r) => (
+                      <TouchableOpacity key={r.id} style={styles.fridgeResultCard} onPress={() => { setFridgePanelOpen(false); openRecipeInModal(r.id); }}>
+                        <Text style={styles.fridgeResultTitle} numberOfLines={1}>{r.title}</Text>
+                        {r.total_time_minutes != null && <Text style={styles.fridgeResultMeta}>{r.total_time_minutes} {t('min')}</Text>}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
+                <TouchableOpacity style={styles.fridgeCtaSecondary} onPress={handleSuggestWithAI} disabled={aiLoading}>
+                  {aiLoading ? <ActivityIndicator size="small" color={COLORS.text} /> : <Text style={styles.fridgeCtaSecondaryText}>{t('suggestWithAI')}</Text>}
+                </TouchableOpacity>
+              </>
+            )}
+            <View style={styles.fridgeDivider} />
+            <Text style={styles.fridgeSectionLabel}>{t('describeWhatYouLike')}</Text>
+            <TextInput
+              style={styles.fridgeDescInput}
+              placeholder={t('describeWhatYouLikePlaceholder')}
+              placeholderTextColor={COLORS.textMuted}
+              value={descriptionInput}
+              onChangeText={setDescriptionInput}
+              multiline
+            />
+            <TouchableOpacity style={styles.fridgeSuggestBtn} onPress={handleSuggestFromDescription} disabled={aiLoading}>
+              {aiLoading ? <ActivityIndicator size="small" color={COLORS.primaryForeground} /> : <Text style={styles.fridgeSuggestBtnText}>{t('suggestRecipeFromDescription')}</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Recipe Book modal: categories then recipes */}
+      <Modal visible={showRecipeBookModal} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.recipeBookPanel}>
+            <View style={styles.fridgePanelHeader}>
+              <Text style={styles.fridgePanelTitle}>{t('recipeBook')}</Text>
+              <TouchableOpacity onPress={() => setShowRecipeBookModal(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Text style={styles.fridgePanelClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            {recipeBookCategory == null ? (
+              <ScrollView style={styles.recipeBookScroll} showsVerticalScrollIndicator={false}>
+                <Text style={styles.recipeBookSubtitle}>{t('selectCategory')}</Text>
+                <View style={styles.recipeBookCategoryGrid}>
+                  {MAIN_PROTEINS.map((p) => (
+                    <TouchableOpacity
+                      key={p.value}
+                      style={styles.recipeBookCategoryCard}
+                      onPress={() => setRecipeBookCategory(p.value)}
+                    >
+                      <Text style={styles.recipeBookCategoryIcon}>{p.icon || '🍽️'}</Text>
+                      <Text style={styles.recipeBookCategoryLabel}>{p.label || getTranslatedProtein(p.value, language)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <>
+                <TouchableOpacity style={styles.recipeBookBack} onPress={() => setRecipeBookCategory(null)}>
+                  <Text style={styles.recipeBookBackText}>← {t('back')}</Text>
+                </TouchableOpacity>
+                {recipeBookRecipesLoading ? (
+                  <ActivityIndicator size="large" color={COLORS.primary} style={styles.fridgeLoader} />
+                ) : recipeBookRecipes.length === 0 ? (
+                  <Text style={styles.fridgeEmpty}>{t('noRecipes')}</Text>
+                ) : (
+                  <ScrollView style={styles.recipeBookScroll} showsVerticalScrollIndicator={false}>
+                    {recipeBookRecipes.map((r) => {
+                      const proteinIcon = MAIN_PROTEINS.find((x) => x.value === r.main_protein)?.icon || '🍽️';
+                      const firstCuisine = r.cuisines?.[0];
+                      const cuisineLabel = firstCuisine ? getTranslatedCuisine(firstCuisine, language) : null;
+                      const cuisineInfo = allCuisines.find((c) => c.value === firstCuisine);
+                      return (
+                        <TouchableOpacity
+                          key={r.id}
+                          style={styles.recentCard}
+                          onPress={() => { setShowRecipeBookModal(false); openRecipeInModal(r.id); }}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.recentCardEmoji}>{proteinIcon}</Text>
+                          <Text style={styles.recentCardTitle} numberOfLines={2}>{r.title}</Text>
+                          {cuisineLabel && <Text style={styles.recentCardCuisine}>{cuisineInfo?.flag} {cuisineLabel}</Text>}
+                          <View style={styles.recentCardMeta}>
+                            {r.total_time_minutes != null && <Text style={styles.recentCardMetaText}>⏱ {r.total_time_minutes} {t('min')}</Text>}
+                            <Text style={styles.recentCardMetaText}>👤 {r.servings ?? 2}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Recommend Me: popup with random recipe */}
+      <RecipeDetailModal
+        visible={recommendMeRecipeId != null}
+        recipeId={recommendMeRecipeId}
+        onClose={() => setRecommendMeRecipeId(null)}
+      />
+
+      {/* Recipe detail popup (from Fridge results or Recipe Book) */}
+      <RecipeDetailModal
+        visible={recipeDetailModalId != null}
+        recipeId={recipeDetailModalId}
+        onClose={() => setRecipeDetailModalId(null)}
+      />
 
       {/* AI suggestion modal */}
       <Modal visible={!!aiSuggestion} transparent animationType="slide">
@@ -590,6 +779,158 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: SPACING.sm,
   },
+  fridgePanel: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 320,
+    maxWidth: '85%',
+    backgroundColor: COLORS.surface,
+    borderRightWidth: 1,
+    borderRightColor: COLORS.border,
+    padding: SPACING.md,
+    ...SHADOWS.lg,
+  },
+  fridgePanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  fridgePanelTitle: {
+    fontSize: 18,
+    fontWeight: FONT.headingBold,
+    color: COLORS.text,
+  },
+  fridgePanelClose: {
+    fontSize: 20,
+    color: COLORS.textMuted,
+    fontWeight: '600',
+  },
+  fridgePanelDesc: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+  },
+  fridgeSectionLabel: {
+    fontSize: 13,
+    fontWeight: FONT.headingSemibold,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  fridgeLoader: {
+    marginVertical: SPACING.sm,
+  },
+  fridgeEmpty: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    marginBottom: SPACING.sm,
+  },
+  fridgeResultsScroll: {
+    maxHeight: 200,
+    marginBottom: SPACING.sm,
+  },
+  fridgeResultCard: {
+    backgroundColor: COLORS.card,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  fridgeResultTitle: {
+    fontSize: 14,
+    fontWeight: FONT.headingSemibold,
+    color: COLORS.text,
+  },
+  fridgeResultMeta: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  fridgeDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: SPACING.md,
+  },
+  fridgeDescInput: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    fontSize: 14,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  fridgeSuggestBtn: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+  },
+  fridgeSuggestBtnText: {
+    fontSize: 14,
+    fontWeight: FONT.headingSemibold,
+    color: COLORS.primaryForeground,
+  },
+  recipeBookPanel: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    width: '100%',
+    maxWidth: 440,
+    maxHeight: '85%',
+    padding: SPACING.md,
+    ...SHADOWS.lg,
+  },
+  recipeBookScroll: {
+    maxHeight: 400,
+  },
+  recipeBookSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+  },
+  recipeBookCategoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  recipeBookCategoryCard: {
+    width: '47%',
+    minWidth: 120,
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  recipeBookCategoryIcon: {
+    fontSize: 28,
+    marginBottom: SPACING.xs,
+  },
+  recipeBookCategoryLabel: {
+    fontSize: 13,
+    fontWeight: FONT.headingSemibold,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  recipeBookBack: {
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.sm,
+  },
+  recipeBookBackText: {
+    fontSize: 15,
+    color: COLORS.primary,
+    fontWeight: FONT.headingSemibold,
+  },
   fridgeRow: {
     flexDirection: 'row',
     gap: SPACING.sm,
@@ -676,9 +1017,13 @@ const styles = StyleSheet.create({
   },
 
   actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: SPACING.md,
   },
   actionCard: {
+    width: '48%',
+    minWidth: 140,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     alignItems: 'center',
@@ -690,6 +1035,10 @@ const styles = StyleSheet.create({
   actionRecommend: {
     backgroundColor: COLORS.neonOrangeDim,
     borderColor: COLORS.neonOrange,
+  },
+  actionFridge: {
+    backgroundColor: COLORS.neonCyanDim,
+    borderColor: COLORS.neonCyan,
   },
   actionBook: {
     backgroundColor: COLORS.neonCyanDim,
