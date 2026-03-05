@@ -10,6 +10,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+_lovable-reference/
 .env
 .env.local
 .env.*

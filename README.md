@@ -43,6 +43,10 @@ Mobile App (Phone) → Cloudflare Tunnel → Backend API (Proxmox Container) →
   - **Tesseract.js**: OCR for image text extraction
 - **Infrastructure**: Cloudflare Tunnel for public API access
 
+## Web App (Lovable UI)
+
+A standalone web app in `web/` replicates the [Lovable Fridge-to-Fork](https://fridge-to-fork-26.lovable.app/) design and uses the same backend and Supabase. See `web/README.md` for setup and `npm run dev` in `web/`.
+
 ## Prerequisites
 
 - Node.js (v18 or later)
@@ -380,7 +384,7 @@ eas build --profile preview --platform ios
 **Backend API:**
 - Deployed in Proxmox container
 - Accessible via Cloudflare Tunnel at `https://api.tuponesyocomo.uk`
-- Update process: `git pull` + `docker-compose restart` on server
+- Update process: see **[SSH and one-command deploy](docs/SSH-AND-DEPLOY.md)** — use SSH from Windows (no PuTTY) and run `.\scripts\deploy-remote.ps1` to pull and restart automatically.
 
 **Mobile App:**
 - Built with EAS Build
@@ -463,6 +467,10 @@ Mobile App (Phone) → Cloudflare Tunnel → Backend API (Proxmox Container) →
   - **Tesseract.js**: OCR for image text extraction
 - **Infrastructure**: Cloudflare Tunnel for public API access
 
+## Web App (Lovable UI)
+
+A standalone web app in `web/` replicates the [Lovable Fridge-to-Fork](https://fridge-to-fork-26.lovable.app/) design and uses the same backend and Supabase. See `web/README.md` for setup and `npm run dev` in `web/`.
+
 ## Prerequisites
 
 - Node.js (v18 or later)
@@ -800,7 +808,7 @@ eas build --profile preview --platform ios
 **Backend API:**
 - Deployed in Proxmox container
 - Accessible via Cloudflare Tunnel at `https://api.tuponesyocomo.uk`
-- Update process: `git pull` + `docker-compose restart` on server
+- Update process: see **[SSH and one-command deploy](docs/SSH-AND-DEPLOY.md)** — use SSH from Windows (no PuTTY) and run `.\scripts\deploy-remote.ps1` to pull and restart automatically.
 
 **Mobile App:**
 - Built with EAS Build
