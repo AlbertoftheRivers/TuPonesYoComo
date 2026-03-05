@@ -155,6 +155,23 @@ export async function getRandomRecipe(): Promise<Recipe | null> {
   }
 }
 
+/** Get most recently added recipes (by created_at desc) for home "Recent Recipes" section */
+export async function getRecentRecipes(limit: number = 8): Promise<Recipe[]> {
+  try {
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data || []).map(normalizeRecipe);
+  } catch (error) {
+    console.error('Error fetching recent recipes:', error);
+    return [];
+  }
+}
+
 /**
  * Find stored recipes that match a list of ingredients (e.g. "what's in my fridge").
  * Scores by how many of the given ingredients appear in each recipe; returns sorted by match count.

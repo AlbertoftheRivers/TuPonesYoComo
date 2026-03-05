@@ -17,10 +17,11 @@ import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage } from '../lib/LanguageContext';
 import { SupportedLanguage } from '../lib/i18n';
 import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
-import { getAllRecipes } from '../api/recipes';
+import { getAllRecipes, getRecentRecipes } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { suggestRecipeFromIngredients } from '../lib/ollama';
 import { Recipe } from '../types/recipe';
+import { MAIN_PROTEINS } from '../lib/constants';
 
 type RootStackParamList = {
   Home: undefined;
@@ -45,6 +46,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
+  const [recentRecipes, setRecentRecipes] = useState<Recipe[]>([]);
   const [allCuisines, setAllCuisines] = useState<any[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
 
@@ -57,8 +59,18 @@ export default function HomeScreen({ navigation }: Props) {
     React.useCallback(() => {
       loadAllRecipes();
       loadCuisines();
+      loadRecentRecipes();
     }, [])
   );
+
+  const loadRecentRecipes = async () => {
+    try {
+      const recent = await getRecentRecipes(8);
+      setRecentRecipes(recent);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadAllRecipes = async () => {
     try {
@@ -322,6 +334,41 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text style={styles.actionSubtitle}>{t('addRecipe')}</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Recent Recipes (Lovable-style grid) */}
+            {recentRecipes.length > 0 && (
+              <View style={styles.recentSection}>
+                <Text style={styles.recentSectionTitle}>{t('recentRecipes')}</Text>
+                <View style={styles.recentGrid}>
+                  {recentRecipes.map((recipe) => {
+                    const proteinIcon = MAIN_PROTEINS.find((p) => p.value === recipe.main_protein)?.icon || '🍽️';
+                    const firstCuisine = recipe.cuisines?.[0];
+                    const cuisineLabel = firstCuisine ? getTranslatedCuisine(firstCuisine, language) : null;
+                    const cuisineInfo = allCuisines.find((c) => c.value === firstCuisine);
+                    return (
+                      <TouchableOpacity
+                        key={recipe.id}
+                        style={styles.recentCard}
+                        onPress={() => handleRecipePress(recipe)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.recentCardEmoji}>{proteinIcon}</Text>
+                        <Text style={styles.recentCardTitle} numberOfLines={2}>{recipe.title}</Text>
+                        {cuisineLabel && (
+                          <Text style={styles.recentCardCuisine}>{cuisineInfo?.flag} {cuisineLabel}</Text>
+                        )}
+                        <View style={styles.recentCardMeta}>
+                          {recipe.total_time_minutes != null && (
+                            <Text style={styles.recentCardMetaText}>⏱ {recipe.total_time_minutes} {t('min')}</Text>
+                          )}
+                          <Text style={styles.recentCardMetaText}>👤 {recipe.servings ?? 2}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
           </>
         )}
       </ScrollView>
@@ -667,6 +714,57 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
     textAlign: 'center',
+  },
+
+  recentSection: {
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.lg,
+  },
+  recentSectionTitle: {
+    fontSize: 18,
+    fontWeight: FONT.headingBold,
+    color: COLORS.text,
+    marginBottom: SPACING.md,
+  },
+  recentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  recentCard: {
+    width: '47%',
+    minWidth: 140,
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.neonLime,
+  },
+  recentCardEmoji: {
+    fontSize: 28,
+    marginBottom: SPACING.xs,
+  },
+  recentCardTitle: {
+    fontSize: 15,
+    fontWeight: FONT.headingSemibold,
+    color: COLORS.text,
+  },
+  recentCardCuisine: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  recentCardMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginTop: 4,
+  },
+  recentCardMetaText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
   },
 
   modalBackdrop: {
