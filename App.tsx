@@ -96,12 +96,12 @@ function AppContent() {
   try {
     return (
       <NavigationContainer>
-          <StatusBar style="light" />
+          <StatusBar style="dark" />
           <Stack.Navigator
             initialRouteName="Home"
             screenOptions={({ navigation, route }) => ({
               headerStyle: {
-                backgroundColor: COLORS.surface,
+                backgroundColor: COLORS.background,
                 borderBottomWidth: 1,
                 borderBottomColor: COLORS.border,
               },

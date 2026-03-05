@@ -1,49 +1,56 @@
 /**
- * TuPonesYoComo – DARK NEON BRUTALIST
- * Bold, unforgettable: dark bg, electric accents, sharp shapes, asymmetric energy.
- * No soft corners. No timid palettes.
+ * TuPonesYoComo – Lovable-style theme (fridge-to-fork-26.lovable.app)
+ * Light, warm: cream background, DM Serif Display + Space Grotesk, orange primary, sage green secondary.
+ * Same look as the published Lovable app; backend keeps OCR, dictation, Ollama.
  */
 
+// Lovable CSS variables → hex for React Native
+// :root { --background: 35 33% 96%; --foreground: 20 10% 15%; --card: 35 30% 98%;
+//   --primary: 16 65% 50%; --secondary: 140 20% 55%; --muted: 35 20% 90%;
+//   --muted-foreground: 20 8% 45%; --accent: 40 60% 60%; --border: 30 15% 85%; --radius: .75rem; }
 export const COLORS = {
-  // Dark base
-  background: '#0A0A0B',
-  surface: '#141416',
-  surfaceRaised: '#1C1C1F',
-  // Text
-  text: '#FAFAFA',
-  textSecondary: '#A1A1AA',
-  textMuted: '#71717A',
-  // Neon accents – use sparingly for maximum punch
-  neonLime: '#B8FF3C',
-  neonLimeDim: 'rgba(184, 255, 60, 0.25)',
-  neonPink: '#FF2E97',
-  neonPinkDim: 'rgba(255, 46, 151, 0.25)',
-  neonCyan: '#00E5FF',
-  neonCyanDim: 'rgba(0, 229, 255, 0.25)',
-  neonOrange: '#FF6B00',
-  neonOrangeDim: 'rgba(255, 107, 0, 0.25)',
-  neonViolet: '#8B5CF6',
-  neonVioletDim: 'rgba(139, 92, 246, 0.25)',
-  // Semantic
-  primary: '#B8FF3C',
-  primaryDim: 'rgba(184, 255, 60, 0.2)',
-  accent: '#00E5FF',
-  error: '#FF3B5C',
-  success: '#00E676',
-  border: '#27272A',
-  borderBright: '#3F3F46',
-  card: '#18181B',
+  background: '#faf8f5',
+  surface: '#fdfcfa',
+  surfaceRaised: '#f5f3ef',
+  text: '#262422',
+  textSecondary: '#4a4744',
+  textMuted: '#6e6b67',
+  primary: '#d94e1a',
+  primaryDim: 'rgba(217, 78, 26, 0.15)',
+  primaryForeground: '#faf8f5',
+  accent: '#c9a227',
+  secondary: '#6b9b6e',
+  secondaryDim: 'rgba(107, 155, 110, 0.2)',
+  error: '#dc2626',
+  success: '#16a34a',
+  border: '#ddd8d0',
+  borderBright: '#e8e4de',
+  card: '#fdfcfa',
+  muted: '#e8e4de',
+  mutedForeground: '#6e6b67',
+  // Aliases for components that used neon names
+  neonLime: '#6b9b6e',
+  neonLimeDim: 'rgba(107, 155, 110, 0.2)',
+  neonCyan: '#6b9b6e',
+  neonCyanDim: 'rgba(107, 155, 110, 0.15)',
+  neonOrange: '#d94e1a',
+  neonOrangeDim: 'rgba(217, 78, 26, 0.15)',
+  neonViolet: '#8b6914',
+  neonVioletDim: 'rgba(139, 105, 20, 0.15)',
+  neonPink: '#d94e1a',
+  neonPinkDim: 'rgba(217, 78, 26, 0.15)',
 };
 
-// Brutalist: sharp corners only (0 or tiny)
 export const RADIUS = {
   none: 0,
   sharp: 2,
-  sm: 4,
-  md: 6,
-  lg: 10,
+  sm: 6,
+  md: 10,
+  lg: 12,
   full: 9999,
 };
+
+export const BORDER_RADIUS = RADIUS;
 
 export const SPACING = {
   xs: 6,
@@ -56,56 +63,52 @@ export const SPACING = {
 export const SHADOWS = {
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 2,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
   },
   glowLime: {
-    shadowColor: COLORS.neonLime,
+    shadowColor: COLORS.secondary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   glowCyan: {
-    shadowColor: COLORS.neonCyan,
+    shadowColor: COLORS.secondary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
 };
 
 export const FONT = {
-  headingBold: '800' as const,
+  headingBold: '700' as const,
   headingSemibold: '600' as const,
   bodyRegular: '400' as const,
   bodyMedium: '500' as const,
 };
 
-// Category stripe colors (neon set)
 export const CATEGORY_STRIPES = [
-  COLORS.neonLime,
-  COLORS.neonCyan,
-  COLORS.neonPink,
-  COLORS.neonOrange,
-  COLORS.neonViolet,
-  COLORS.neonLime,
-  COLORS.neonCyan,
-  COLORS.neonPink,
-  COLORS.neonOrange,
+  COLORS.primary,
+  COLORS.secondary,
+  COLORS.accent,
+  COLORS.primary,
+  COLORS.secondary,
+  COLORS.accent,
+  COLORS.primary,
+  COLORS.secondary,
+  COLORS.accent,
 ];
-
-// Alias for compatibility
-export const BORDER_RADIUS = RADIUS;
 
 export const MAIN_PROTEINS: Array<{ value: string; label: string; icon: string }> = [
   { value: 'chicken', label: 'Pollo', icon: '🐔' },

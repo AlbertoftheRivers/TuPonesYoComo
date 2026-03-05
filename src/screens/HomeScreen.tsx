@@ -551,13 +551,12 @@ const styles = StyleSheet.create({
   },
   recipeCard: {
     backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.neonLime,
+    ...SHADOWS.sm,
   },
   recipeCardTitle: {
     fontSize: 17,
@@ -608,7 +607,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   fridgeAddBtn: {
-    backgroundColor: COLORS.neonCyan,
+    backgroundColor: COLORS.secondary,
     paddingHorizontal: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     justifyContent: 'center',
@@ -616,7 +615,7 @@ const styles = StyleSheet.create({
   fridgeAddBtnLabel: {
     fontSize: 13,
     fontWeight: FONT.headingSemibold,
-    color: COLORS.background,
+    color: COLORS.primaryForeground,
   },
   chipRow: {
     flexDirection: 'row',
@@ -627,13 +626,13 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.neonCyanDim,
+    backgroundColor: COLORS.secondaryDim,
     paddingVertical: 4,
     paddingLeft: SPACING.sm,
     paddingRight: 6,
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
-    borderColor: COLORS.neonCyan,
+    borderColor: COLORS.secondary,
   },
   chipLabel: {
     fontSize: 13,
@@ -641,7 +640,7 @@ const styles = StyleSheet.create({
   },
   chipRemove: {
     fontSize: 16,
-    color: COLORS.neonCyan,
+    color: COLORS.secondary,
     marginLeft: 2,
     fontWeight: '700',
   },
@@ -651,7 +650,7 @@ const styles = StyleSheet.create({
   },
   fridgeCtaPrimary: {
     flex: 1,
-    backgroundColor: COLORS.neonViolet,
+    backgroundColor: COLORS.primary,
     paddingVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
@@ -659,7 +658,7 @@ const styles = StyleSheet.create({
   fridgeCtaPrimaryText: {
     fontSize: 13,
     fontWeight: FONT.headingSemibold,
-    color: COLORS.text,
+    color: COLORS.primaryForeground,
   },
   fridgeCtaSecondary: {
     flex: 1,
@@ -735,12 +734,11 @@ const styles = StyleSheet.create({
     width: '47%',
     minWidth: 140,
     backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.neonLime,
+    ...SHADOWS.sm,
   },
   recentCardEmoji: {
     fontSize: 28,
@@ -809,7 +807,7 @@ const styles = StyleSheet.create({
   modalBtnPrimaryText: {
     fontSize: 15,
     fontWeight: FONT.headingSemibold,
-    color: COLORS.background,
+    color: COLORS.primaryForeground,
   },
   modalBtnSecondary: {
     backgroundColor: COLORS.border,
