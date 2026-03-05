@@ -17,7 +17,7 @@ import DesktopWarning from '../components/DesktopWarning';
 import { useLanguage } from '../lib/LanguageContext';
 import { SupportedLanguage } from '../lib/i18n';
 import { getTranslatedProtein, getTranslatedCuisine } from '../lib/categoryTranslations';
-import { getAllRecipes, getRandomRecipe } from '../api/recipes';
+import { getAllRecipes } from '../api/recipes';
 import { getAllCuisines } from '../lib/customCategories';
 import { suggestRecipeFromIngredients } from '../lib/ollama';
 import { Recipe } from '../types/recipe';
@@ -47,7 +47,6 @@ export default function HomeScreen({ navigation }: Props) {
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [allCuisines, setAllCuisines] = useState<any[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
-  const [surpriseLoading, setSurpriseLoading] = useState(false);
 
   // Fridge
   const [fridgeInput, setFridgeInput] = useState('');
@@ -130,15 +129,11 @@ export default function HomeScreen({ navigation }: Props) {
     setShowLanguageModal(false);
   };
 
-  const handleSurpriseMe = async () => {
+  const handleSurpriseMe = () => {
     if (allRecipes.length === 0) return;
-    setSurpriseLoading(true);
-    try {
-      const recipe = await getRandomRecipe();
-      if (recipe) navigation.navigate('RecipeDetail', { recipeId: recipe.id });
-    } finally {
-      setSurpriseLoading(false);
-    }
+    const randomIndex = Math.floor(Math.random() * allRecipes.length);
+    const recipe = allRecipes[randomIndex];
+    navigation.navigate('RecipeDetail', { recipeId: recipe.id });
   };
 
   const handleRecipePress = (recipe: Recipe) => {
@@ -304,18 +299,12 @@ export default function HomeScreen({ navigation }: Props) {
               <TouchableOpacity
                 style={[styles.actionCard, styles.actionSurprise]}
                 onPress={handleSurpriseMe}
-                disabled={allRecipes.length === 0 || surpriseLoading}
+                disabled={allRecipes.length === 0}
                 activeOpacity={0.8}
               >
-                {surpriseLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.text} />
-                ) : (
-                  <>
-                    <Text style={styles.actionEmoji}>🎲</Text>
-                    <Text style={styles.actionLabel}>{t('surpriseMe')}</Text>
-                    <Text style={styles.actionHint}>{allRecipes.length === 0 ? t('noRecipesFound') : t('surpriseMeHint')}</Text>
-                  </>
-                )}
+                <Text style={styles.actionEmoji}>🎲</Text>
+                <Text style={styles.actionLabel}>{t('surpriseMe')}</Text>
+                <Text style={styles.actionHint}>{allRecipes.length === 0 ? t('noRecipesFound') : t('surpriseMeHint')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
