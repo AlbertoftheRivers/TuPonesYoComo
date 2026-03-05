@@ -31,6 +31,8 @@ npm run build
 npm run preview
 ```
 
+To **deploy this app to Cloudflare Pages** (so your Pages URL serves this version instead of the Expo web build), see **docs/CLOUDFLARE-PAGES-WEB-APP.md** in the repo root.
+
 ## Tech
 
 - Vite + React + TypeScript
