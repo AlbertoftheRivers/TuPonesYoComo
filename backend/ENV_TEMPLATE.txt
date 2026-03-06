@@ -8,12 +8,12 @@ NODE_ENV=production
 # Ollama Configuration (REQUERIDO)
 OLLAMA_BASE_URL=http://192.168.200.45:11434
 OLLAMA_MODEL=llama3.2:3b
-# Optional: reduce if you get "model runner stopped" (OOM). Default 4096.
-# OLLAMA_NUM_CTX=2048
-# Optional: fewer RAG examples = smaller prompt. Default 2.
+# Optional: reduce if you get "model runner stopped" / OOM. Default 1024, max 2048.
+# OLLAMA_NUM_CTX=1024
+# Optional: fewer RAG examples = smaller prompt, less memory. Default 0.
 # MAX_RAG_EXAMPLES=0
-# Optional: max recipe text length sent to Ollama. Default 8000.
-# MAX_RECIPE_RAW_TEXT_LENGTH=6000
+# Optional: max recipe text length sent to Ollama. Default 4000. Lower = less OOM risk.
+# MAX_RECIPE_RAW_TEXT_LENGTH=4000
 
 # Whisper Configuration (OPCIONAL - tiene defaults)
 WHISPER_MODEL=base

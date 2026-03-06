@@ -34,11 +34,11 @@ const PORT = process.env.PORT || 3000;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://192.168.200.45:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:3b';
 /** Max context tokens to request from Ollama; lower = less RAM and fewer "model runner stopped" errors */
-const OLLAMA_NUM_CTX = parseInt(process.env.OLLAMA_NUM_CTX || '2048', 10);
+const OLLAMA_NUM_CTX = Math.min(parseInt(process.env.OLLAMA_NUM_CTX || '1024', 10), 2048);
 /** Max characters for recipe raw text sent to Ollama to avoid OOM */
-const MAX_RECIPE_RAW_TEXT_LENGTH = parseInt(process.env.MAX_RECIPE_RAW_TEXT_LENGTH || '8000', 10);
+const MAX_RECIPE_RAW_TEXT_LENGTH = parseInt(process.env.MAX_RECIPE_RAW_TEXT_LENGTH || '4000', 10);
 /** Max RAG examples to include (fewer = smaller prompt, less memory). Default 0 to avoid Ollama OOM. */
-const MAX_RAG_EXAMPLES = parseInt(process.env.MAX_RAG_EXAMPLES || '0', 10);
+const MAX_RAG_EXAMPLES = Math.max(0, parseInt(process.env.MAX_RAG_EXAMPLES || '0', 10));
 const WHISPER_MODEL = process.env.WHISPER_MODEL || 'base'; // base is better for systems with < 4GB RAM
 const WHISPER_VENV_PATH = process.env.WHISPER_VENV_PATH || path.join(__dirname, 'whisper_venv');
 
@@ -555,7 +555,7 @@ Rules:
             ],
             stream: false,
             format: 'json',
-            options: { num_ctx: OLLAMA_NUM_CTX },
+            options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 1024) },
           }),
           signal: controller.signal,
         });
@@ -690,7 +690,7 @@ Rules:
     const msg = error.message || '';
     const isOllamaResourceError = msg.includes('model runner') || msg.includes('resource limitations') || msg.includes('unexpectedly stopped');
     const userMessage = isOllamaResourceError
-      ? 'The language model ran out of memory. Try again in a moment, or use a shorter recipe. You can set OLLAMA_NUM_CTX=2048 or MAX_RAG_EXAMPLES=0 on the server to reduce load.'
+      ? 'The language model ran out of memory. Try again in a moment, or use a shorter recipe. On the server set OLLAMA_NUM_CTX=1024 and MAX_RAG_EXAMPLES=0 (and optionally MAX_RECIPE_RAW_TEXT_LENGTH=4000) to reduce load.'
       : (msg || 'Failed to analyze recipe');
 
     res.status(500).json({ 
@@ -739,7 +739,7 @@ app.post('/api/suggest-recipe-from-ingredients', async (req, res) => {
           { role: 'user', content: userPrompt },
         ],
         stream: false,
-        options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 2048) },
+        options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 1024) },
       }),
       signal: controller.signal,
     });
@@ -809,7 +809,7 @@ app.post('/api/suggest-recipe-from-description', async (req, res) => {
           { role: 'user', content: userPrompt },
         ],
         stream: false,
-        options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 2048) },
+        options: { num_ctx: Math.min(OLLAMA_NUM_CTX, 1024) },
       }),
       signal: controller.signal,
     });
