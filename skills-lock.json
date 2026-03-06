@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "API Designer": {
+      "source": "daffy0208/ai-dev-standards",
+      "sourceType": "github",
+      "computedHash": "d14e8d276031e9c5f888bd8cbb3e1c16f0ede80f11df13497524b8d4cf430f34"
+    },
+    "architecture-patterns": {
+      "source": "miles990/claude-software-skills",
+      "sourceType": "github",
+      "computedHash": "0b5a789bce7c44339da058171b27c2eac8cd8133eba04ac5128378eaa502d7f4"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "25872a21881a950edc3db1f3329664d60405d539660ce05b3265db2de06a7dfd"
+    },
+    "frontend-accessibility": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "computedHash": "e1a968d73398b1489c29c92cbe09252524d8ccd6a1ab5038f45ff460e8e8057a"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
+    },
+    "ssh-essentials": {
+      "source": "sundial-org/awesome-openclaw-skills",
+      "sourceType": "github",
+      "computedHash": "1ccd69c5b8f6fecb3ee34e175aa834908a8576aea6b9ac834b04bd1639f27868"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "4cfe5e95a230616c17d92b44e3cd37bae543ce087a7756a446a62f77d7c58a37"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+---
+description: Use frontend-design and UI/UX skills when changing the web app look or building UI
+globs: src/**/*.tsx, src/**/*.ts, src/**/*.css, AppEntry*.js, app.json
+alwaysApply: false
+---
+
+# Web app UI and redesign
+
+When the user asks to **change the web app look**, **redesign the UI**, or work on **frontend/UI** in this project:
+
+1. **Invoke or follow** the project skills:
+   - **@frontend-design** (Anthropic) – distinctive, production-grade frontend; avoid generic AI aesthetics; bold typography, color, motion, spatial composition.
+   - **@ui-ux-pro-max** – design intelligence: styles, palettes, font pairings, accessibility, touch targets, layout.
+
+2. **Brainstorming** is available globally (**@using-superpowers** in `~/.agents/skills/`) – use it for ideation before implementing.
+
+3. Apply both skills when implementing: pick a clear aesthetic direction, then implement with the frontend-design and ui-ux-pro-max guidelines (typography, color, accessibility, touch targets, motion).
+
+For **backend** (e.g. `backend/server.js`, API design): no need to invoke frontend-design or ui-ux-pro-max unless the task involves API docs or developer-facing UI.

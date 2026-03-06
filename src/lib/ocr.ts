@@ -2,7 +2,7 @@
  * OCR (Optical Character Recognition) using Tesseract.js backend
  */
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.tuponesyocomo.uk';
+const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL as string) || 'https://api.tuponesyocomo.uk';
 
 export interface OCRResult {
   text: string;

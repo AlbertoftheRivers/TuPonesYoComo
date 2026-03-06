@@ -4,7 +4,7 @@
  * This matches the Android APK behavior (expo-av + Whisper)
  */
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.tuponesyocomo.uk';
+const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL as string) || 'https://api.tuponesyocomo.uk';
 
 export interface WebAudioRecorder {
   start: () => Promise<void>;
@@ -156,8 +156,6 @@ export async function transcribeWebAudio(blob: Blob, language: string = 'es'): P
     
     // Convert blob to file-like object
     const fileName = `recording.${blob.type.includes('mp4') || blob.type.includes('m4a') ? 'm4a' : 'webm'}`;
-    const fileType = blob.type || (fileName.endsWith('.m4a') ? 'audio/m4a' : 'audio/webm');
-    
     formData.append('audio', blob, fileName);
     formData.append('language', language);
 

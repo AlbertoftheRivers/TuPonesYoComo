@@ -1,27 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-// Get environment variables - these must be set during build time for web
-// For Cloudflare Pages, they should be configured in the Pages dashboard
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL ?? "";
+const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY ?? "";
 
-// Create client - use placeholder values if not configured to prevent crashes
-// The app will show errors when trying to use Supabase, but won't crash on startup
-let supabase;
-
-try {
-  if (supabaseUrl && supabaseAnonKey && supabaseUrl !== '' && supabaseAnonKey !== '') {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-  } else {
-    // Use placeholder to prevent crashes, but log warning
-    console.warn('⚠️ Supabase credentials not configured. Using placeholder client. API calls will fail.');
-    supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+function getClient() {
+  if (supabaseUrl && supabaseAnonKey) {
+    return createClient(supabaseUrl, supabaseAnonKey);
   }
-} catch (error) {
-  console.error('Error creating Supabase client:', error);
-  // Fallback to placeholder to prevent crash
-  supabase = createClient('https://placeholder.supabase.co', 'placeholder-key');
+  console.warn("Supabase credentials not set. Using placeholder.");
+  return createClient("https://placeholder.supabase.co", "placeholder-key");
 }
 
-export { supabase };
-
+export const supabase = getClient();

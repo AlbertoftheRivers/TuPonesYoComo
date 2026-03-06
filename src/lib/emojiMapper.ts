@@ -112,8 +112,6 @@ const EMOJI_MAP: Record<string, string> = {
   'arroz': '🍚',
   'rice': '🍚',
   'pasta': '🍝',
-  'pasta': '🍝',
-  'fideos': '🍜',
   'noodles': '🍜',
   'lenteja': '🫘',
   'lentil': '🫘',
