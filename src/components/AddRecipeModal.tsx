@@ -10,7 +10,7 @@ import { getCustomProteins, addCustomProtein, type CustomProtein } from "@/api/c
 import { extractTextFromImage } from "@/lib/ocr";
 import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable } from "@/lib/webAudioRecorder";
 import { analyzeRecipe } from "@/lib/ollama";
-import type { RecipeInsertPayload, MainProtein, Cuisine } from "@/types/recipe";
+import type { RecipeInsertPayload, Cuisine } from "@/types/recipe";
 import { toast } from "sonner";
 
 const ADD_NEW_PROTEIN_VALUE = "__add_new_protein__";
