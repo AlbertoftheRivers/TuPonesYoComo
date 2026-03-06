@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Camera, Mic, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MAIN_PROTEINS, CUISINES } from "@/lib/constants";
 import { createRecipe } from "@/api/recipes";
+import { getCustomProteins, addCustomProtein, type CustomProtein } from "@/api/categories";
 import { extractTextFromImage } from "@/lib/ocr";
 import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable } from "@/lib/webAudioRecorder";
 import { analyzeRecipe } from "@/lib/ollama";
 import type { RecipeInsertPayload, MainProtein, Cuisine } from "@/types/recipe";
 import { toast } from "sonner";
+
+const ADD_NEW_PROTEIN_VALUE = "__add_new_protein__";
+
+function slugify(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_áéíóúñ]/g, "");
+}
 
 interface AddRecipeModalProps {
   isOpen: boolean;
@@ -21,7 +32,11 @@ interface AddRecipeModalProps {
 const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
   const [rawText, setRawText] = useState("");
   const [title, setTitle] = useState("");
-  const [mainProtein, setMainProtein] = useState<MainProtein>("chicken");
+  const [mainProtein, setMainProtein] = useState<string>("chicken");
+  const [customProteins, setCustomProteins] = useState<CustomProtein[]>([]);
+  const [showAddProtein, setShowAddProtein] = useState(false);
+  const [newProteinLabel, setNewProteinLabel] = useState("");
+  const [newProteinIcon, setNewProteinIcon] = useState("🍽️");
   const [cuisineValue, setCuisineValue] = useState(CUISINES[0]?.value ?? "española");
   const [ingredients, setIngredients] = useState<Array<{ name: string; quantity?: number | string; unit?: string; notes?: string }>>([]);
   const [ingredientInput, setIngredientInput] = useState("");
@@ -34,6 +49,43 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
   const [recording, setRecording] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recorderRef = useRef<ReturnType<typeof createWebAudioRecorder> | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      getCustomProteins()
+        .then(setCustomProteins)
+        .catch(() => setCustomProteins([]));
+    }
+  }, [isOpen]);
+
+  const allProteins = [
+    ...MAIN_PROTEINS.map((p) => ({ value: p.value, label: p.label, icon: p.icon })),
+    ...customProteins.map((p) => ({ value: p.value, label: p.label, icon: p.icon })),
+  ];
+
+  const handleAddNewProtein = async () => {
+    const label = newProteinLabel.trim();
+    if (!label) {
+      toast.error("Enter a name for the protein");
+      return;
+    }
+    const value = slugify(label) || "other";
+    setLoading(true);
+    try {
+      await addCustomProtein({ value, label, icon: newProteinIcon || "🍽️" });
+      const updated = await getCustomProteins();
+      setCustomProteins(updated);
+      setMainProtein(value);
+      setShowAddProtein(false);
+      setNewProteinLabel("");
+      setNewProteinIcon("🍽️");
+      toast.success(`"${label}" added to categories`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add category");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addIngredient = () => {
     const trimmed = ingredientInput.trim();
@@ -106,9 +158,10 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
       toast.error("Add or paste recipe text first (scan, dictate, or type)");
       return;
     }
+    const proteinForAnalyze = mainProtein === ADD_NEW_PROTEIN_VALUE ? "vegetables" : mainProtein;
     setLoading(true);
     try {
-      const result = await analyzeRecipe(rawText, mainProtein);
+      const result = await analyzeRecipe(rawText, proteinForAnalyze);
       setIngredients(result.ingredients.map((i) => ({ name: i.name ?? "", quantity: i.quantity, unit: i.unit, notes: i.notes })));
       setSteps(result.steps);
       setStepsText(result.steps.join("\n"));
@@ -132,6 +185,10 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
       return;
     }
     const stepsList = steps.length > 0 ? steps : stepsText.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (mainProtein === ADD_NEW_PROTEIN_VALUE) {
+      toast.error("Add your new protein category first, or choose an existing one.");
+      return;
+    }
     const payload: RecipeInsertPayload = {
       title: title.trim(),
       main_protein: mainProtein,
@@ -228,13 +285,54 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                   <label className="text-sm font-medium mb-1 block">Main protein</label>
                   <select
                     value={mainProtein}
-                    onChange={(e) => setMainProtein(e.target.value as MainProtein)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === ADD_NEW_PROTEIN_VALUE) {
+                        setMainProtein(ADD_NEW_PROTEIN_VALUE);
+                        setShowAddProtein(true);
+                      } else {
+                        setMainProtein(v);
+                        setShowAddProtein(false);
+                      }
+                    }}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   >
-                    {MAIN_PROTEINS.map((p) => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
+                    {allProteins.map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {p.icon} {p.label}
+                      </option>
                     ))}
+                    <option value={ADD_NEW_PROTEIN_VALUE}>➕ Add new protein…</option>
                   </select>
+                  {showAddProtein && (
+                    <div className="mt-3 p-3 rounded-lg border border-border bg-muted/50 space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">New category</p>
+                      <Input
+                        value={newProteinLabel}
+                        onChange={(e) => setNewProteinLabel(e.target.value)}
+                        placeholder="e.g. Tofu, Duck"
+                        className="text-sm"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={newProteinIcon}
+                          onChange={(e) => setNewProteinIcon(e.target.value)}
+                          placeholder="🍽️"
+                          className="w-16 text-center text-lg"
+                          maxLength={4}
+                        />
+                        <span className="text-xs text-muted-foreground">Icon (emoji)</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="button" size="sm" onClick={handleAddNewProtein} disabled={loading || !newProteinLabel.trim()}>
+                          Add
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => { setShowAddProtein(false); setNewProteinLabel(""); setNewProteinIcon("🍽️"); }}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Cuisine</label>

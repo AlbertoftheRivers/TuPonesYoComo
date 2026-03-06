@@ -34,7 +34,7 @@ export interface Ingredient {
 export interface Recipe {
   id: string | number;
   title: string;
-  main_protein: MainProtein;
+  main_protein: MainProtein | string; // string for custom proteins
   cuisines?: Cuisine[]; // Changed to array for multiple selections
   raw_text: string;
   ingredients: Ingredient[];
@@ -50,7 +50,7 @@ export interface Recipe {
 
 export interface RecipeInsertPayload {
   title: string;
-  main_protein: MainProtein;
+  main_protein: MainProtein | string; // string allows custom proteins from custom_proteins table
   cuisines?: Cuisine[]; // Changed to array for multiple selections
   raw_text: string;
   ingredients: Ingredient[];

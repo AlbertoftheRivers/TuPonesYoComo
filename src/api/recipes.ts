@@ -190,8 +190,9 @@ export async function getRecipesByIngredients(userIngredients: string[]): Promis
     return { recipe, score: matches };
   });
 
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map((s) => s.recipe);
+  const withMatches = scored.filter((s) => s.score > 0);
+  withMatches.sort((a, b) => b.score - a.score);
+  return withMatches.map((s) => s.recipe);
 }
 function normalizeRecipe(data: any): Recipe {
   // Handle both old format (cuisine as string) and new format (cuisines as array)

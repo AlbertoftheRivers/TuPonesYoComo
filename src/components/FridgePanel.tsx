@@ -16,15 +16,18 @@ const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [matches, setMatches] = useState<RecipeDisplay[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (ingredients.length === 0) {
       setMatches([]);
+      setLoading(false);
       return;
     }
-    getRecipesByIngredients(ingredients).then((list) => {
-      setMatches(list.map(recipeToDisplay));
-    });
+    setLoading(true);
+    getRecipesByIngredients(ingredients)
+      .then((list) => setMatches(list.map(recipeToDisplay)))
+      .finally(() => setLoading(false));
   }, [ingredients]);
 
   const addIngredient = () => {
@@ -103,6 +106,7 @@ const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-accent" />
                   <h3 className="font-heading text-lg">Matching Recipes</h3>
+                  {loading && <span className="text-xs text-muted-foreground">(searching…)</span>}
                 </div>
                 <div className="space-y-3">
                   {matches.map((recipe) => (
@@ -129,9 +133,15 @@ const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
               </div>
             )}
 
-            {ingredients.length > 0 && matches.length === 0 && (
+            {ingredients.length > 0 && !loading && matches.length === 0 && (
               <p className="text-muted-foreground text-sm text-center py-8">
-                No matching recipes found. Try adding more ingredients!
+                No recipes found with these ingredients. Try different ingredients or add a recipe that uses them!
+              </p>
+            )}
+
+            {ingredients.length > 0 && loading && matches.length === 0 && (
+              <p className="text-muted-foreground text-sm text-center py-8">
+                Searching recipes…
               </p>
             )}
           </div>
