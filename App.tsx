@@ -123,10 +123,10 @@ function AppContent() {
               }),
             })}
           >
-            <Stack.Screen 
-              name="Home" 
+            <Stack.Screen
+              name="Home"
               component={HomeScreen}
-              options={{ title: 'TuPonesYoComo' }}
+              options={{ title: 'TuPonesYoComo', headerShown: false }}
             />
             <Stack.Screen
               name="Categories"

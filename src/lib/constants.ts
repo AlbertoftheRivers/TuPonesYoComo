@@ -39,6 +39,11 @@ export const COLORS = {
   neonVioletDim: 'rgba(139, 105, 20, 0.15)',
   neonPink: '#d94e1a',
   neonPinkDim: 'rgba(217, 78, 26, 0.15)',
+  // Hero / FlavorVault-style
+  heroOverlay: 'rgba(60, 55, 48, 0.75)',
+  heroText: '#ffffff',
+  fridgeIconBg: '#d4e8d5',
+  chipOrange: 'rgba(217, 78, 26, 0.2)',
 };
 
 export const RADIUS = {

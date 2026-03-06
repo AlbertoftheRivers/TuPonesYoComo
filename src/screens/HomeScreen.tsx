@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -240,52 +241,66 @@ export default function HomeScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <DesktopWarning />
 
-        {/* Header: app name + tagline */}
-        <View style={styles.brand}>
-          <Text style={styles.brandTitle}>{t('appName')}</Text>
-          <Text style={styles.brandTagline}>{t('tagline')}</Text>
+        {/* Hero section (FlavorVault-style) */}
+        <View style={styles.hero}>
+          <View style={styles.heroHeader}>
+            <View style={styles.heroLogoRow}>
+              <View style={styles.heroLogoIcon}>
+                <Text style={styles.heroLogoEmoji}>👨‍🍳</Text>
+              </View>
+              <Text style={styles.heroAppName}>{t('appName')}</Text>
+            </View>
+            <View style={styles.heroActions}>
+              <TouchableOpacity style={styles.heroIconBtn} onPress={() => setShowLanguageModal(true)} accessibilityRole="button" accessibilityLabel={t('selectLanguage')}>
+                <Text style={styles.heroIconText}>🌐</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.heroIconBtn} onPress={() => navigation.navigate('UserGuide')} accessibilityRole="button" accessibilityLabel={t('userGuide')}>
+                <Text style={styles.heroIconText}>❓</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.heroIconBtn} onPress={() => navigation.navigate('Admin')} accessibilityRole="button" accessibilityLabel="Admin">
+                <Text style={styles.heroIconText}>⚙️</Text>
+              </TouchableOpacity>
+              <View style={styles.heroAvatar} />
+            </View>
+          </View>
+          <Text style={styles.heroTitle}>{t('heroTitle')}</Text>
+          <Text style={styles.heroTagline}>{t('tagline')}</Text>
+          <View style={styles.heroSearchRow}>
+            <View style={styles.heroSearchBox}>
+              <TextInput
+                style={styles.heroSearchInput}
+                placeholder={t('searchPlaceholder')}
+                placeholderTextColor={COLORS.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity style={styles.clearBtn} onPress={() => setSearchQuery('')} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                  <Text style={styles.clearBtnText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <View style={styles.heroStats}>
+              <View style={styles.heroStatPill}>
+                <Text style={styles.heroStatIcon}>🍴</Text>
+                <View>
+                  <Text style={styles.heroStatValue}>{recipeCount}</Text>
+                  <Text style={styles.heroStatLabel}>{recipeCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}</Text>
+                </View>
+              </View>
+              <View style={styles.heroStatPill}>
+                <Text style={styles.heroStatIcon}>🌍</Text>
+                <View>
+                  <Text style={styles.heroStatValue}>{uniqueCuisinesCount}</Text>
+                  <Text style={styles.heroStatLabel}>{uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
 
-        {/* Top row: search bar (left) | recipe/cuisine counters + language, help, admin (right) */}
-        <View style={styles.topRow}>
-          <View style={styles.searchBox}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t('searchPlaceholder')}
-              placeholderTextColor={COLORS.textMuted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity style={styles.clearBtn} onPress={() => setSearchQuery('')} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                <Text style={styles.clearBtnText}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <View style={styles.topRight}>
-            <View style={styles.counters}>
-              <View style={styles.counterPill}>
-                <Text style={styles.counterValue}>{recipeCount}</Text>
-                <Text style={styles.counterLabel}>{recipeCount !== 1 ? t('recipesCountPlural') : t('recipesCount')}</Text>
-              </View>
-              <View style={styles.counterPill}>
-                <Text style={styles.counterValue}>{uniqueCuisinesCount}</Text>
-                <Text style={styles.counterLabel}>{uniqueCuisinesCount !== 1 ? t('cuisinesCountPlural') : t('cuisinesCount')}</Text>
-              </View>
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.headerBtn} onPress={() => setShowLanguageModal(true)} accessibilityRole="button" accessibilityLabel={t('selectLanguage')}>
-                <Text style={styles.headerBtnText}>🌐</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.navigate('UserGuide')} accessibilityRole="button" accessibilityLabel={t('userGuide')}>
-                <Text style={styles.headerBtnText}>❓</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.navigate('Admin')} accessibilityRole="button" accessibilityLabel="Admin">
-                <Text style={styles.headerBtnText}>⚙️</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+        {/* Main content: cards + recent recipes */}
+        <View style={styles.mainContent}>
 
         {/* Search results (when user is searching) */}
         {searchQuery.trim().length > 0 && (
@@ -333,14 +348,16 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Main content when not searching */}
         {!searchQuery.trim() && (
           <>
-            {/* Four main action cards: My Fridge (opens left panel), Recommend Me (popup), Recipe Book (popup), Add Recipe */}
+            {/* Four main action cards: white, professional (FlavorVault-style) */}
             <View style={styles.actions}>
               <TouchableOpacity
                 style={[styles.actionCard, styles.actionFridge]}
                 onPress={() => setFridgePanelOpen(true)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.actionIcon}>🧊</Text>
+                <View style={styles.actionCardIconWrapFridge}>
+                  <Text style={styles.actionCardIcon}>🧊</Text>
+                </View>
                 <Text style={styles.actionTitle}>{t('myFridge')}</Text>
                 <Text style={styles.actionSubtitle}>{t('fridgePanelDescription')}</Text>
               </TouchableOpacity>
@@ -351,19 +368,25 @@ export default function HomeScreen({ navigation }: Props) {
                 disabled={recipeCount === 0}
                 activeOpacity={0.85}
               >
-                <Text style={styles.actionIcon}>🎲</Text>
+                <View style={styles.actionCardIconWrapRecommend}>
+                  <Text style={styles.actionCardIcon}>🎲</Text>
+                </View>
                 <Text style={styles.actionTitle}>{t('surpriseMe')}</Text>
                 <Text style={styles.actionSubtitle}>{recipeCount === 0 ? t('noRecipesFound') : t('surpriseMeHint')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={[styles.actionCard, styles.actionBook]} onPress={() => { setShowRecipeBookModal(true); setRecipeBookCategory(null); }} activeOpacity={0.85}>
-                <Text style={styles.actionIcon}>📖</Text>
+                <View style={styles.actionCardIconWrapBook}>
+                  <Text style={styles.actionCardIcon}>📖</Text>
+                </View>
                 <Text style={styles.actionTitle}>{t('recipeBook')}</Text>
                 <Text style={styles.actionSubtitle}>{t('selectCategory')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={[styles.actionCard, styles.actionAdd]} onPress={() => navigation.navigate('AddRecipe')} activeOpacity={0.85}>
-                <Text style={styles.actionIcon}>➕</Text>
+                <View style={styles.actionCardIconWrapAdd}>
+                  <Text style={styles.actionCardIcon}>+</Text>
+                </View>
                 <Text style={styles.actionTitle}>{t('addRecipeShort')}</Text>
                 <Text style={styles.actionSubtitle}>{t('addRecipe')}</Text>
               </TouchableOpacity>
@@ -405,15 +428,21 @@ export default function HomeScreen({ navigation }: Props) {
             )}
           </>
         )}
+        </View>
       </ScrollView>
 
-      {/* Fridge left sidebar */}
+      {/* Fridge left sidebar (FlavorVault-style) */}
       {fridgePanelOpen && (
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setFridgePanelOpen(false)} activeOpacity={1} />
           <View style={styles.fridgePanel}>
             <View style={styles.fridgePanelHeader}>
-              <Text style={styles.fridgePanelTitle}>{t('whatsInFridge')}</Text>
+              <View style={styles.fridgePanelTitleRow}>
+                <View style={styles.fridgePanelIconWrap}>
+                  <Text style={styles.fridgePanelIcon}>🧊</Text>
+                </View>
+                <Text style={styles.fridgePanelTitle}>{t('myFridge')}</Text>
+              </View>
               <TouchableOpacity onPress={() => setFridgePanelOpen(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                 <Text style={styles.fridgePanelClose}>✕</Text>
               </TouchableOpacity>
@@ -422,7 +451,7 @@ export default function HomeScreen({ navigation }: Props) {
             <View style={styles.fridgeRow}>
               <TextInput
                 style={styles.fridgeInput}
-                placeholder={t('fridgePlaceholder')}
+                placeholder="e.g. tomato, chicken..."
                 placeholderTextColor={COLORS.textMuted}
                 value={fridgeInput}
                 onChangeText={setFridgeInput}
@@ -444,19 +473,29 @@ export default function HomeScreen({ navigation }: Props) {
             )}
             {fridgeIngredients.length > 0 && (
               <>
-                <Text style={styles.fridgeSectionLabel}>{t('matchingRecipes')}</Text>
+                <Text style={styles.fridgeSectionLabel}>✨ {t('matchingRecipes')}</Text>
                 {fridgeSearchLoading ? (
                   <ActivityIndicator size="small" color={COLORS.primary} style={styles.fridgeLoader} />
                 ) : fridgeMatchingRecipes.length === 0 ? (
                   <Text style={styles.fridgeEmpty}>{t('noRecipesFound')}</Text>
                 ) : (
                   <ScrollView style={styles.fridgeResultsScroll} showsVerticalScrollIndicator={false}>
-                    {fridgeMatchingRecipes.slice(0, 20).map((r) => (
-                      <TouchableOpacity key={r.id} style={styles.fridgeResultCard} onPress={() => { setFridgePanelOpen(false); openRecipeInModal(r.id); }}>
-                        <Text style={styles.fridgeResultTitle} numberOfLines={1}>{r.title}</Text>
-                        {r.total_time_minutes != null && <Text style={styles.fridgeResultMeta}>{r.total_time_minutes} {t('min')}</Text>}
-                      </TouchableOpacity>
-                    ))}
+                    {fridgeMatchingRecipes.slice(0, 20).map((r) => {
+                      const proteinIcon = MAIN_PROTEINS.find((x) => x.value === r.main_protein)?.icon || '🍽️';
+                      const firstCuisine = r.cuisines?.[0];
+                      const cuisineLabel = firstCuisine ? getTranslatedCuisine(firstCuisine, language) : null;
+                      return (
+                        <TouchableOpacity key={r.id} style={styles.fridgeResultCard} onPress={() => { setFridgePanelOpen(false); openRecipeInModal(r.id); }}>
+                          <Text style={styles.fridgeResultEmoji}>{proteinIcon}</Text>
+                          <View style={styles.fridgeResultCardInner}>
+                            <Text style={styles.fridgeResultTitle} numberOfLines={1}>{r.title}</Text>
+                            <Text style={styles.fridgeResultMeta}>
+                              {cuisineLabel || ''}{r.total_time_minutes != null ? ` · ${r.total_time_minutes} ${t('min')}` : ''}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </ScrollView>
                 )}
                 <TouchableOpacity style={styles.fridgeCtaSecondary} onPress={handleSuggestWithAI} disabled={aiLoading}>
@@ -495,16 +534,20 @@ export default function HomeScreen({ navigation }: Props) {
               <ScrollView style={styles.recipeBookScroll} showsVerticalScrollIndicator={false}>
                 <Text style={styles.recipeBookSubtitle}>{t('selectCategory')}</Text>
                 <View style={styles.recipeBookCategoryGrid}>
-                  {MAIN_PROTEINS.map((p) => (
-                    <TouchableOpacity
-                      key={p.value}
-                      style={styles.recipeBookCategoryCard}
-                      onPress={() => setRecipeBookCategory(p.value)}
-                    >
-                      <Text style={styles.recipeBookCategoryIcon}>{p.icon || '🍽️'}</Text>
-                      <Text style={styles.recipeBookCategoryLabel}>{p.label || getTranslatedProtein(p.value, language)}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  {MAIN_PROTEINS.map((p) => {
+                    const count = allRecipes.filter((r) => r.main_protein === p.value).length;
+                    return (
+                      <TouchableOpacity
+                        key={p.value}
+                        style={styles.recipeBookCategoryCard}
+                        onPress={() => setRecipeBookCategory(p.value)}
+                      >
+                        <Text style={styles.recipeBookCategoryIcon}>{p.icon || '🍽️'}</Text>
+                        <Text style={styles.recipeBookCategoryLabel}>{getTranslatedProtein(p.value, language)}</Text>
+                        <Text style={styles.recipeBookCategoryCount}>{count} {count !== 1 ? t('recipesCountPlural') : t('recipesCount')}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </ScrollView>
             ) : (
@@ -615,46 +658,127 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scroll: {
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.xl * 1.5,
   },
 
-  brand: {
-    marginBottom: SPACING.lg,
+  // Hero (FlavorVault-style)
+  hero: {
+    backgroundColor: '#3c3730',
+    paddingTop: Platform.OS === 'web' ? SPACING.lg : SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xl,
+    marginHorizontal: -SPACING.lg,
+    marginTop: -SPACING.lg,
   },
-  brandTitle: {
-    fontSize: 28,
-    fontWeight: FONT.headingBold,
-    color: COLORS.text,
-    letterSpacing: -0.3,
-  },
-  brandTagline: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-
-  topRow: {
+  heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
+    justifyContent: 'space-between',
     marginBottom: SPACING.lg,
   },
-  searchBox: {
+  heroLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  heroLogoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroLogoEmoji: {
+    fontSize: 22,
+  },
+  heroAppName: {
+    fontSize: 20,
+    fontWeight: FONT.headingBold,
+    color: COLORS.heroText,
+  },
+  heroActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  heroIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroIconText: {
+    fontSize: 18,
+  },
+  heroAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginLeft: SPACING.xs,
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: FONT.headingBold,
+    color: COLORS.heroText,
+    textAlign: 'center',
+    marginBottom: SPACING.xs,
+  },
+  heroTagline: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+  heroSearchRow: {
+    flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  heroSearchBox: {
     flex: 1,
     minWidth: 0,
     position: 'relative',
   },
-  searchInput: {
+  heroSearchInput: {
     backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.lg,
     paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.md,
     paddingRight: 40,
     fontSize: 15,
     color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    borderWidth: 0,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  heroStatPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.lg,
+    gap: SPACING.xs,
+  },
+  heroStatIcon: {
+    fontSize: 18,
+  },
+  heroStatValue: {
+    fontSize: 16,
+    fontWeight: FONT.headingBold,
+    color: COLORS.heroText,
+  },
+  heroStatLabel: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.85)',
+    textTransform: 'uppercase',
   },
   clearBtn: {
     position: 'absolute',
@@ -669,55 +793,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontWeight: '600',
   },
-  topRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  counters: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  counterPill: {
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 6,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    alignItems: 'center',
-    minWidth: 44,
-  },
-  counterValue: {
-    fontSize: 15,
-    fontWeight: FONT.headingBold,
-    color: COLORS.primary,
-  },
-  counterLabel: {
-    fontSize: 9,
-    color: COLORS.textMuted,
-    marginTop: 0,
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.sm,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerBtnText: {
-    fontSize: 18,
+
+  mainContent: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+    backgroundColor: COLORS.background,
   },
 
   resultsSection: {
@@ -798,6 +878,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: SPACING.sm,
   },
+  fridgePanelTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  fridgePanelIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.fridgeIconBg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fridgePanelIcon: {
+    fontSize: 20,
+  },
   fridgePanelTitle: {
     fontSize: 18,
     fontWeight: FONT.headingBold,
@@ -833,13 +929,23 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   fridgeResultCard: {
-    backgroundColor: COLORS.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceRaised,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.border,
+    gap: SPACING.sm,
+  },
+  fridgeResultEmoji: {
+    fontSize: 22,
+  },
+  fridgeResultCardInner: {
+    flex: 1,
+    minWidth: 0,
   },
   fridgeResultTitle: {
     fontSize: 14,
@@ -917,10 +1023,15 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   recipeBookCategoryLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: FONT.headingSemibold,
     color: COLORS.text,
     textAlign: 'center',
+  },
+  recipeBookCategoryCount: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
   recipeBookBack: {
     paddingVertical: SPACING.sm,
@@ -948,14 +1059,15 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   fridgeAddBtn: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.primary,
     paddingHorizontal: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     justifyContent: 'center',
+    minWidth: 48,
   },
   fridgeAddBtnLabel: {
-    fontSize: 13,
-    fontWeight: FONT.headingSemibold,
+    fontSize: 20,
+    fontWeight: FONT.headingBold,
     color: COLORS.primaryForeground,
   },
   chipRow: {
@@ -967,13 +1079,13 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondaryDim,
-    paddingVertical: 4,
+    backgroundColor: COLORS.chipOrange,
+    paddingVertical: 6,
     paddingLeft: SPACING.sm,
     paddingRight: 6,
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
-    borderColor: COLORS.secondary,
+    borderColor: COLORS.primary,
   },
   chipLabel: {
     fontSize: 13,
@@ -981,7 +1093,7 @@ const styles = StyleSheet.create({
   },
   chipRemove: {
     fontSize: 16,
-    color: COLORS.secondary,
+    color: COLORS.primary,
     marginLeft: 2,
     fontWeight: '700',
   },
@@ -1028,30 +1140,55 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 100,
+    minHeight: 110,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
-  actionRecommend: {
-    backgroundColor: COLORS.neonOrangeDim,
-    borderColor: COLORS.neonOrange,
-  },
-  actionFridge: {
-    backgroundColor: COLORS.neonCyanDim,
-    borderColor: COLORS.neonCyan,
-  },
-  actionBook: {
-    backgroundColor: COLORS.neonCyanDim,
-    borderColor: COLORS.neonCyan,
-  },
-  actionAdd: {
-    backgroundColor: COLORS.primaryDim,
-    borderColor: COLORS.primary,
-  },
-  actionIcon: {
-    fontSize: 26,
+  actionCardIconWrapFridge: {
+    width: 48,
+    height: 48,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.fridgeIconBg,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: SPACING.sm,
   },
+  actionCardIconWrapRecommend: {
+    width: 48,
+    height: 48,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.primaryDim,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  actionCardIconWrapBook: {
+    width: 48,
+    height: 48,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: 'rgba(139, 90, 43, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  actionCardIconWrapAdd: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.textSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  actionCardIcon: {
+    fontSize: 24,
+  },
+  actionRecommend: {},
+  actionFridge: {},
+  actionBook: {},
+  actionAdd: {},
   actionTitle: {
     fontSize: 17,
     fontWeight: FONT.headingBold,
@@ -1069,10 +1206,11 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   recentSectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: FONT.headingBold,
     color: COLORS.text,
     marginBottom: SPACING.md,
+    letterSpacing: -0.3,
   },
   recentGrid: {
     flexDirection: 'row',

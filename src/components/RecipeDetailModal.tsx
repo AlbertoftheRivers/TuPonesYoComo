@@ -70,12 +70,9 @@ export default function RecipeDetailModal({ visible, recipeId, onClose }: Recipe
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.backdrop}>
         <View style={styles.panel}>
-          <View style={styles.header}>
-            <Text style={styles.panelTitle}>{recipe ? recipe.title : ''}</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <Text style={styles.closeBtnText}>✕</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.closeBtnTop} onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
 
           {loading ? (
             <View style={styles.loaderWrap}>
@@ -112,7 +109,7 @@ export default function RecipeDetailModal({ visible, recipeId, onClose }: Recipe
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>{t('steps')}</Text>
                   <Text style={styles.instructions}>
-                    {recipe.steps.join(' ')}
+                    {recipe.steps.join('. ')}
                   </Text>
                 </View>
               )}
@@ -137,28 +134,19 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
   },
   panel: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.background,
     borderRadius: BORDER_RADIUS.lg,
     width: '100%',
     maxWidth: 440,
     maxHeight: '85%',
     ...SHADOWS.lg,
+    position: 'relative',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.sm,
-  },
-  panelTitle: {
-    fontSize: 18,
-    fontWeight: FONT.headingBold,
-    color: COLORS.text,
-    flex: 1,
-  },
-  closeBtn: {
+  closeBtnTop: {
+    position: 'absolute',
+    top: SPACING.md,
+    right: SPACING.md,
+    zIndex: 1,
     padding: SPACING.xs,
   },
   closeBtnText: {
@@ -177,6 +165,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xl,
     paddingBottom: SPACING.xl,
   },
   emoji: {
@@ -222,10 +211,12 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
   },
   tag: {
-    backgroundColor: COLORS.muted,
-    paddingVertical: 6,
-    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.surfaceRaised,
+    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
     borderRadius: BORDER_RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   tagText: {
     fontSize: 14,
@@ -237,11 +228,13 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   closeButton: {
-    backgroundColor: COLORS.muted,
+    backgroundColor: COLORS.surfaceRaised,
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   closeButtonText: {
     fontSize: 16,

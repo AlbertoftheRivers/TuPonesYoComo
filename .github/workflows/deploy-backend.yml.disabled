@@ -1,6 +1,9 @@
 # Deploy backend to Proxmox server when you push to main.
 # Requires GitHub repo secrets: DEPLOY_SSH_KEY, DEPLOY_HOST, DEPLOY_USER, REPO_PATH_ON_SERVER
 # See docs/SSH-AND-DEPLOY.md for setup.
+#
+# DISABLED: Use deploy-backend-self-hosted.yml when the server is not reachable from the internet.
+# To re-enable, rename this file back to deploy-backend.yml
 
 name: Deploy backend
 

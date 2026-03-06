@@ -142,15 +142,67 @@ From now on, **every push to `main` that changes something under `backend/`** wi
 
 ## Server not reachable from the internet
 
-If your server has no public IP and no port 22 forward, GitHub’s servers cannot SSH to it. Then:
+If the Action fails with **Connection timed out** or **port 22: Connection timed out**, GitHub’s runners cannot reach your server (no public IP, or port 22 not forwarded). Use one of the options below.
 
-- **Option A — Self-hosted runner**  
-  Install a [GitHub Actions self-hosted runner](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners) on the server (or on a machine that can reach it). The workflow will run there and execute the deploy script locally. You’ll need to change the workflow to use that runner and run the script directly instead of via SSH (no GitHub Secrets for SSH needed).
+- **Option A — Self-hosted runner (automatic deploy, no SSH from internet)**  
+  Install a [GitHub Actions self-hosted runner](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners) on your Proxmox server. The workflow runs on the server and pulls + restarts there. Use the workflow **Deploy backend (self-hosted)** — see [Setup self-hosted runner](#setup-self-hosted-runner) below.
 
 - **Option B — Manual deploy after push**  
-  After you push, run from your PC (in the project folder):  
+  After each push, run from your PC (in the project folder):  
   `.\scripts\deploy-remote.ps1`  
-  (Configure `scripts/deploy-remote.ps1` with your server host, user, and repo path first.)
+  Configure `scripts/deploy-remote.ps1` with your server host, user, and repo path. Your PC must be able to SSH to the server (e.g. same LAN or VPN).
+
+### Setup self-hosted runner (Option A)
+
+1. **On the server** (SSH or PuTTY), install a self-hosted runner:  
+   - Open your repo on GitHub → **Settings** → **Actions** → **Runners** → **New self-hosted runner**.
+   - Pick the OS (Linux) and architecture (e.g. x64). GitHub will show commands to download, configure, and run the runner. Run those **on your Proxmox server** (in a terminal or over SSH).
+   - When configuring, choose to run the runner as a **service** so it keeps running after you disconnect.
+   - The **runner must run as a user that can run `git` and `docker`** in the repo directory. If you run the runner as `root`, that’s fine. If you use another user, add it to the docker group: `sudo usermod -aG docker YOUR_RUNNER_USER`, then log out and back in.
+
+   **Exact commands to run on the server (Linux):**
+
+   ```bash
+   # 1. Create folder and download
+   mkdir -p ~/actions-runner && cd ~/actions-runner
+   curl -o actions-runner-linux-x64-2.332.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.332.0/actions-runner-linux-x64-2.332.0.tar.gz
+   tar xzf actions-runner-linux-x64-2.332.0.tar.gz
+
+   # 2. Configure — USE A FRESH TOKEN from GitHub (Settings → Actions → Runners → New self-hosted runner).
+   #    The token expires in a few minutes; if config.sh says "Invalid token", get a new one and run this again.
+   ./config.sh --url https://github.com/AlbertoftheRivers/TuPonesYoComo --token YOUR_TOKEN_HERE
+
+   # 3a. Run once in foreground (for testing; stops when you close the terminal)
+   ./run.sh
+   ```
+
+   To have the runner **keep running after you disconnect**, use the service instead of `./run.sh`:
+
+   ```bash
+   # 3b. Install and start as a service (recommended)
+   sudo ./svc.sh install
+   sudo ./svc.sh start
+   # Check status:
+   sudo ./svc.sh status
+   ```
+
+   If you get **"Invalid token"** or **"Credentials could not be updated"**: the token expired. Go to **Settings** → **Actions** → **Runners** → **New self-hosted runner**, copy the new token, and run `./config.sh --url https://github.com/AlbertoftheRivers/TuPonesYoComo --token NEW_TOKEN` again (then `sudo ./svc.sh start` if you use the service).
+
+2. **Repo secret**  
+   In the repo: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.  
+   - Name: `REPO_PATH_ON_SERVER`  
+   - Value: the **exact** path where the repo is on the server (e.g. `/opt/TuPonesYoComo` or `/home/ubuntu/TuPonesYoComo`).  
+   (If you already added this for the SSH workflow, you’re set.)
+
+3. **Make the deploy script executable** on the server (SSH in and run):
+   ```bash
+   chmod +x /path/to/TuPonesYoComo/scripts/deploy-on-server.sh
+   ```
+   Use the same path as in step 2.
+
+4. Push a backend change to `main`. In the **Actions** tab you should see **Deploy backend (self-hosted)** run on your server; it will pull and restart the API.
+
+5. *(Optional)* To avoid the other workflow failing with "Connection timed out", the repo has the SSH-based workflow disabled (see below). If you re-enabled it, you can disable it again by renaming `.github/workflows/deploy-backend.yml` to e.g. `deploy-backend.yml.disabled`.
 
 ---
 
@@ -162,3 +214,4 @@ If your server has no public IP and no port 22 forward, GitHub’s servers canno
 | Action fails with **Host key verification** | The workflow uses `ssh-keyscan` and `StrictHostKeyChecking=accept-new`. If your network blocks this, you may need to add the server’s host key to a known_hosts secret. |
 | **Repo path** / **No such file** on server | Ensure `REPO_PATH_ON_SERVER` is the exact path where the repo is cloned (e.g. `/opt/TuPonesYoComo`). SSH to the server and run `pwd` inside the repo to confirm. |
 | **Docker permission denied** on server | Add your SSH user to the docker group: `sudo usermod -aG docker $USER`, then log out and back in. |
+| **Connection timed out** / **port 22: Connection timed out** | GitHub cannot reach your server from the internet. Your server is behind a firewall/NAT or has no port 22 open. Use [Server not reachable from the internet](#server-not-reachable-from-the-internet) below (self-hosted runner or manual deploy script). |

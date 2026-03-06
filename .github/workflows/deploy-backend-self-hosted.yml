@@ -1,0 +1,23 @@
+# Deploy backend when you push to main — runs ON the server (no SSH from internet).
+# Use this when GitHub cannot reach your server (Connection timed out).
+# Requires: self-hosted runner installed on the server, and repo secret REPO_PATH_ON_SERVER.
+# See docs/SSH-AND-DEPLOY.md → Setup self-hosted runner.
+
+name: Deploy backend (self-hosted)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'scripts/deploy-on-server.sh'
+
+jobs:
+  deploy:
+    runs-on: [self-hosted]
+    steps:
+      - name: Deploy on server
+        env:
+          REPO_PATH: ${{ secrets.REPO_PATH_ON_SERVER }}
+        run: |
+          cd "$REPO_PATH" && bash scripts/deploy-on-server.sh
