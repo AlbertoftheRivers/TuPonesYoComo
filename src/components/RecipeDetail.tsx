@@ -54,28 +54,28 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
           <Button
             type="button"
             size="icon"
-            variant="secondary"
-            className="pointer-events-auto h-10 w-10 shrink-0 rounded-full border border-border bg-card/95 shadow-md backdrop-blur-sm hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
+            variant="outline"
+            className="pointer-events-auto h-10 w-10 shrink-0 rounded-full border-border bg-card/95 text-destructive shadow-md backdrop-blur-sm hover:bg-destructive/15 hover:text-destructive hover:border-destructive/50"
             aria-label={t("ariaDeleteRecipe")}
             onClick={(e) => {
               e.stopPropagation();
               setDeleteConfirmOpen(true);
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2.25} />
           </Button>
           <Button
             type="button"
             size="icon"
-            variant="secondary"
-            className="pointer-events-auto h-10 w-10 shrink-0 rounded-full border border-border bg-card/95 shadow-md backdrop-blur-sm hover:bg-primary/15 hover:border-primary/30"
+            variant="outline"
+            className="pointer-events-auto h-10 w-10 shrink-0 rounded-full border-border bg-card/95 text-foreground shadow-md backdrop-blur-sm hover:bg-primary/15 hover:text-primary hover:border-primary/40"
             aria-label={t("ariaEditRecipe")}
             onClick={(e) => {
               e.stopPropagation();
               onEdit(recipe);
             }}
           >
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-4 w-4 shrink-0" strokeWidth={2.25} />
           </Button>
         </div>
 
