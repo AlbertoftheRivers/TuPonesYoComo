@@ -4,6 +4,8 @@ import { X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES } from "@/data/recipeDisplay";
 import type { RecipeDisplay } from "@/data/recipeDisplay";
+import { useWebLanguage } from "@/lib/WebLanguageContext";
+import { translateProteinLabel } from "@/lib/webI18n";
 
 interface RecipeBookModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface RecipeBookModalProps {
 }
 
 const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBookModalProps) => {
+  const { t, language } = useWebLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const filtered = selectedCategory
@@ -48,8 +51,12 @@ const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBoo
                 )}
                 <h2 className="font-heading text-2xl">
                   {selectedCategory
-                    ? CATEGORIES.find((c) => c.value === selectedCategory)?.name ?? selectedCategory
-                    : "Recipe Book"}
+                    ? translateProteinLabel(
+                        language,
+                        selectedCategory,
+                        CATEGORIES.find((c) => c.value === selectedCategory)?.name ?? selectedCategory
+                      )
+                    : t("recipeBookTitle")}
                 </h2>
               </div>
               <Button variant="ghost" size="icon" onClick={onClose}>
@@ -74,8 +81,10 @@ const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBoo
                       <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform inline-block">
                         {cat.emoji}
                       </span>
-                      <p className="font-medium">{cat.name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{count} recipes</p>
+                      <p className="font-medium">{translateProteinLabel(language, cat.value, cat.name)}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("recipeCountInCategory", { n: count })}
+                      </p>
                     </motion.button>
                   );
                 })}
@@ -83,9 +92,7 @@ const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBoo
             ) : (
               <div className="space-y-3">
                 {filtered.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    No recipes in this category yet.
-                  </p>
+                  <p className="text-muted-foreground text-center py-8">{t("noRecipesInCategory")}</p>
                 ) : (
                   filtered.map((recipe) => (
                     <motion.button

@@ -2,13 +2,17 @@ import { motion } from "framer-motion";
 import { Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { RecipeDisplay } from "@/data/recipeDisplay";
+import { useWebLanguage } from "@/lib/WebLanguageContext";
 
 interface RecipeDetailProps {
   recipe: RecipeDisplay;
   onClose: () => void;
 }
 
-const RecipeDetail = ({ recipe, onClose }: RecipeDetailProps) => (
+const RecipeDetail = ({ recipe, onClose }: RecipeDetailProps) => {
+  const { t } = useWebLanguage();
+
+  return (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -36,11 +40,11 @@ const RecipeDetail = ({ recipe, onClose }: RecipeDetailProps) => (
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="w-4 h-4" />
-            {recipe.servings} servings
+            {t("servingsCount", { n: recipe.servings })}
           </div>
         </div>
 
-        <h3 className="font-heading text-lg mb-2">Ingredients</h3>
+        <h3 className="font-heading text-lg mb-2">{t("recipeDetailIngredients")}</h3>
         <div className="flex flex-wrap gap-2 mb-5">
           {recipe.ingredients.map((ing) => (
             <span key={ing} className="px-3 py-1 rounded-full bg-muted text-sm">
@@ -49,17 +53,18 @@ const RecipeDetail = ({ recipe, onClose }: RecipeDetailProps) => (
           ))}
         </div>
 
-        <h3 className="font-heading text-lg mb-2">Instructions</h3>
+        <h3 className="font-heading text-lg mb-2">{t("recipeDetailInstructions")}</h3>
         <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
           {recipe.instructions}
         </p>
 
         <Button variant="outline" className="w-full mt-6" onClick={onClose}>
-          Close
+          {t("close")}
         </Button>
       </div>
     </motion.div>
   </motion.div>
-);
+  );
+};
 
 export default RecipeDetail;

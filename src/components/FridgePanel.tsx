@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getRecipesByIngredients } from "@/api/recipes";
 import { recipeToDisplay, type RecipeDisplay } from "@/data/recipeDisplay";
+import { useWebLanguage } from "@/lib/WebLanguageContext";
 
 interface FridgePanelProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface FridgePanelProps {
 }
 
 const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
+  const { t } = useWebLanguage();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [matches, setMatches] = useState<RecipeDisplay[]>([]);
@@ -58,23 +60,21 @@ const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
                 <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
                   <Refrigerator className="w-5 h-5 text-secondary" />
                 </div>
-                <h2 className="font-heading text-2xl">My Fridge</h2>
+                <h2 className="font-heading text-2xl">{t("fridgeTitle")}</h2>
               </div>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="w-5 h-5" />
               </Button>
             </div>
 
-            <p className="text-muted-foreground text-sm mb-4">
-              Add ingredients you have and we&apos;ll find matching recipes!
-            </p>
+            <p className="text-muted-foreground text-sm mb-4">{t("fridgeIntro")}</p>
 
             <div className="flex gap-2 mb-4">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addIngredient()}
-                placeholder="e.g. tomato, chicken..."
+                placeholder={t("fridgePh")}
                 className="flex-1"
               />
               <Button onClick={addIngredient} size="icon">
@@ -105,8 +105,8 @@ const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-accent" />
-                  <h3 className="font-heading text-lg">Matching Recipes</h3>
-                  {loading && <span className="text-xs text-muted-foreground">(searching…)</span>}
+                  <h3 className="font-heading text-lg">{t("fridgeMatching")}</h3>
+                  {loading && <span className="text-xs text-muted-foreground">{t("fridgeSearchingShort")}</span>}
                 </div>
                 <div className="space-y-3">
                   {matches.map((recipe) => (
@@ -134,15 +134,11 @@ const FridgePanel = ({ isOpen, onClose, onSelectRecipe }: FridgePanelProps) => {
             )}
 
             {ingredients.length > 0 && !loading && matches.length === 0 && (
-              <p className="text-muted-foreground text-sm text-center py-8">
-                No recipes found with these ingredients. Try different ingredients or add a recipe that uses them!
-              </p>
+              <p className="text-muted-foreground text-sm text-center py-8">{t("fridgeNoMatch")}</p>
             )}
 
             {ingredients.length > 0 && loading && matches.length === 0 && (
-              <p className="text-muted-foreground text-sm text-center py-8">
-                Searching recipes…
-              </p>
+              <p className="text-muted-foreground text-sm text-center py-8">{t("fridgeSearching")}</p>
             )}
           </div>
         </motion.div>

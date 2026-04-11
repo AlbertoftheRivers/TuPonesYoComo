@@ -12,6 +12,7 @@ import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailabl
 import { analyzeRecipe } from "@/lib/ollama";
 import type { RecipeInsertPayload, Cuisine } from "@/types/recipe";
 import { toast } from "sonner";
+import { useWebLanguage } from "@/lib/WebLanguageContext";
 
 const ADD_NEW_PROTEIN_VALUE = "__add_new_protein__";
 
@@ -30,6 +31,7 @@ interface AddRecipeModalProps {
 }
 
 const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
+  const { t } = useWebLanguage();
   const [rawText, setRawText] = useState("");
   const [title, setTitle] = useState("");
   const [mainProtein, setMainProtein] = useState<string>("chicken");
@@ -66,7 +68,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
   const handleAddNewProtein = async () => {
     const label = newProteinLabel.trim();
     if (!label) {
-      toast.error("Enter a name for the protein");
+      toast.error(t("toastEnterProteinName"));
       return;
     }
     const value = slugify(label) || "other";
@@ -79,9 +81,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
       setShowAddProtein(false);
       setNewProteinLabel("");
       setNewProteinIcon("🍽️");
-      toast.success(`"${label}" added to categories`);
+      toast.success(t("toastProteinAdded"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to add category");
+      toast.error(err instanceof Error ? err.message : t("toastProteinAddFail"));
     } finally {
       setLoading(false);
     }
@@ -108,9 +110,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
       });
       const result = await extractTextFromImage(dataUrl, "spa");
       setRawText((prev) => (prev ? prev + "\n\n" : "") + result.text);
-      toast.success("Text extracted from image");
+      toast.success(t("toastTextExtracted"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OCR failed");
+      toast.error(err instanceof Error ? err.message : t("toastOcrFail"));
     } finally {
       setLoading(false);
       e.target.value = "";
@@ -119,7 +121,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
 
   const handleDictate = async () => {
     if (!isWebAudioRecordingAvailable()) {
-      toast.error("Microphone not available");
+      toast.error(t("toastMicUnavailable"));
       return;
     }
     if (recording) {
@@ -131,9 +133,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
           try {
             const { text } = await transcribeWebAudio(blob, "es");
             setRawText((prev) => (prev ? prev + "\n\n" : "") + text);
-            toast.success("Transcription added");
+            toast.success(t("toastTranscriptionAdded"));
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Transcription failed");
+            toast.error(err instanceof Error ? err.message : t("toastTranscriptionFailed"));
           } finally {
             setLoading(false);
           }
@@ -144,18 +146,18 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
     }
     const rec = createWebAudioRecorder();
     if (!rec) {
-      toast.error("Recording not supported");
+      toast.error(t("toastRecordingUnsupported"));
       return;
     }
     recorderRef.current = rec;
     await rec.start();
     setRecording(true);
-    toast.info("Recording… Click again to stop.");
+    toast.info(t("toastRecordingInfo"));
   };
 
   const handleAnalyze = async () => {
     if (!rawText.trim()) {
-      toast.error("Add or paste recipe text first (scan, dictate, or type)");
+      toast.error(t("toastAddTextFirst"));
       return;
     }
     const proteinForAnalyze = mainProtein === ADD_NEW_PROTEIN_VALUE ? "vegetables" : mainProtein;
@@ -171,9 +173,9 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
         const firstLine = rawText.split("\n")[0]?.trim();
         if (firstLine) setTitle(firstLine);
       }
-      toast.success("Recipe analyzed");
+      toast.success(t("toastRecipeAnalyzed"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Analysis failed");
+      toast.error(err instanceof Error ? err.message : t("toastAnalysisFailed"));
     } finally {
       setLoading(false);
     }
@@ -181,12 +183,12 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      toast.error("Recipe name is required");
+      toast.error(t("toastNameRequired"));
       return;
     }
     const stepsList = steps.length > 0 ? steps : stepsText.split("\n").map((s) => s.trim()).filter(Boolean);
     if (mainProtein === ADD_NEW_PROTEIN_VALUE) {
-      toast.error("Add your new protein category first, or choose an existing one.");
+      toast.error(t("toastChooseProteinFirst"));
       return;
     }
     const payload: RecipeInsertPayload = {
@@ -204,7 +206,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
     setLoading(true);
     try {
       await createRecipe(payload);
-      toast.success("Recipe saved");
+      toast.success(t("toastRecipeSaved"));
       setRawText("");
       setTitle("");
       setIngredients([]);
@@ -216,7 +218,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
       onAdd();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save recipe");
+      toast.error(err instanceof Error ? err.message : t("toastSaveFailed"));
     } finally {
       setLoading(false);
     }
@@ -240,7 +242,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
             className="bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-heading text-2xl">Add New Recipe</h2>
+              <h2 className="font-heading text-2xl">{t("addRecipeTitle")}</h2>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="w-5 h-5" />
               </Button>
@@ -248,7 +250,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Recipe text (paste, scan, or dictate)</label>
+                <label className="text-sm font-medium mb-1 block">{t("addRecipeRawLabel")}</label>
                 <div className="flex gap-2 mb-2">
                   <input
                     ref={fileInputRef}
@@ -258,31 +260,31 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                     onChange={handleScanImage}
                   />
                   <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={loading}>
-                    <Camera className="w-4 h-4 mr-1" /> Scan
+                    <Camera className="w-4 h-4 mr-1" /> {t("scan")}
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleDictate} disabled={loading}>
-                    <Mic className="w-4 h-4 mr-1" /> {recording ? "Stop" : "Dictate"}
+                    <Mic className="w-4 h-4 mr-1" /> {recording ? t("stop") : t("dictate")}
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAnalyze} disabled={loading || !rawText.trim()}>
-                    <Sparkles className="w-4 h-4 mr-1" /> Analyze with AI
+                    <Sparkles className="w-4 h-4 mr-1" /> {t("analyzeAI")}
                   </Button>
                 </div>
                 <Textarea
                   value={rawText}
                   onChange={(e) => setRawText(e.target.value)}
-                  placeholder="Paste recipe text, or use Scan / Dictate..."
+                  placeholder={t("rawPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">Recipe name</label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="My recipe" />
+                <label className="text-sm font-medium mb-1 block">{t("recipeName")}</label>
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("recipeNamePh")} />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Main protein</label>
+                  <label className="text-sm font-medium mb-1 block">{t("mainProtein")}</label>
                   <select
                     value={mainProtein}
                     onChange={(e) => {
@@ -302,15 +304,15 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                         {p.icon} {p.label}
                       </option>
                     ))}
-                    <option value={ADD_NEW_PROTEIN_VALUE}>➕ Add new protein…</option>
+                    <option value={ADD_NEW_PROTEIN_VALUE}>{t("addNewProteinOption")}</option>
                   </select>
                   {showAddProtein && (
                     <div className="mt-3 p-3 rounded-lg border border-border bg-muted/50 space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground">New category</p>
+                      <p className="text-xs font-medium text-muted-foreground">{t("newCategory")}</p>
                       <Input
                         value={newProteinLabel}
                         onChange={(e) => setNewProteinLabel(e.target.value)}
-                        placeholder="e.g. Tofu, Duck"
+                        placeholder={t("newCategoryPh")}
                         className="text-sm"
                       />
                       <div className="flex items-center gap-2">
@@ -321,21 +323,21 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                           className="w-16 text-center text-lg"
                           maxLength={4}
                         />
-                        <span className="text-xs text-muted-foreground">Icon (emoji)</span>
+                        <span className="text-xs text-muted-foreground">{t("iconEmoji")}</span>
                       </div>
                       <div className="flex gap-2">
                         <Button type="button" size="sm" onClick={handleAddNewProtein} disabled={loading || !newProteinLabel.trim()}>
-                          Add
+                          {t("add")}
                         </Button>
                         <Button type="button" variant="outline" size="sm" onClick={() => { setShowAddProtein(false); setNewProteinLabel(""); setNewProteinIcon("🍽️"); }}>
-                          Cancel
+                          {t("cancel")}
                         </Button>
                       </div>
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Cuisine</label>
+                  <label className="text-sm font-medium mb-1 block">{t("cuisine")}</label>
                   <select
                     value={cuisineValue}
                     onChange={(e) => setCuisineValue(e.target.value)}
@@ -350,7 +352,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Total time (min)</label>
+                  <label className="text-sm font-medium mb-1 block">{t("totalTimeMin")}</label>
                   <Input
                     type="number"
                     value={totalTime ?? ""}
@@ -359,19 +361,19 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Servings</label>
+                  <label className="text-sm font-medium mb-1 block">{t("servings")}</label>
                   <Input type="number" value={servings} onChange={(e) => setServings(Number(e.target.value) || 2)} min={1} />
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">Ingredients</label>
+                <label className="text-sm font-medium mb-1 block">{t("ingredients")}</label>
                 <div className="flex gap-2 mb-2">
                   <Input
                     value={ingredientInput}
                     onChange={(e) => setIngredientInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addIngredient())}
-                    placeholder="Add ingredient..."
+                    placeholder={t("addIngredientPh")}
                   />
                   <Button type="button" variant="outline" size="icon" onClick={addIngredient}>
                     <Plus className="w-4 h-4" />
@@ -390,17 +392,17 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">Steps</label>
+                <label className="text-sm font-medium mb-1 block">{t("steps")}</label>
                 <Textarea
                   value={stepsText}
                   onChange={(e) => setStepsText(e.target.value)}
-                  placeholder="One step per line..."
+                  placeholder={t("stepsPh")}
                   rows={4}
                 />
               </div>
 
               <Button className="w-full" onClick={handleSubmit} disabled={loading}>
-                {loading ? "Saving…" : "Add Recipe"}
+                {loading ? t("saving") : t("saveRecipe")}
               </Button>
             </div>
           </motion.div>
