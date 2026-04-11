@@ -40,7 +40,7 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-foreground/40 px-4 py-6 backdrop-blur-sm sm:px-5 sm:py-10"
       onClick={onClose}
     >
       <motion.div
@@ -48,13 +48,13 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
+        className="relative my-auto flex w-full max-w-lg max-h-[min(calc(100dvh-3rem),calc(100vh-3rem))] sm:max-h-[min(calc(100dvh-5rem),calc(100vh-5rem))] flex-col overflow-hidden rounded-2xl bg-card shadow-2xl"
       >
-        <div className="absolute top-3 left-3 right-3 z-10 flex justify-between items-start pointer-events-none">
-          {/* Plain buttons + fixed Tailwind colors so Lucide strokes stay visible (shadcn Button + outline was washing out currentColor). */}
+        {/* Toolbar: always visible */}
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-card px-3 py-2">
           <button
             type="button"
-            className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-stone-300 bg-white text-red-600 shadow-md transition-colors hover:border-red-400 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-stone-300 bg-white text-red-600 shadow-md transition-colors hover:border-red-400 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             aria-label={t("ariaDeleteRecipe")}
             onClick={(e) => {
               e.stopPropagation();
@@ -65,7 +65,7 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
           </button>
           <button
             type="button"
-            className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-stone-300 bg-white text-orange-600 shadow-md transition-colors hover:border-orange-400 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-stone-300 bg-white text-orange-600 shadow-md transition-colors hover:border-orange-400 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
             aria-label={t("ariaEditRecipe")}
             onClick={(e) => {
               e.stopPropagation();
@@ -76,38 +76,44 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
           </button>
         </div>
 
-        <div className="bg-primary/10 px-6 pt-14 pb-8 text-center">
-          <span className="text-7xl block mb-3">{recipe.image}</span>
-          <h2 className="font-heading text-3xl px-2">{recipe.title}</h2>
-          <p className="text-muted-foreground mt-1">{recipe.cuisine}</p>
+        {/* Recipe body: scrolls independently */}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain">
+          <div className="bg-primary/10 px-6 pb-6 pt-5 text-center">
+            <span className="mb-3 block text-7xl">{recipe.image}</span>
+            <h2 className="px-2 font-heading text-3xl">{recipe.title}</h2>
+            <p className="mt-1 text-muted-foreground">{recipe.cuisine}</p>
+          </div>
+          <div className="p-6">
+            <div className="mb-5 flex gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                {recipe.time}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                {t("servingsCount", { n: recipe.servings })}
+              </div>
+            </div>
+
+            <h3 className="mb-2 font-heading text-lg">{t("recipeDetailIngredients")}</h3>
+            <div className="mb-5 flex flex-wrap gap-2">
+              {recipe.ingredients.map((ing) => (
+                <span key={ing} className="rounded-full bg-muted px-3 py-1 text-sm">
+                  {ing}
+                </span>
+              ))}
+            </div>
+
+            <h3 className="mb-2 font-heading text-lg">{t("recipeDetailInstructions")}</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap pb-1">
+              {recipe.instructions}
+            </p>
+          </div>
         </div>
-        <div className="p-6">
-          <div className="flex gap-4 mb-5">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              {recipe.time}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="w-4 h-4" />
-              {t("servingsCount", { n: recipe.servings })}
-            </div>
-          </div>
 
-          <h3 className="font-heading text-lg mb-2">{t("recipeDetailIngredients")}</h3>
-          <div className="flex flex-wrap gap-2 mb-5">
-            {recipe.ingredients.map((ing) => (
-              <span key={ing} className="px-3 py-1 rounded-full bg-muted text-sm">
-                {ing}
-              </span>
-            ))}
-          </div>
-
-          <h3 className="font-heading text-lg mb-2">{t("recipeDetailInstructions")}</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
-            {recipe.instructions}
-          </p>
-
-          <Button variant="outline" className="w-full mt-6" onClick={onClose}>
+        {/* Close: always visible */}
+        <div className="shrink-0 border-t border-border bg-card p-4">
+          <Button variant="outline" className="w-full" onClick={onClose}>
             {t("close")}
           </Button>
         </div>
@@ -118,24 +124,24 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-sm p-6"
+              className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 p-6 backdrop-blur-sm"
               onClick={(e) => e.stopPropagation()}
             >
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-xl text-center space-y-4"
+                className="w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-6 text-center shadow-xl"
               >
                 <p className="font-heading text-lg">{t("deleteRecipeTitle")}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {t("deleteRecipeMessage", { title: recipe.title })}
                 </p>
-                <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-center pt-2">
+                <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-center">
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full sm:w-auto min-w-[120px]"
+                    className="min-w-[120px] w-full sm:w-auto"
                     disabled={deleting}
                     onClick={() => setDeleteConfirmOpen(false)}
                   >
@@ -144,7 +150,7 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
                   <Button
                     type="button"
                     variant="destructive"
-                    className="w-full sm:w-auto min-w-[120px]"
+                    className="min-w-[120px] w-full sm:w-auto"
                     disabled={deleting}
                     onClick={() => void handleConfirmDelete()}
                   >
