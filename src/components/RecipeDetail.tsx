@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, Users } from "lucide-react";
+import { Clock, Users, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { RecipeDisplay } from "@/data/recipeDisplay";
 import { useWebLanguage } from "@/lib/WebLanguageContext";
@@ -7,9 +7,10 @@ import { useWebLanguage } from "@/lib/WebLanguageContext";
 interface RecipeDetailProps {
   recipe: RecipeDisplay;
   onClose: () => void;
+  onEdit: (recipe: RecipeDisplay) => void;
 }
 
-const RecipeDetail = ({ recipe, onClose }: RecipeDetailProps) => {
+const RecipeDetail = ({ recipe, onClose, onEdit }: RecipeDetailProps) => {
   const { t } = useWebLanguage();
 
   return (
@@ -58,9 +59,15 @@ const RecipeDetail = ({ recipe, onClose }: RecipeDetailProps) => {
           {recipe.instructions}
         </p>
 
-        <Button variant="outline" className="w-full mt-6" onClick={onClose}>
-          {t("close")}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 mt-6">
+          <Button variant="default" className="w-full sm:flex-1" onClick={() => onEdit(recipe)}>
+            <Pencil className="w-4 h-4 mr-2" />
+            {t("recipeDetailEdit")}
+          </Button>
+          <Button variant="outline" className="w-full sm:flex-1" onClick={onClose}>
+            {t("close")}
+          </Button>
+        </div>
       </div>
     </motion.div>
   </motion.div>

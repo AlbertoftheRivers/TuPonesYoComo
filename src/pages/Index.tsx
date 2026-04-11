@@ -22,6 +22,7 @@ import AddRecipeModal from "@/components/AddRecipeModal";
 import RecipeBookModal from "@/components/RecipeBookModal";
 import HelpModal from "@/components/HelpModal";
 import { recipeToDisplay, type RecipeDisplay } from "@/data/recipeDisplay";
+import type { Recipe } from "@/types/recipe";
 import { getAllRecipes, getRecentRecipes, getRandomRecipe } from "@/api/recipes";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWebLanguage } from "@/lib/WebLanguageContext";
@@ -38,6 +39,7 @@ const Index = () => {
   const [fridgeOpen, setFridgeOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDisplay | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [bookOpen, setBookOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -94,11 +96,26 @@ const Index = () => {
     if (random) setSelectedRecipe(recipeToDisplay(random));
   }, []);
 
-  const handleAddRecipe = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["recipes"] });
-    queryClient.invalidateQueries({ queryKey: ["recentRecipes"] });
+  const handleRecipeFormClose = useCallback(() => {
     setAddOpen(false);
-  }, [queryClient]);
+    setEditingRecipe(null);
+  }, []);
+
+  const handleRecipeFormSuccess = useCallback(
+    (updated?: Recipe) => {
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["recentRecipes"] });
+      setAddOpen(false);
+      setEditingRecipe(null);
+      if (updated) setSelectedRecipe(recipeToDisplay(updated));
+    },
+    [queryClient]
+  );
+
+  const openAddRecipeModal = useCallback(() => {
+    setEditingRecipe(null);
+    setAddOpen(true);
+  }, []);
 
   const featureCards = useMemo(
     () => [
@@ -128,10 +145,10 @@ const Index = () => {
         title: t("featAddTitle"),
         desc: t("featAddDesc"),
         color: "bg-muted text-foreground",
-        action: () => setAddOpen(true),
+        action: openAddRecipeModal,
       },
     ],
-    [t, recommendRandom]
+    [t, recommendRandom, openAddRecipeModal]
   );
 
   const helpParagraphs = useMemo(() => t("helpBody").split("\n\n").filter(Boolean), [t]);
@@ -401,9 +418,23 @@ const Index = () => {
         }}
       />
       <AnimatePresence>
-        {selectedRecipe && <RecipeDetail recipe={selectedRecipe} onClose={() => setSelectedRecipe(null)} />}
+        {selectedRecipe && (
+          <RecipeDetail
+            recipe={selectedRecipe}
+            onClose={() => setSelectedRecipe(null)}
+            onEdit={(r) => {
+              setEditingRecipe(r._recipe);
+              setSelectedRecipe(null);
+            }}
+          />
+        )}
       </AnimatePresence>
-      <AddRecipeModal isOpen={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddRecipe} />
+      <AddRecipeModal
+        isOpen={addOpen || !!editingRecipe}
+        onClose={handleRecipeFormClose}
+        onSuccess={handleRecipeFormSuccess}
+        editingRecipe={editingRecipe}
+      />
       <RecipeBookModal
         isOpen={bookOpen}
         onClose={() => setBookOpen(false)}

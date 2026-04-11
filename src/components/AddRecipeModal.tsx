@@ -1,16 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Camera, Mic, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MAIN_PROTEINS, CUISINES } from "@/lib/constants";
-import { createRecipe } from "@/api/recipes";
+import { createRecipe, updateRecipe } from "@/api/recipes";
 import { getCustomProteins, addCustomProtein, type CustomProtein } from "@/api/categories";
 import { extractTextFromImage } from "@/lib/ocr";
 import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailable } from "@/lib/webAudioRecorder";
 import { analyzeRecipe } from "@/lib/ollama";
-import type { RecipeInsertPayload, Cuisine } from "@/types/recipe";
+import type { Recipe, RecipeInsertPayload, Cuisine } from "@/types/recipe";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWebLanguage } from "@/lib/WebLanguageContext";
@@ -28,10 +28,26 @@ function slugify(text: string): string {
 interface AddRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: () => void;
+  /** Called after a successful create (no arg) or update (fresh recipe). */
+  onSuccess: (updatedRecipe?: Recipe) => void;
+  /** When set, the modal edits this recipe instead of creating one. */
+  editingRecipe?: Recipe | null;
 }
 
-const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
+const defaultFormState = () => ({
+  rawText: "",
+  title: "",
+  mainProtein: "chicken",
+  cuisineValue: CUISINES[0]?.value ?? "española",
+  ingredients: [] as Array<{ name: string; quantity?: number | string; unit?: string; notes?: string }>,
+  steps: [] as string[],
+  stepsText: "",
+  totalTime: null as number | null,
+  ovenTime: null as number | null,
+  servings: 2,
+});
+
+const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipeModalProps) => {
   const queryClient = useQueryClient();
   const { t } = useWebLanguage();
   const [rawText, setRawText] = useState("");
@@ -62,10 +78,67 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
     }
   }, [isOpen]);
 
-  const allProteins = [
-    ...MAIN_PROTEINS.map((p) => ({ value: p.value, label: p.label, icon: p.icon })),
-    ...customProteins.map((p) => ({ value: p.value, label: p.label, icon: p.icon })),
-  ];
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) {
+      wasOpenRef.current = false;
+      return;
+    }
+    const opening = !wasOpenRef.current;
+    wasOpenRef.current = true;
+    if (!opening) return;
+
+    if (editingRecipe) {
+      setRawText(editingRecipe.raw_text ?? "");
+      setTitle(editingRecipe.title);
+      setMainProtein(editingRecipe.main_protein);
+      setCuisineValue(editingRecipe.cuisines?.[0] ?? CUISINES[0]?.value ?? "española");
+      setIngredients(editingRecipe.ingredients.map((i) => ({ ...i })));
+      setIngredientInput("");
+      setSteps([...editingRecipe.steps]);
+      setStepsText(editingRecipe.steps.join("\n"));
+      setTotalTime(editingRecipe.total_time_minutes);
+      setOvenTime(editingRecipe.oven_time_minutes);
+      setServings(editingRecipe.servings ?? 2);
+    } else {
+      const d = defaultFormState();
+      setRawText(d.rawText);
+      setTitle(d.title);
+      setMainProtein(d.mainProtein);
+      setCuisineValue(d.cuisineValue);
+      setIngredients(d.ingredients);
+      setIngredientInput("");
+      setSteps(d.steps);
+      setStepsText(d.stepsText);
+      setTotalTime(d.totalTime);
+      setOvenTime(d.ovenTime);
+      setServings(d.servings);
+    }
+    setShowAddProtein(false);
+    setRecording(false);
+  }, [isOpen, editingRecipe]);
+
+  const proteinSelectOptions = useMemo(() => {
+    const list = [
+      ...MAIN_PROTEINS.map((p) => ({ value: p.value, label: p.label, icon: p.icon })),
+      ...customProteins.map((p) => ({ value: p.value, label: p.label, icon: p.icon })),
+    ];
+    const seen = new Set(list.map((p) => p.value));
+    if (mainProtein && mainProtein !== ADD_NEW_PROTEIN_VALUE && !seen.has(mainProtein)) {
+      list.unshift({ value: mainProtein, label: mainProtein, icon: "🍽️" });
+    }
+    return list;
+  }, [customProteins, mainProtein]);
+
+  const cuisineSelectOptions = useMemo(() => {
+    const list = [...CUISINES];
+    if (cuisineValue && !list.some((c) => c.value === cuisineValue)) {
+      list.push({ value: cuisineValue as Cuisine, label: cuisineValue, flag: "·" });
+    }
+    return list;
+  }, [cuisineValue]);
+
+  const isEditMode = !!editingRecipe;
 
   const handleAddNewProtein = async () => {
     const label = newProteinLabel.trim();
@@ -201,25 +274,23 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
       raw_text: rawText,
       ingredients,
       steps: stepsList,
-      gadgets: [],
+      gadgets: editingRecipe?.gadgets ?? [],
       total_time_minutes: totalTime,
       oven_time_minutes: ovenTime,
       servings,
+      added_by: editingRecipe?.added_by ?? null,
     };
     setLoading(true);
     try {
-      await createRecipe(payload);
-      toast.success(t("toastRecipeSaved"));
-      setRawText("");
-      setTitle("");
-      setIngredients([]);
-      setSteps([]);
-      setStepsText("");
-      setTotalTime(null);
-      setOvenTime(null);
-      setServings(2);
-      onAdd();
-      onClose();
+      if (editingRecipe) {
+        const updated = await updateRecipe(editingRecipe.id, payload);
+        toast.success(t("toastRecipeUpdated"));
+        onSuccess(updated);
+      } else {
+        await createRecipe(payload);
+        toast.success(t("toastRecipeSaved"));
+        onSuccess();
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("toastSaveFailed"));
     } finally {
@@ -245,7 +316,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
             className="bg-card rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-heading text-2xl">{t("addRecipeTitle")}</h2>
+              <h2 className="font-heading text-2xl">{t(isEditMode ? "editRecipeTitle" : "addRecipeTitle")}</h2>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="w-5 h-5" />
               </Button>
@@ -302,7 +373,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                     }}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   >
-                    {allProteins.map((p) => (
+                    {proteinSelectOptions.map((p) => (
                       <option key={p.value} value={p.value}>
                         {p.icon} {p.label}
                       </option>
@@ -346,14 +417,16 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                     onChange={(e) => setCuisineValue(e.target.value)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   >
-                    {CUISINES.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
+                    {cuisineSelectOptions.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.flag} {c.label}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm font-medium mb-1 block">{t("totalTimeMin")}</label>
                   <Input
@@ -364,6 +437,15 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                   />
                 </div>
                 <div>
+                  <label className="text-sm font-medium mb-1 block">{t("ovenTimeMin")}</label>
+                  <Input
+                    type="number"
+                    value={ovenTime ?? ""}
+                    onChange={(e) => setOvenTime(e.target.value ? Number(e.target.value) : null)}
+                    placeholder="—"
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="text-sm font-medium mb-1 block">{t("servings")}</label>
                   <Input type="number" value={servings} onChange={(e) => setServings(Number(e.target.value) || 2)} min={1} />
                 </div>
@@ -383,8 +465,8 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {ingredients.map((ing) => (
-                    <span key={ing.name} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs">
+                  {ingredients.map((ing, idx) => (
+                    <span key={`${ing.name}-${idx}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs">
                       {ing.name}
                       <button type="button" onClick={() => setIngredients(ingredients.filter((i) => i.name !== ing.name))}>
                         <X className="w-3 h-3" />
@@ -405,7 +487,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
               </div>
 
               <Button className="w-full" onClick={handleSubmit} disabled={loading}>
-                {loading ? t("saving") : t("saveRecipe")}
+                {loading ? t("saving") : t(isEditMode ? "saveChanges" : "saveRecipe")}
               </Button>
             </div>
           </motion.div>
