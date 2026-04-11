@@ -426,6 +426,10 @@ const Index = () => {
               setEditingRecipe(r._recipe);
               setSelectedRecipe(null);
             }}
+            onDeleted={() => {
+              void queryClient.invalidateQueries({ queryKey: ["recipes"] });
+              void queryClient.invalidateQueries({ queryKey: ["recentRecipes"] });
+            }}
           />
         )}
       </AnimatePresence>
