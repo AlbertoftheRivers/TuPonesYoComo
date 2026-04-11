@@ -12,6 +12,7 @@ import { createWebAudioRecorder, transcribeWebAudio, isWebAudioRecordingAvailabl
 import { analyzeRecipe } from "@/lib/ollama";
 import type { RecipeInsertPayload, Cuisine } from "@/types/recipe";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { useWebLanguage } from "@/lib/WebLanguageContext";
 
 const ADD_NEW_PROTEIN_VALUE = "__add_new_protein__";
@@ -31,6 +32,7 @@ interface AddRecipeModalProps {
 }
 
 const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
+  const queryClient = useQueryClient();
   const { t } = useWebLanguage();
   const [rawText, setRawText] = useState("");
   const [title, setTitle] = useState("");
@@ -75,6 +77,7 @@ const AddRecipeModal = ({ isOpen, onClose, onAdd }: AddRecipeModalProps) => {
     setLoading(true);
     try {
       await addCustomProtein({ value, label, icon: newProteinIcon || "🍽️" });
+      await queryClient.invalidateQueries({ queryKey: ["customProteins"] });
       const updated = await getCustomProteins();
       setCustomProteins(updated);
       setMainProtein(value);

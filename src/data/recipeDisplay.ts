@@ -1,5 +1,58 @@
 import type { Recipe } from "@/types/recipe";
+import type { CustomProtein } from "@/api/categories";
 import { MAIN_PROTEINS } from "@/lib/constants";
+
+/** One row in the recipe book category grid (built-in, custom from DB, or inferred from recipes). */
+export interface RecipeBookCategoryRow {
+  value: string;
+  label: string;
+  emoji: string;
+  builtIn: boolean;
+}
+
+/**
+ * Built-in proteins first (constants order), then custom from Supabase (by label),
+ * then any main_protein values on recipes not already listed (legacy / deleted custom).
+ */
+export function buildRecipeBookCategories(
+  customProteins: CustomProtein[],
+  recipeMainProteins: string[]
+): RecipeBookCategoryRow[] {
+  const builtInRows: RecipeBookCategoryRow[] = MAIN_PROTEINS.map((p) => ({
+    value: p.value,
+    label: p.label,
+    emoji: p.icon,
+    builtIn: true,
+  }));
+
+  const seen = new Set(builtInRows.map((r) => r.value));
+
+  const customRows: RecipeBookCategoryRow[] = customProteins
+    .filter((c) => c.value && !seen.has(c.value))
+    .map((c) => {
+      seen.add(c.value);
+      return {
+        value: c.value,
+        label: c.label,
+        emoji: c.icon?.trim() || "🍽️",
+        builtIn: false,
+      };
+    });
+  customRows.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+
+  const orphanValues = [...new Set(recipeMainProteins)]
+    .filter((v) => v && !seen.has(v))
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+
+  const orphanRows: RecipeBookCategoryRow[] = orphanValues.map((value) => ({
+    value,
+    label: value,
+    emoji: "🍽️",
+    builtIn: false,
+  }));
+
+  return [...builtInRows, ...customRows, ...orphanRows];
+}
 
 /** Display model for the Loveable UI (title, cuisine string, time, servings, image emoji, etc.) */
 export interface RecipeDisplay {

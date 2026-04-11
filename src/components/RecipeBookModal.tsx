@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { CATEGORIES } from "@/data/recipeDisplay";
+import { buildRecipeBookCategories } from "@/data/recipeDisplay";
 import type { RecipeDisplay } from "@/data/recipeDisplay";
+import { getCustomProteins } from "@/api/categories";
 import { useWebLanguage } from "@/lib/WebLanguageContext";
 import { translateProteinLabel } from "@/lib/webI18n";
 
@@ -17,6 +19,25 @@ interface RecipeBookModalProps {
 const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBookModalProps) => {
   const { t, language } = useWebLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const { data: customProteins = [] } = useQuery({
+    queryKey: ["customProteins"],
+    queryFn: getCustomProteins,
+    enabled: isOpen,
+  });
+
+  const recipeMainProteins = useMemo(
+    () => recipes.map((r) => r._recipe.main_protein).filter(Boolean) as string[],
+    [recipes]
+  );
+
+  const bookCategories = useMemo(
+    () => buildRecipeBookCategories(customProteins, recipeMainProteins),
+    [customProteins, recipeMainProteins]
+  );
+
+  const categoryLabel = (value: string, fallbackLabel: string, builtIn: boolean) =>
+    builtIn ? translateProteinLabel(language, value, fallbackLabel) : fallbackLabel;
 
   const filtered = selectedCategory
     ? recipes.filter((r) => r._recipe.main_protein === selectedCategory)
@@ -51,10 +72,10 @@ const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBoo
                 )}
                 <h2 className="font-heading text-2xl">
                   {selectedCategory
-                    ? translateProteinLabel(
-                        language,
+                    ? categoryLabel(
                         selectedCategory,
-                        CATEGORIES.find((c) => c.value === selectedCategory)?.name ?? selectedCategory
+                        bookCategories.find((c) => c.value === selectedCategory)?.label ?? selectedCategory,
+                        bookCategories.find((c) => c.value === selectedCategory)?.builtIn ?? false
                       )
                     : t("recipeBookTitle")}
                 </h2>
@@ -66,7 +87,7 @@ const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBoo
 
             {!selectedCategory ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {CATEGORIES.map((cat, i) => {
+                {bookCategories.map((cat, i) => {
                   const count = getCountForCategory(cat.value);
                   return (
                     <motion.button
@@ -81,7 +102,7 @@ const RecipeBookModal = ({ isOpen, onClose, recipes, onSelectRecipe }: RecipeBoo
                       <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform inline-block">
                         {cat.emoji}
                       </span>
-                      <p className="font-medium">{translateProteinLabel(language, cat.value, cat.name)}</p>
+                      <p className="font-medium">{categoryLabel(cat.value, cat.label, cat.builtIn)}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {t("recipeCountInCategory", { n: count })}
                       </p>
