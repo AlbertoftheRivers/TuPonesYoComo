@@ -51,32 +51,29 @@ const RecipeDetail = ({ recipe, onClose, onEdit, onDeleted }: RecipeDetailProps)
         className="relative bg-card rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
       >
         <div className="absolute top-3 left-3 right-3 z-10 flex justify-between items-start pointer-events-none">
-          <Button
+          {/* Plain buttons + fixed Tailwind colors so Lucide strokes stay visible (shadcn Button + outline was washing out currentColor). */}
+          <button
             type="button"
-            size="icon"
-            variant="outline"
-            className="pointer-events-auto h-10 w-10 shrink-0 rounded-full border-border bg-card/95 text-destructive shadow-md backdrop-blur-sm hover:bg-destructive/15 hover:text-destructive hover:border-destructive/50"
+            className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-stone-300 bg-white text-red-600 shadow-md transition-colors hover:border-red-400 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             aria-label={t("ariaDeleteRecipe")}
             onClick={(e) => {
               e.stopPropagation();
               setDeleteConfirmOpen(true);
             }}
           >
-            <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-          </Button>
-          <Button
+            <Trash2 className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+          </button>
+          <button
             type="button"
-            size="icon"
-            variant="outline"
-            className="pointer-events-auto h-10 w-10 shrink-0 rounded-full border-border bg-card/95 text-foreground shadow-md backdrop-blur-sm hover:bg-primary/15 hover:text-primary hover:border-primary/40"
+            className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-stone-300 bg-white text-orange-600 shadow-md transition-colors hover:border-orange-400 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
             aria-label={t("ariaEditRecipe")}
             onClick={(e) => {
               e.stopPropagation();
               onEdit(recipe);
             }}
           >
-            <Pencil className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-          </Button>
+            <Pencil className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+          </button>
         </div>
 
         <div className="bg-primary/10 px-6 pt-14 pb-8 text-center">
