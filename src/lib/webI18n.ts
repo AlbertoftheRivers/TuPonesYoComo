@@ -64,7 +64,7 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     helpTitle: "Guía rápida",
     helpBody:
       "Busca recetas desde la barra superior. «Mi nevera» encuentra platos según lo que tengas en casa.\n\n" +
-      "«Añadir receta» permite pegar texto, escanear una foto o dictar; luego usa «Analizar con IA» para rellenar ingredientes y pasos.\n\n" +
+      "«Añadir receta»: escribe el nombre, luego en Pasos puedes escribir, dictar o escanear y usar «Analizar con IA» para rellenar ingredientes y datos.\n\n" +
       "El idioma del menú cambia con el botón del globo. Los textos de las recetas guardadas se muestran tal como los escribiste.",
     adminTitle: "Ajustes",
     adminLead:
@@ -109,12 +109,10 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
       "No encontramos recetas con estos ingredientes. Prueba otros o añade una receta que los use.",
     fridgeSearching: "Buscando recetas…",
     addRecipeTitle: "Nueva receta",
-    addRecipeRawLabel: "Texto de la receta (pegar, escanear o dictar)",
     scan: "Escanear",
     dictate: "Dictar",
     stop: "Parar",
     analyzeAI: "Analizar con IA",
-    rawPlaceholder: "Pega el texto o usa Escanear / Dictar…",
     recipeName: "Nombre de la receta",
     recipeNamePh: "Mi receta",
     mainProtein: "Categoría principal",
@@ -130,19 +128,19 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     ingredients: "Ingredientes",
     addIngredientPh: "Añadir ingrediente…",
     steps: "Pasos",
-    stepsPh: "Un paso por línea…",
+    stepsFieldPlaceholder:
+      "Escribe, dicta o escanea aquí los pasos de la receta y usa «Analizar con IA» para rellenar ingredientes y datos. Un paso por línea funciona mejor.",
     saving: "Guardando…",
     saveRecipe: "Guardar receta",
     editRecipeTitle: "Editar receta",
     saveChanges: "Guardar cambios",
     toastRecipeUpdated: "Receta actualizada",
-    ovenTimeMin: "Tiempo de horno (min)",
+    toastAddStepsFirst: "Añade o dicta primero los pasos de la receta en el cuadro de pasos.",
     toastMicUnavailable: "Micrófono no disponible",
     toastTranscriptionAdded: "Transcripción añadida",
     toastTranscriptionFailed: "Fallo al transcribir",
     toastRecordingUnsupported: "Grabación no soportada",
     toastRecordingInfo: "Grabando… Pulsa de nuevo para parar.",
-    toastAddTextFirst: "Añade o pega texto de la receta primero",
     toastRecipeAnalyzed: "Receta analizada",
     toastAnalysisFailed: "Fallo al analizar",
     toastNameRequired: "El nombre de la receta es obligatorio",
@@ -184,7 +182,7 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     helpTitle: "Guia ràpida",
     helpBody:
       "Cerca receptes des de la barra superior. «La meva nevera» troba plats segons el que tinguis a casa.\n\n" +
-      "«Afegir recepta» permet enganxar text, escanejar una foto o dictar; després usa «Analitzar amb IA» per omplir ingredients i passos.\n\n" +
+      "«Afegir recepta»: escriu el nom, després a Passos pots escriure, dictar o escanejar i usar «Analitzar amb IA» per omplir ingredients i dades.\n\n" +
       "L’idioma del menú canvia amb el botó del globus. Els textos de les receptes desades es mostren tal com els vas escriure.",
     adminTitle: "Ajustos",
     adminLead:
@@ -229,12 +227,10 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
       "No hem trobat receptes amb aquests ingredients. Prova’n d’altres o afegeix una recepta que els faci servir.",
     fridgeSearching: "Cercant receptes…",
     addRecipeTitle: "Nova recepta",
-    addRecipeRawLabel: "Text de la recepta (enganxar, escanejar o dictar)",
     scan: "Escanejar",
     dictate: "Dictar",
     stop: "Aturar",
     analyzeAI: "Analitzar amb IA",
-    rawPlaceholder: "Enganxa el text o usa Escanejar / Dictar…",
     recipeName: "Nom de la recepta",
     recipeNamePh: "La meva recepta",
     mainProtein: "Categoria principal",
@@ -250,19 +246,19 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     ingredients: "Ingredients",
     addIngredientPh: "Afegir ingredient…",
     steps: "Passos",
-    stepsPh: "Un pas per línia…",
+    stepsFieldPlaceholder:
+      "Escriu, dicta o escaneja aquí els passos de la recepta i usa «Analitzar amb IA» per omplir ingredients i dades. Un pas per línia funciona millor.",
     saving: "Desant…",
     saveRecipe: "Desar recepta",
     editRecipeTitle: "Editar recepta",
     saveChanges: "Desar canvis",
     toastRecipeUpdated: "Recepta actualitzada",
-    ovenTimeMin: "Temps de forn (min)",
+    toastAddStepsFirst: "Afegeix o dicta primer els passos de la recepta al quadre de passos.",
     toastMicUnavailable: "Micròfon no disponible",
     toastTranscriptionAdded: "Transcripció afegida",
     toastTranscriptionFailed: "Error en transcriure",
     toastRecordingUnsupported: "Gravació no suportada",
     toastRecordingInfo: "Gravant… Torna a prémer per aturar.",
-    toastAddTextFirst: "Afegeix o enganxa el text de la recepta primer",
     toastRecipeAnalyzed: "Recepta analitzada",
     toastAnalysisFailed: "Error en analitzar",
     toastNameRequired: "El nom de la recepta és obligatori",
@@ -304,7 +300,7 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     helpTitle: "Guide rapide",
     helpBody:
       "Recherchez depuis la barre du haut. « Mon frigo » suggère des plats selon ce que vous avez.\n\n" +
-      "« Ajouter une recette » permet de coller du texte, scanner une photo ou dicter ; utilisez ensuite « Analyser avec l’IA » pour remplir ingrédients et étapes.\n\n" +
+      "« Ajouter une recette » : indiquez le titre, puis dans Étapes écrivez, dictez ou scannez et utilisez « Analyser avec l’IA » pour remplir ingrédients et détails.\n\n" +
       "La langue du menu change avec le bouton globe. Le texte des recettes enregistrées s’affiche tel que vous l’avez saisi.",
     adminTitle: "Réglages",
     adminLead:
@@ -349,12 +345,10 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
       "Aucune recette avec ces ingrédients. Essayez d’autres ingrédients ou ajoutez une recette qui les utilise.",
     fridgeSearching: "Recherche de recettes…",
     addRecipeTitle: "Nouvelle recette",
-    addRecipeRawLabel: "Texte de la recette (coller, scanner ou dicter)",
     scan: "Scanner",
     dictate: "Dicter",
     stop: "Arrêter",
     analyzeAI: "Analyser avec l’IA",
-    rawPlaceholder: "Collez le texte ou utilisez Scanner / Dicter…",
     recipeName: "Nom de la recette",
     recipeNamePh: "Ma recette",
     mainProtein: "Catégorie principale",
@@ -370,19 +364,19 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     ingredients: "Ingrédients",
     addIngredientPh: "Ajouter un ingrédient…",
     steps: "Étapes",
-    stepsPh: "Une étape par ligne…",
+    stepsFieldPlaceholder:
+      "Écrivez, dictez ou scannez ici les étapes de la recette, puis utilisez « Analyser avec l’IA » pour extraire ingrédients et détails. Une étape par ligne est idéal.",
     saving: "Enregistrement…",
     saveRecipe: "Enregistrer la recette",
     editRecipeTitle: "Modifier la recette",
     saveChanges: "Enregistrer les modifications",
     toastRecipeUpdated: "Recette mise à jour",
-    ovenTimeMin: "Temps au four (min)",
+    toastAddStepsFirst: "Ajoutez ou dictez d’abord les étapes dans le champ Étapes.",
     toastMicUnavailable: "Microphone indisponible",
     toastTranscriptionAdded: "Transcription ajoutée",
     toastTranscriptionFailed: "Échec de la transcription",
     toastRecordingUnsupported: "Enregistrement non pris en charge",
     toastRecordingInfo: "Enregistrement… Cliquez à nouveau pour arrêter.",
-    toastAddTextFirst: "Ajoutez ou collez d’abord le texte de la recette",
     toastRecipeAnalyzed: "Recette analysée",
     toastAnalysisFailed: "Échec de l’analyse",
     toastNameRequired: "Le nom de la recette est obligatoire",
@@ -424,7 +418,7 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     helpTitle: "Quick guide",
     helpBody:
       "Search from the bar at the top. “My Fridge” finds dishes based on what you have at home.\n\n" +
-      "“Add Recipe” lets you paste text, scan a photo, or dictate; then use “Analyze with AI” to fill ingredients and steps.\n\n" +
+      "“Add Recipe”: enter the name first; in Steps you can type, dictate, or scan, then use “Analyze with AI” to fill ingredients and details.\n\n" +
       "The menu language changes with the globe button. Saved recipe text is shown exactly as you entered it.",
     adminTitle: "Settings",
     adminLead:
@@ -469,12 +463,10 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
       "No recipes found with these ingredients. Try different ones or add a recipe that uses them.",
     fridgeSearching: "Searching recipes…",
     addRecipeTitle: "Add New Recipe",
-    addRecipeRawLabel: "Recipe text (paste, scan, or dictate)",
     scan: "Scan",
     dictate: "Dictate",
     stop: "Stop",
     analyzeAI: "Analyze with AI",
-    rawPlaceholder: "Paste recipe text, or use Scan / Dictate…",
     recipeName: "Recipe name",
     recipeNamePh: "My recipe",
     mainProtein: "Main category",
@@ -490,19 +482,19 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     ingredients: "Ingredients",
     addIngredientPh: "Add ingredient…",
     steps: "Steps",
-    stepsPh: "One step per line…",
+    stepsFieldPlaceholder:
+      "Write, dictate, or scan the recipe steps here, then use Analyze with AI to fill in ingredients and other details. One step per line works best.",
     saving: "Saving…",
     saveRecipe: "Add Recipe",
     editRecipeTitle: "Edit recipe",
     saveChanges: "Save changes",
     toastRecipeUpdated: "Recipe updated",
-    ovenTimeMin: "Oven time (min)",
+    toastAddStepsFirst: "Add or dictate the recipe steps in the Steps box first.",
     toastMicUnavailable: "Microphone not available",
     toastTranscriptionAdded: "Transcription added",
     toastTranscriptionFailed: "Transcription failed",
     toastRecordingUnsupported: "Recording not supported",
     toastRecordingInfo: "Recording… Click again to stop.",
-    toastAddTextFirst: "Add or paste recipe text first",
     toastRecipeAnalyzed: "Recipe analyzed",
     toastAnalysisFailed: "Analysis failed",
     toastNameRequired: "Recipe name is required",
@@ -544,7 +536,7 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     helpTitle: "Guia rápido",
     helpBody:
       "Pesquisa na barra superior. «O meu frigorífico» encontra pratos consoante o que tens em casa.\n\n" +
-      "«Adicionar receita» permite colar texto, digitalizar uma foto ou ditar; depois usa «Analisar com IA» para preencher ingredientes e passos.\n\n" +
+      "«Adicionar receita»: indica o nome; em Passos podes escrever, ditar ou digitalizar e usar «Analisar com IA» para preencher ingredientes e dados.\n\n" +
       "O idioma do menu muda com o botão do globo. O texto das receitas guardadas aparece tal como o escreveste.",
     adminTitle: "Definições",
     adminLead:
@@ -589,12 +581,10 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
       "Não encontrámos receitas com estes ingredientes. Tenta outros ou adiciona uma receita que os use.",
     fridgeSearching: "A pesquisar receitas…",
     addRecipeTitle: "Nova receita",
-    addRecipeRawLabel: "Texto da receita (colar, digitalizar ou ditar)",
     scan: "Digitalizar",
     dictate: "Ditar",
     stop: "Parar",
     analyzeAI: "Analisar com IA",
-    rawPlaceholder: "Cola o texto ou usa Digitalizar / Ditar…",
     recipeName: "Nome da receita",
     recipeNamePh: "A minha receita",
     mainProtein: "Categoria principal",
@@ -610,19 +600,19 @@ export const webTranslations: Record<SupportedWebLanguage, Record<string, string
     ingredients: "Ingredientes",
     addIngredientPh: "Adicionar ingrediente…",
     steps: "Passos",
-    stepsPh: "Um passo por linha…",
+    stepsFieldPlaceholder:
+      "Escreve, dita ou digitaliza aqui os passos da receita e usa «Analisar com IA» para preencher ingredientes e dados. Um passo por linha funciona melhor.",
     saving: "A guardar…",
     saveRecipe: "Guardar receita",
     editRecipeTitle: "Editar receita",
     saveChanges: "Guardar alterações",
     toastRecipeUpdated: "Receita atualizada",
-    ovenTimeMin: "Tempo no forno (min)",
+    toastAddStepsFirst: "Adiciona ou dita primeiro os passos da receita na caixa de passos.",
     toastMicUnavailable: "Microfone indisponível",
     toastTranscriptionAdded: "Transcrição adicionada",
     toastTranscriptionFailed: "Falha na transcrição",
     toastRecordingUnsupported: "Gravação não suportada",
     toastRecordingInfo: "A gravar… Clica outra vez para parar.",
-    toastAddTextFirst: "Adiciona ou cola primeiro o texto da receita",
     toastRecipeAnalyzed: "Receita analisada",
     toastAnalysisFailed: "Falha na análise",
     toastNameRequired: "O nome da receita é obrigatório",

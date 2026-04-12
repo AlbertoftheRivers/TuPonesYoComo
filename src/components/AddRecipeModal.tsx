@@ -35,7 +35,6 @@ interface AddRecipeModalProps {
 }
 
 const defaultFormState = () => ({
-  rawText: "",
   title: "",
   mainProtein: "chicken",
   cuisineValue: CUISINES[0]?.value ?? "española",
@@ -43,14 +42,12 @@ const defaultFormState = () => ({
   steps: [] as string[],
   stepsText: "",
   totalTime: null as number | null,
-  ovenTime: null as number | null,
   servings: 2,
 });
 
 const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipeModalProps) => {
   const queryClient = useQueryClient();
   const { t } = useWebLanguage();
-  const [rawText, setRawText] = useState("");
   const [title, setTitle] = useState("");
   const [mainProtein, setMainProtein] = useState<string>("chicken");
   const [customProteins, setCustomProteins] = useState<CustomProtein[]>([]);
@@ -63,7 +60,6 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
   const [steps, setSteps] = useState<string[]>([]);
   const [stepsText, setStepsText] = useState("");
   const [totalTime, setTotalTime] = useState<number | null>(null);
-  const [ovenTime, setOvenTime] = useState<number | null>(null);
   const [servings, setServings] = useState(2);
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -89,7 +85,6 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
     if (!opening) return;
 
     if (editingRecipe) {
-      setRawText(editingRecipe.raw_text ?? "");
       setTitle(editingRecipe.title);
       setMainProtein(editingRecipe.main_protein);
       setCuisineValue(editingRecipe.cuisines?.[0] ?? CUISINES[0]?.value ?? "española");
@@ -98,11 +93,9 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
       setSteps([...editingRecipe.steps]);
       setStepsText(editingRecipe.steps.join("\n"));
       setTotalTime(editingRecipe.total_time_minutes);
-      setOvenTime(editingRecipe.oven_time_minutes);
       setServings(editingRecipe.servings ?? 2);
     } else {
       const d = defaultFormState();
-      setRawText(d.rawText);
       setTitle(d.title);
       setMainProtein(d.mainProtein);
       setCuisineValue(d.cuisineValue);
@@ -111,7 +104,6 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
       setSteps(d.steps);
       setStepsText(d.stepsText);
       setTotalTime(d.totalTime);
-      setOvenTime(d.ovenTime);
       setServings(d.servings);
     }
     setShowAddProtein(false);
@@ -173,6 +165,12 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
     }
   };
 
+  const appendToSteps = (chunk: string) => {
+    const addition = chunk.trim();
+    if (!addition) return;
+    setStepsText((prev) => (prev.trim() ? `${prev.trim()}\n\n${addition}` : addition));
+  };
+
   const handleScanImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -185,7 +183,7 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
         r.readAsDataURL(file);
       });
       const result = await extractTextFromImage(dataUrl, "spa");
-      setRawText((prev) => (prev ? prev + "\n\n" : "") + result.text);
+      appendToSteps(result.text);
       toast.success(t("toastTextExtracted"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("toastOcrFail"));
@@ -208,7 +206,7 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
           setLoading(true);
           try {
             const { text } = await transcribeWebAudio(blob, "es");
-            setRawText((prev) => (prev ? prev + "\n\n" : "") + text);
+            appendToSteps(text);
             toast.success(t("toastTranscriptionAdded"));
           } catch (err) {
             toast.error(err instanceof Error ? err.message : t("toastTranscriptionFailed"));
@@ -231,22 +229,29 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
     toast.info(t("toastRecordingInfo"));
   };
 
+  const textForAnalysis = () => {
+    const s = stepsText.trim();
+    const ti = title.trim();
+    if (ti && s) return `${ti}\n\n${s}`;
+    return s || ti;
+  };
+
   const handleAnalyze = async () => {
-    if (!rawText.trim()) {
-      toast.error(t("toastAddTextFirst"));
+    const blob = textForAnalysis();
+    if (!blob.trim()) {
+      toast.error(t("toastAddStepsFirst"));
       return;
     }
     const proteinForAnalyze = mainProtein === ADD_NEW_PROTEIN_VALUE ? "vegetables" : mainProtein;
     setLoading(true);
     try {
-      const result = await analyzeRecipe(rawText, proteinForAnalyze);
+      const result = await analyzeRecipe(blob, proteinForAnalyze);
       setIngredients(result.ingredients.map((i) => ({ name: i.name ?? "", quantity: i.quantity, unit: i.unit, notes: i.notes })));
       setSteps(result.steps);
       setStepsText(result.steps.join("\n"));
       setTotalTime(result.total_time_minutes);
-      setOvenTime(result.oven_time_minutes);
-      if (!title && rawText.length < 200) {
-        const firstLine = rawText.split("\n")[0]?.trim();
+      if (!title.trim() && blob.length < 200) {
+        const firstLine = blob.split("\n")[0]?.trim();
         if (firstLine) setTitle(firstLine);
       }
       toast.success(t("toastRecipeAnalyzed"));
@@ -267,16 +272,17 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
       toast.error(t("toastChooseProteinFirst"));
       return;
     }
+    const rawTextStored = stepsText.trim() || title.trim();
     const payload: RecipeInsertPayload = {
       title: title.trim(),
       main_protein: mainProtein,
       cuisines: cuisineValue ? [cuisineValue as Cuisine] : [],
-      raw_text: rawText,
+      raw_text: rawTextStored,
       ingredients,
       steps: stepsList,
       gadgets: editingRecipe?.gadgets ?? [],
       total_time_minutes: totalTime,
-      oven_time_minutes: ovenTime,
+      oven_time_minutes: null,
       servings,
       added_by: editingRecipe?.added_by ?? null,
     };
@@ -323,34 +329,6 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">{t("addRecipeRawLabel")}</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleScanImage}
-                  />
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={loading}>
-                    <Camera className="w-4 h-4 mr-1" /> {t("scan")}
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleDictate} disabled={loading}>
-                    <Mic className="w-4 h-4 mr-1" /> {recording ? t("stop") : t("dictate")}
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAnalyze} disabled={loading || !rawText.trim()}>
-                    <Sparkles className="w-4 h-4 mr-1" /> {t("analyzeAI")}
-                  </Button>
-                </div>
-                <Textarea
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  placeholder={t("rawPlaceholder")}
-                  rows={3}
-                />
-              </div>
-
               <div>
                 <label className="text-sm font-medium mb-1 block">{t("recipeName")}</label>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("recipeNamePh")} />
@@ -426,7 +404,7 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium mb-1 block">{t("totalTimeMin")}</label>
                   <Input
@@ -437,15 +415,6 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">{t("ovenTimeMin")}</label>
-                  <Input
-                    type="number"
-                    value={ovenTime ?? ""}
-                    onChange={(e) => setOvenTime(e.target.value ? Number(e.target.value) : null)}
-                    placeholder="—"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
                   <label className="text-sm font-medium mb-1 block">{t("servings")}</label>
                   <Input type="number" value={servings} onChange={(e) => setServings(Number(e.target.value) || 2)} min={1} />
                 </div>
@@ -478,11 +447,30 @@ const AddRecipeModal = ({ isOpen, onClose, onSuccess, editingRecipe }: AddRecipe
 
               <div>
                 <label className="text-sm font-medium mb-1 block">{t("steps")}</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleScanImage}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={loading}>
+                    <Camera className="w-4 h-4 mr-1" /> {t("scan")}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleDictate} disabled={loading}>
+                    <Mic className="w-4 h-4 mr-1" /> {recording ? t("stop") : t("dictate")}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleAnalyze} disabled={loading || !textForAnalysis().trim()}>
+                    <Sparkles className="w-4 h-4 mr-1" /> {t("analyzeAI")}
+                  </Button>
+                </div>
                 <Textarea
                   value={stepsText}
                   onChange={(e) => setStepsText(e.target.value)}
-                  placeholder={t("stepsPh")}
-                  rows={4}
+                  placeholder={t("stepsFieldPlaceholder")}
+                  rows={5}
+                  className="min-h-[120px]"
                 />
               </div>
 
